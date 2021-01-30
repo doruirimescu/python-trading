@@ -62,5 +62,3 @@ def getInvestingResponse(symbol, period):
             print(response_text)
             response.append(string_to_enum[response_text])
     return response
-
-print(getInvestingResponse('NATGAS', '1m'))
