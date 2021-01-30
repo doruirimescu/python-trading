@@ -1,6 +1,7 @@
 # For investing api
 pip install bs4
 pip install lxml
+pip install argparse
 
 # For xtb api
 git clone git@github.com:doruirimescu/XTBApi.git
