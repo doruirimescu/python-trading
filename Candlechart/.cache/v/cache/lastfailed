@@ -1,3 +1,5 @@
 {
-  "tests/test_candle.py::test_Candle_getBodyPercentage": true
+  "tests/test_candle.py::test_Candle_getBodyPercentage": true, 
+  "tests/test_candle_classifier.py::TestCandleClassifier::test_getBodyPercentage": true, 
+  "tests/test_candle_classifier.py::TestCandleClassifier::test_isGreen": true
 }

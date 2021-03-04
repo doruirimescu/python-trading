@@ -18,8 +18,44 @@ class CandleType(Enum):
     SHAVEN_BOTTOM = 11
     UNDEFINED = 12
 
+class Color(Enum):
+    RED = 0
+    BLACK = 0
+    GREEN = 1
+    WHITE = 1
+
+class CandleClassifier:
+    def __init__(self, candle):
+        self.open_  = candle.open_
+        self.close_ = candle.close_
+        self.high_  = candle.high_
+        self.low_   = candle.low_
+
+        self.swing_ = abs(self.high_-self.low_)
+        self.body_ = abs(self.open_-self.close_)/(abs(self.high_-self.low_))
+
+
+        self.c_ = candle.getColor() == Color.GREEN
+
+        self.wt_ = (self.high_ -(self.c_*self.close_ + (1-self.c_)*self.open_)) / self.swing_
+        self.wb_ = ((self.c_*self.open_ + (1-self.c_)*self.close_) - self.low_) / self.swing_
+
+    def getWickBottom(self):
+        return self.wb_
+
+    def getWickTop(self):
+        return self.wt_
+
 class Candle:
-    def __init__(self, open, close, high, low):
+    def __init__(self, open, high, low, close):
+        """[summary]
+
+        Args:
+            open ([type]): [description]
+            high ([type]): [description]
+            low ([type]): [description]
+            close ([type]): [description]
+        """
 
         self.validate(open, close, high, low)
 
@@ -28,7 +64,12 @@ class Candle:
         self.high_ = high
         self.low_ = low
 
-        self.body_percentage_ = abs(open-close)/(abs(high-low))
+        if self.open_ < self.close_:
+            self.color_ = Color.GREEN
+        else:
+            self.color_ = Color.RED
+
+        self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
         self.type_ = self.__calcType()
 
 
@@ -47,11 +88,8 @@ class Candle:
     def getBodyPercentage(self):
         return self.body_percentage_
 
-    def isGreen(self):
-        if self.open_ < self.close_:
-            return True
-        else:
-            return False
+    def getColor(self):
+        return self.color_
 
     def __calcType(self):
         if self.__isBig():
@@ -131,8 +169,8 @@ class Candle:
         pass
 
 
-c1 = Candle(1,2,3,1)
+# c1 = Candle(1,2,3,1)
 
-print(c1.isGreen())
-print(c1.getType())
-print(c1.getBodyPercentage())
+# print(c1.isGreen())
+# print(c1.getType())
+# print(c1.getBodyPercentage())
