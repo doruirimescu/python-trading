@@ -122,7 +122,7 @@ class Investing:
                 response.append(self.string_to_enum[response_text.upper()])
         return response
 
-a = Investing()
+i = Investing()
 
-print(a.getInvestingResponse('US30', '30m'))
+print(i.getInvestingResponse('US30', '30m'))
 #print(getAvailableSymbols())

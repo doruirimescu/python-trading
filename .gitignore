@@ -1,2 +1,5 @@
 __pycache__/
 XTBApi/
+Candechart/__pycache__
+Candechart/.cache/v/cache
+*.pyc
