@@ -16,15 +16,33 @@ class CandleType(Enum):
     SPINNING_TOP = 9
     SHAVEN_HEAD = 10
     SHAVEN_BOTTOM = 11
+    UNDEFINED = 12
 
 class Candle:
     def __init__(self, open, close, high, low):
+
+        self.validate(open, close, high, low)
+
         self.open_ = open
         self.close_ = close
         self.high_ = high
         self.low_ = low
 
         self.body_percentage_ = abs(open-close)/(abs(high-low))
+        self.type_ = self.__calcType()
+
+
+    def validate(self, open, close, high, low):
+        if open < 0.0:
+            raise Exception("Open price smaller than 0")
+        elif close < 0.0:
+            raise Exception("Close price smaller than 0")
+        elif high < 0.0:
+            raise Exception("High price smaller than 0")
+        elif low < 0.0:
+            raise Exception("Low price smaller than 0")
+        elif low > high:
+            raise Exception("Low is higher than high")
 
     def getBodyPercentage(self):
         return self.body_percentage_
@@ -35,20 +53,53 @@ class Candle:
         else:
             return False
 
+    def __calcType(self):
+        if self.__isBig():
+            return CandleType.BIG
+        elif self.__isBody():
+            return CandleType.BODY
+        elif self.__isDoji():
+            return CandleType.DOJI
+        elif self.__isDragonFlyDoji():
+            return CandleType.DRAGONFLY_DOJI
+        elif self.__isGravestoneDoji():
+            return CandleType.GRAVESTONE_DOJI
+        elif self.__isHammer():
+            return CandleType.HAMMER
+        elif self.__isHangingMan():
+            return CandleType.HANGINGMAN
+        elif self.__isInvertedHammer():
+            return CandleType.INVERTED_HAMMER
+        elif self.__isLongLeggedDoji():
+            return CandleType.LONG_LEGGED_DOJI
+        elif self.__isMarubozu():
+            return CandleType.MARUBOZU
+        elif self.__isShavenBottom():
+            return CandleType.SHAVEN_BOTTOM
+        elif self.__isShavenHead():
+            return CandleType.SHAVEN_HEAD
+        elif self.__isShootingStar():
+            return CandleType.SHOOTING_STAR
+        elif self.__isSpinningTop():
+            return CandleType.SPINNING_TOP
+        else:
+            return CandleType.UNDEFINED
+
+
     def getType(self):
-        return CandleType.BIG
+        return self.type_
 
     def __isBig(self):
-        pass
+        return self.body_percentage_ >= 0.9
 
     def __isBody(self):
-        pass
+        return False
 
     def __isDoji(self):
-        pass
+        return False
 
     def __isLongLeggedDoji(self):
-        pass
+        return False
 
     def __isDragonFlyDoji(self):
         pass
@@ -81,7 +132,7 @@ class Candle:
         pass
 
 
-c1 = Candle(1,2,0,4)
+c1 = Candle(1,2,3,1)
 
 print(c1.isGreen())
 print(c1.getType())
