@@ -2,21 +2,21 @@ from enum import Enum
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern
     """
-    BIG = -1
-    BODY = 0
+    BIG = -1                #Distinguish with body
+    BODY = 0                #Distinguish with big
     DOJI = 1
     LONG_LEGGED_DOJI = 2
     DRAGONFLY_DOJI = 3
     GRAVESTONE_DOJI = 4
-    HAMMER = 5
-    HANGINGMAN = 6
-    INVERTED_HAMMER = 7
-    SHOOTING_STAR = 8
-    MARUBOZU = 8
-    SPINNING_TOP = 9
-    SHAVEN_HEAD = 10
-    SHAVEN_BOTTOM = 11
-    UNDEFINED = 12
+    HAMMER = 5              #Distinguish with shaven head
+    HANGINGMAN = 6          #Same as hammer, but in downtrend
+    INVERTED_HAMMER = 7     #Distinguish with shaven bottom
+    SHOOTING_STAR = 8       #Same as inverted hammer, but in uptrend
+    MARUBOZU = 9
+    SPINNING_TOP = 10
+    SHAVEN_HEAD = 11        #Distinguish with hammer
+    SHAVEN_BOTTOM = 12      #Distinguish with inverted_hammer
+    UNDEFINED = 13
 
 class Color(Enum):
     RED = 0
@@ -24,6 +24,16 @@ class Color(Enum):
     GREEN = 1
     WHITE = 1
 
+# Wt, Wb, b
+candle_type_dict = {
+                    CandleType.MARUBOZU  : (0.0, 0.0, 1.0),
+                    CandleType.BODY : (1/3, 1/3, 1/3),
+                    CandleType.DOJI : (0.5, 0.5, 0.0),
+                    CandleType.DRAGONFLY_DOJI   : (0.0, 1.0, 0.0),
+                    CandleType.GRAVESTONE_DOJI  : (1.0, 0.0, 0.0),
+                    CandleType.HAMMER : (0, 2/3, 1/3),
+                    CandleType.INVERTED_HAMMER:(2/3, 0.0,1/3)
+                    }
 class CandleClassifier:
     def __init__(self, candle):
         self.open_  = candle.open_
@@ -34,11 +44,12 @@ class CandleClassifier:
         self.swing_ = abs(self.high_-self.low_)
         self.body_ = abs(self.open_-self.close_)/(abs(self.high_-self.low_))
 
-
         self.c_ = candle.getColor() == Color.GREEN
 
         self.wt_ = (self.high_ -(self.c_*self.close_ + (1-self.c_)*self.open_)) / self.swing_
         self.wb_ = ((self.c_*self.open_ + (1-self.c_)*self.close_) - self.low_) / self.swing_
+
+        self._type = self.__classify()
 
     def getWickBottom(self):
         return self.wb_
@@ -46,23 +57,56 @@ class CandleClassifier:
     def getWickTop(self):
         return self.wt_
 
+    def getType(self):
+        return self._type
+
+    def __classify(self):
+        """Calculate error from ideal type for each possible type, and return the one with minimum error
+
+        Returns:
+            [CandleType]: classified candle type
+        """
+        classifications = dict()
+        for ideal_tuple in candle_type_dict:
+            error = 0.0
+            error += abs(self.wt_ - candle_type_dict[ideal_tuple][0])
+            error += abs(self.wb_ - candle_type_dict[ideal_tuple][1])
+            error += abs(self.body_ - candle_type_dict[ideal_tuple][2])
+            classifications[ideal_tuple] = error
+        best_match = min(classifications, key=classifications.get)
+
+        #TODO Clarify between Doji and Long-legged doji
+        #TODO Clarify between Inverted Hammer and Shooting star
+
+        #Clarify between hammer and shaven_head
+        if best_match == CandleType.HAMMER:
+            if self.wt_ < 0.05:
+                best_match = CandleType.SHAVEN_HEAD
+
+        #Clarify between inverted hammer and shaven_head
+        if best_match == CandleType.INVERTED_HAMMER:
+            if self.wb_ < 0.05:
+                best_match = CandleType.SHAVEN_BOTTOM
+
+        return best_match
+
 class Candle:
     def __init__(self, open, high, low, close):
         """[summary]
 
         Args:
-            open ([type]): [description]
-            high ([type]): [description]
-            low ([type]): [description]
-            close ([type]): [description]
+            open ([float]): [open price]
+            high ([float]): [high price]
+            low ([float]): [low price]
+            close ([float]): [close price]
         """
 
         self.validate(open, close, high, low)
 
         self.open_ = open
-        self.close_ = close
+        self.close_= close
         self.high_ = high
-        self.low_ = low
+        self.low_  = low
 
         if self.open_ < self.close_:
             self.color_ = Color.GREEN
@@ -71,7 +115,6 @@ class Candle:
 
         self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
         self.type_ = self.__calcType()
-
 
     def validate(self, open, close, high, low):
         if open < 0.0:
@@ -85,92 +128,39 @@ class Candle:
         elif low > high:
             raise Exception("Low is higher than high")
 
-    def getBodyPercentage(self):
-        return self.body_percentage_
-
     def getColor(self):
         return self.color_
-
-    def __calcType(self):
-        if self.__isBig():
-            return CandleType.BIG
-        elif self.__isBody():
-            return CandleType.BODY
-        elif self.__isDoji():
-            return CandleType.DOJI
-        elif self.__isDragonFlyDoji():
-            return CandleType.DRAGONFLY_DOJI
-        elif self.__isGravestoneDoji():
-            return CandleType.GRAVESTONE_DOJI
-        elif self.__isHammer():
-            return CandleType.HAMMER
-        elif self.__isHangingMan():
-            return CandleType.HANGINGMAN
-        elif self.__isInvertedHammer():
-            return CandleType.INVERTED_HAMMER
-        elif self.__isLongLeggedDoji():
-            return CandleType.LONG_LEGGED_DOJI
-        elif self.__isMarubozu():
-            return CandleType.MARUBOZU
-        elif self.__isShavenBottom():
-            return CandleType.SHAVEN_BOTTOM
-        elif self.__isShavenHead():
-            return CandleType.SHAVEN_HEAD
-        elif self.__isShootingStar():
-            return CandleType.SHOOTING_STAR
-        elif self.__isSpinningTop():
-            return CandleType.SPINNING_TOP
-        else:
-            return CandleType.UNDEFINED
 
     def getType(self):
         return self.type_
 
-    def __isBig(self):
-        return self.body_percentage_ >= 0.9
+    def __calcType(self):
+        classifier = CandleClassifier(self)
+        return classifier.getType()
 
-    def __isBody(self):
-        pass
+big = Candle(0.05,1,0,0.95)
+print(big.getType())
 
-    def __isDoji(self):
-        pass
+doji = Candle(0.6,1,0,0.5)
+print(doji.getType())
 
-    def __isLongLeggedDoji(self):
-        pass
+dragonfly_doji = Candle(0.9,1,0,1.0)
+print(dragonfly_doji.getType())
 
-    def __isDragonFlyDoji(self):
-        pass
+grave_doji = Candle(0.0,1,0,0.1)
+print(grave_doji.getType())
 
-    def __isGravestoneDoji(self):
-        pass
+marubozu = Candle(0.0,1,0,0.99)
+print(marubozu.getType())
 
-    def __isHammer(self):
-        pass
+hammer = Candle(0.7,1,0,0.9)
+print(hammer.getType())
 
-    def __isHangingMan(self):
-        pass
+shaven_head = Candle(0.8,1,0,0.99)
+print(shaven_head.getType())
 
-    def __isInvertedHammer(self):
-        pass
+inv_hammer = Candle(0.1,1,0,0.3)
+print(inv_hammer.getType())
 
-    def __isShootingStar(self):
-        pass
-
-    def __isMarubozu(self):
-        pass
-
-    def __isSpinningTop(self):
-        pass
-
-    def __isShavenHead(self):
-        pass
-
-    def __isShavenBottom(self):
-        pass
-
-
-# c1 = Candle(1,2,3,1)
-
-# print(c1.isGreen())
-# print(c1.getType())
-# print(c1.getBodyPercentage())
+shaven_bottom = Candle(0.0,1,0,0.3)
+print(shaven_bottom.getType())
