@@ -1,0 +1,3 @@
+{
+  "tests/test_candle.py::test_Candle_getBodyPercentage": true
+}

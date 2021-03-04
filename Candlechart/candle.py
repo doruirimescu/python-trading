@@ -85,7 +85,6 @@ class Candle:
         else:
             return CandleType.UNDEFINED
 
-
     def getType(self):
         return self.type_
 
@@ -93,13 +92,13 @@ class Candle:
         return self.body_percentage_ >= 0.9
 
     def __isBody(self):
-        return False
+        pass
 
     def __isDoji(self):
-        return False
+        pass
 
     def __isLongLeggedDoji(self):
-        return False
+        pass
 
     def __isDragonFlyDoji(self):
         pass
