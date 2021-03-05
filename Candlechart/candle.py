@@ -27,12 +27,12 @@ class Color(Enum):
 # Wt, Wb, b
 candle_type_dict = {
                     CandleType.MARUBOZU  : (0.0, 0.0, 1.0),
-                    CandleType.BODY : (1/3, 1/3, 1/3),
+                    CandleType.BODY : (1.0/3.0, 1.0/3.0, 1.0/3.0),
                     CandleType.DOJI : (0.5, 0.5, 0.0),
                     CandleType.DRAGONFLY_DOJI   : (0.0, 1.0, 0.0),
                     CandleType.GRAVESTONE_DOJI  : (1.0, 0.0, 0.0),
-                    CandleType.HAMMER : (0, 2/3, 1/3),
-                    CandleType.INVERTED_HAMMER:(2/3, 0.0,1/3)
+                    CandleType.HAMMER : (0, 2.0/3.0, 1.0/3.0),
+                    CandleType.INVERTED_HAMMER:(2.0/3.0, 0.0,1.0/3.0)
                     }
 class CandleClassifier:
     def __init__(self, candle):
@@ -73,6 +73,7 @@ class CandleClassifier:
             error += abs(self.wb_ - candle_type_dict[ideal_tuple][1])
             error += abs(self.body_ - candle_type_dict[ideal_tuple][2])
             classifications[ideal_tuple] = error
+        print(classifications)
         best_match = min(classifications, key=classifications.get)
 
         #TODO Clarify between Doji and Long-legged doji
@@ -137,30 +138,3 @@ class Candle:
     def __calcType(self):
         classifier = CandleClassifier(self)
         return classifier.getType()
-
-big = Candle(0.05,1,0,0.95)
-print(big.getType())
-
-doji = Candle(0.6,1,0,0.5)
-print(doji.getType())
-
-dragonfly_doji = Candle(0.9,1,0,1.0)
-print(dragonfly_doji.getType())
-
-grave_doji = Candle(0.0,1,0,0.1)
-print(grave_doji.getType())
-
-marubozu = Candle(0.0,1,0,0.99)
-print(marubozu.getType())
-
-hammer = Candle(0.7,1,0,0.9)
-print(hammer.getType())
-
-shaven_head = Candle(0.8,1,0,0.99)
-print(shaven_head.getType())
-
-inv_hammer = Candle(0.1,1,0,0.3)
-print(inv_hammer.getType())
-
-shaven_bottom = Candle(0.0,1,0,0.3)
-print(shaven_bottom.getType())
