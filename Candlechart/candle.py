@@ -73,7 +73,6 @@ class CandleClassifier:
             error += abs(self.wb_ - candle_type_dict[ideal_tuple][1])
             error += abs(self.body_ - candle_type_dict[ideal_tuple][2])
             classifications[ideal_tuple] = error
-        print(classifications)
         best_match = min(classifications, key=classifications.get)
 
         #TODO Clarify between Doji and Long-legged doji
@@ -92,7 +91,7 @@ class CandleClassifier:
         return best_match
 
 class Candle:
-    def __init__(self, open, high, low, close):
+    def __init__(self, open, high, low, close, date = None):
         """[summary]
 
         Args:
@@ -116,6 +115,7 @@ class Candle:
 
         self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
         self.type_ = self.__calcType()
+        self.date_ = date
 
     def validate(self, open, close, high, low):
         if open < 0.0:
