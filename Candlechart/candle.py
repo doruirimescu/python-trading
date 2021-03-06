@@ -1,4 +1,7 @@
 from enum import Enum
+import datetime
+import calendar
+
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern
     """
@@ -61,7 +64,7 @@ class CandleClassifier:
         return self._type
 
     def __classify(self):
-        """Calculate error from ideal type for each possible type, and return the one with minimum error
+        """Calculate error from ideal type for each possible type, and return the one with maximum match in percentage
 
         Returns:
             [CandleType]: classified candle type
@@ -72,8 +75,11 @@ class CandleClassifier:
             error += abs(self.wt_ - candle_type_dict[ideal_tuple][0])
             error += abs(self.wb_ - candle_type_dict[ideal_tuple][1])
             error += abs(self.body_ - candle_type_dict[ideal_tuple][2])
+            error *= 100.0
+            error = max(0, 100.0 - error)
             classifications[ideal_tuple] = error
-        best_match = min(classifications, key=classifications.get)
+
+        best_match = max(classifications, key=classifications.get)
 
         #TODO Clarify between Doji and Long-legged doji
         #TODO Clarify between Inverted Hammer and Shooting star
@@ -134,6 +140,9 @@ class Candle:
 
     def getType(self):
         return self.type_
+
+    def getWeekday(self):
+        return calendar.day_name[self.date_.weekday()]
 
     def __calcType(self):
         classifier = CandleClassifier(self)
