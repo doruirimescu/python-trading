@@ -14,7 +14,6 @@ class CandleChart:
     def __init__(self, open:list, high:list, low:list, close:list, date:list):
         self.__initialize()
 
-
         for i,v in open.items():
             date_time_obj = datetime.strptime(date[i], '%Y-%m-%d')
             print(date_time_obj.date())

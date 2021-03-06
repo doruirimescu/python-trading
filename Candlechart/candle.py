@@ -56,7 +56,7 @@ class CandleClassifier:
         self.wt_ = (self.high_ -(self.c_*self.close_ + (1-self.c_)*self.open_)) / self.swing_
         self.wb_ = ((self.c_*self.open_ + (1-self.c_)*self.close_) - self.low_) / self.swing_
 
-        self._type_with_confidence = self.__classify()
+        self.type_with_confidence_ = self.__classify()
 
     def getWickBottom(self):
         return self.wb_
@@ -65,7 +65,7 @@ class CandleClassifier:
         return self.wt_
 
     def getType(self):
-        return self._type_with_confidence
+        return self.type_with_confidence_
 
     def __classify(self):
         """Calculate error from ideal type for each possible type, and return the one with maximum match in percentage
