@@ -27,7 +27,7 @@ class CandleChart:
         self.low = list()
         self.close = list()
         self.date = list()
-        self.type = list()
+        self.type_with_confidence_ = list()
         self.confidence=list()
         self.color = list()
         self.weekday = list()
@@ -39,8 +39,7 @@ class CandleChart:
         self.low.append(candle.low_)
         self.close.append(candle.close_)
         self.date.append(candle.date_)
-        self.type.append(candle.getType().name)
-        self.confidence.append(candle.getConfidence())
+        self.type_with_confidence_.append(candle.getTypeWithConfidence())
         self.color.append(candle.getColor())
         self.weekday.append(candle.getWeekday())
 
@@ -48,11 +47,15 @@ class CandleChart:
         arrow_list=[]
         counter=0
         for wd in self.weekday:
-            annotation_text = self.type[counter] + " " + str(self.confidence[counter]) + "%"
-            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=annotation_text,ax=20,ay=-30,arrowhead = 3,
+            candle_type_str = self.type_with_confidence_[counter].type.name
+            candle_type_confidence = self.type_with_confidence_[counter].confidence
+            annotation_text = candle_type_str + " " + str(candle_type_confidence) + "%"
+
+            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=annotation_text,ax=0,ay=-100,arrowhead = 3,
                 arrowwidth=1.5,
-                arrowcolor='rgb(255,51,0)',)
-            arrow_list.append(arrow)
+                arrowcolor='rgb(0,0,250)',textangle=90)
+            if candle_type_confidence > 60.0:
+                arrow_list.append(arrow)
             counter +=1
 
         fig = go.Figure(data=[go.Candlestick(x=self.date,
@@ -63,8 +66,6 @@ class CandleChart:
                 text =self.weekday)])
         fig.update_layout(title="Title", yaxis_title="Y title",annotations=arrow_list)
         fig.show()
-
-
 
 # hammer = candle.Candle(0.7,1,0,0.9, datetime.date(2020,1,13))
 # shaven_head = candle.Candle(0.8,1,0,0.99, datetime.date(2020,1,14))
@@ -83,7 +84,7 @@ from datetime import datetime
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv')
 
-df = df[1:30]
+df = df[1:60]
 
 candlechart = CandleChart(df['AAPL.Open'], df['AAPL.High'], df['AAPL.Low'], df['AAPL.Close'], df['Date'] )
 candlechart.plot()

@@ -99,7 +99,7 @@ class CandleClassifier:
             if self.wb_ < 0.05:
                 best_match = CandleType.SHAVEN_BOTTOM
 
-        return CandleTypeWithConfidence(best_match, confidence)
+        return CandleTypeWithConfidence(best_match, round(confidence,2))
 
 class Candle:
     def __init__(self, open, high, low, close, date = None):
