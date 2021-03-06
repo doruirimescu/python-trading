@@ -1,6 +1,7 @@
 import candle
 import pytest
 import unittest
+import datetime
 from bs4 import BeautifulSoup as bs
 from investing import InvestingAnalysisResponse
 
@@ -90,6 +91,16 @@ class TestCandle(unittest.TestCase):
 
         body.setInvestingAnalysis(InvestingAnalysisResponse.STRONG_BUY)
         self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.STRONG_BUY)
+
+    def test_getWeekday(self):
+        body = candle.Candle(0.25,1,0,0.7, datetime.date(2021,3,5))
+        self.assertEqual(body.getWeekday(), 'Friday')
+
+        body = candle.Candle(0.25,1,0,0.7, datetime.date(2020,12,31))
+        self.assertEqual(body.getWeekday(), 'Thursday')
+
+        body = candle.Candle(0.25,1,0,0.7, datetime.date(2030,5,15))
+        self.assertEqual(body.getWeekday(), 'Wednesday')
 
 if __name__ == '__main__':
     unittest.main()
