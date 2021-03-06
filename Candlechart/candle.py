@@ -1,7 +1,6 @@
 from enum import Enum
 import datetime
 import calendar
-
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern
     """
@@ -126,8 +125,10 @@ class Candle:
             self.color_ = Color.RED
 
         self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
-        self.type_with_confidence_ = self.__calcType()
         self.date_ = date
+
+        classifier = CandleClassifier(self)
+        self.type_with_confidence_ = classifier.getType()
 
     def validate(self, open, close, high, low):
         if open < 0.0:
@@ -150,6 +151,8 @@ class Candle:
     def getWeekday(self):
         return calendar.day_name[self.date_.weekday()]
 
-    def __calcType(self):
-        classifier = CandleClassifier(self)
-        return classifier.getType()
+    def setInvestingAnalysis(self, investing):
+        self.investing_analysis_ = investing
+
+    def getInvestingAnalysis(self):
+        return self.investing_analysis_

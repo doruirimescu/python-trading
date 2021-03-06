@@ -1,6 +1,8 @@
 import candle
 import pytest
 import unittest
+from bs4 import BeautifulSoup as bs
+from investing import InvestingAnalysisResponse
 
 class TestCandle(unittest.TestCase):
 
@@ -70,6 +72,24 @@ class TestCandle(unittest.TestCase):
         type_with_confidence = body.getTypeWithConfidence()
         self.assertEqual(type_with_confidence.type, candle.CandleType.BODY)
         self.assertAlmostEqual(type_with_confidence.confidence, 76.67,2)
+
+    def test_getInvestingAnalysis(self):
+        body = candle.Candle(0.25,1,0,0.7)
+
+        body.setInvestingAnalysis(InvestingAnalysisResponse.STRONG_SELL)
+        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.STRONG_SELL)
+
+        body.setInvestingAnalysis(InvestingAnalysisResponse.SELL)
+        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.SELL)
+
+        body.setInvestingAnalysis(InvestingAnalysisResponse.NEUTRAL)
+        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.NEUTRAL)
+
+        body.setInvestingAnalysis(InvestingAnalysisResponse.BUY)
+        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.BUY)
+
+        body.setInvestingAnalysis(InvestingAnalysisResponse.STRONG_BUY)
+        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.STRONG_BUY)
 
 if __name__ == '__main__':
     unittest.main()
