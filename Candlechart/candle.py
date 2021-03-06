@@ -42,7 +42,7 @@ candle_type_dict = {
                     CandleType.INVERTED_HAMMER:(2.0/3.0, 0.0,1.0/3.0)
                     }
 class CandleClassifier:
-    def __init__(self, candle):
+    def __init__(self, candle, confidence_limit = 50.0):
         self.open_  = candle.open_
         self.close_ = candle.close_
         self.high_  = candle.high_
@@ -56,6 +56,7 @@ class CandleClassifier:
         self.wt_ = (self.high_ -(self.c_*self.close_ + (1-self.c_)*self.open_)) / self.swing_
         self.wb_ = ((self.c_*self.open_ + (1-self.c_)*self.close_) - self.low_) / self.swing_
 
+        self.confidence_limit_ = confidence_limit
         self.type_with_confidence_ = self.__classify()
 
     def getWickBottom(self):
@@ -98,6 +99,9 @@ class CandleClassifier:
         if best_match == CandleType.INVERTED_HAMMER:
             if self.wb_ < 0.05:
                 best_match = CandleType.SHAVEN_BOTTOM
+
+        if confidence < self.confidence_limit_:
+            best_match = CandleType.UNDEFINED
 
         return CandleTypeWithConfidence(best_match, round(confidence,2))
 

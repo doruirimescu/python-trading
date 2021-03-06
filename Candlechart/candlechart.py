@@ -51,10 +51,11 @@ class CandleChart:
             candle_type_confidence = self.type_with_confidence_[counter].confidence
             annotation_text = candle_type_str + " " + str(candle_type_confidence) + "%"
 
-            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=annotation_text,ax=0,ay=-100,arrowhead = 3,
-                arrowwidth=1.5,
-                arrowcolor='rgb(0,0,250)',textangle=90)
-            if candle_type_confidence > 60.0:
+            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=annotation_text,ax=0,ay=-130,arrowhead = 3,
+                arrowwidth=2.0,
+                arrowcolor='rgb(0,0,250)',textangle=-90, font=dict(family='sans-serif', size=15))
+
+            if candle_type_str is not 'UNDEFINED':
                 arrow_list.append(arrow)
             counter +=1
 
@@ -65,6 +66,7 @@ class CandleChart:
                 close=self.close,
                 text =self.weekday)])
         fig.update_layout(title="Title", yaxis_title="Y title",annotations=arrow_list)
+
         fig.show()
 
 # hammer = candle.Candle(0.7,1,0,0.9, datetime.date(2020,1,13))
@@ -84,7 +86,7 @@ from datetime import datetime
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv')
 
-df = df[1:60]
+#df = df[1:60]
 
 candlechart = CandleChart(df['AAPL.Open'], df['AAPL.High'], df['AAPL.Low'], df['AAPL.Close'], df['Date'] )
 candlechart.plot()
