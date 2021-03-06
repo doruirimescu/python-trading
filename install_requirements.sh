@@ -13,3 +13,6 @@ pip install .
 # For candle
 pip install pandas
 pip install plotly
+
+#For tests
+pip3 install pytest
