@@ -9,3 +9,7 @@ cd XTBApi/
 python3 -m venv env
 . env/bin/activate
 pip install .
+
+# For candle
+pip install pandas
+pip install plotly
