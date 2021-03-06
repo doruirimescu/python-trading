@@ -21,6 +21,11 @@ class CandleType(Enum):
     SHAVEN_BOTTOM = 12      #Distinguish with inverted_hammer
     UNDEFINED = 13
 
+class CandleTypeWithConfidence:
+    def __init__(self, type, confidence):
+        self.type = type
+        self.confidence = confidence
+
 class Color(Enum):
     RED = 0
     BLACK = 0
@@ -52,7 +57,7 @@ class CandleClassifier:
         self.wt_ = (self.high_ -(self.c_*self.close_ + (1-self.c_)*self.open_)) / self.swing_
         self.wb_ = ((self.c_*self.open_ + (1-self.c_)*self.close_) - self.low_) / self.swing_
 
-        self._type = self.__classify()
+        self._type_with_confidence = self.__classify()
 
     def getWickBottom(self):
         return self.wb_
@@ -61,7 +66,7 @@ class CandleClassifier:
         return self.wt_
 
     def getType(self):
-        return self._type
+        return self._type_with_confidence
 
     def __classify(self):
         """Calculate error from ideal type for each possible type, and return the one with maximum match in percentage
@@ -95,8 +100,7 @@ class CandleClassifier:
             if self.wb_ < 0.05:
                 best_match = CandleType.SHAVEN_BOTTOM
 
-        ret = (best_match, confidence)
-        return ret
+        return CandleTypeWithConfidence(best_match, confidence)
 
 class Candle:
     def __init__(self, open, high, low, close, date = None):
@@ -122,7 +126,7 @@ class Candle:
             self.color_ = Color.RED
 
         self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
-        (self.type_, self.confidence_) = self.__calcType()
+        self.type_with_confidence_ = self.__calcType()
         self.date_ = date
 
     def validate(self, open, close, high, low):
@@ -140,11 +144,8 @@ class Candle:
     def getColor(self):
         return self.color_
 
-    def getType(self):
-        return self.type_
-
-    def getConfidence(self):
-        return round(self.confidence_,2)
+    def getTypeWithConfidence(self):
+        return self.type_with_confidence_
 
     def getWeekday(self):
         return calendar.day_name[self.date_.weekday()]
@@ -152,8 +153,3 @@ class Candle:
     def __calcType(self):
         classifier = CandleClassifier(self)
         return classifier.getType()
-
-d = datetime.date(2020,3,7)
-doji = Candle(0.333,1,0,0.666,d)
-print(doji.getType())
-print(doji.getWeekday())
