@@ -29,6 +29,7 @@ class CandleChart:
         self.close = list()
         self.date = list()
         self.type = list()
+        self.confidence=list()
         self.color = list()
         self.weekday = list()
 
@@ -40,6 +41,7 @@ class CandleChart:
         self.close.append(candle.close_)
         self.date.append(candle.date_)
         self.type.append(candle.getType().name)
+        self.confidence.append(candle.getConfidence())
         self.color.append(candle.getColor())
         self.weekday.append(candle.getWeekday())
 
@@ -47,7 +49,8 @@ class CandleChart:
         arrow_list=[]
         counter=0
         for wd in self.weekday:
-            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=self.type[counter],ax=20,ay=-30,arrowhead = 3,
+            annotation_text = self.type[counter] + " " + str(self.confidence[counter]) + "%"
+            arrow=dict(x=self.date[counter],y=self.high[counter],xref="x",yref="y",text=annotation_text,ax=20,ay=-30,arrowhead = 3,
                 arrowwidth=1.5,
                 arrowcolor='rgb(255,51,0)',)
             arrow_list.append(arrow)
@@ -81,7 +84,7 @@ from datetime import datetime
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv')
 
-df = df[1:10]
+df = df[1:30]
 
 candlechart = CandleChart(df['AAPL.Open'], df['AAPL.High'], df['AAPL.Low'], df['AAPL.Close'], df['Date'] )
 candlechart.plot()

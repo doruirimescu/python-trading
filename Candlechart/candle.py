@@ -80,6 +80,7 @@ class CandleClassifier:
             classifications[ideal_tuple] = error
 
         best_match = max(classifications, key=classifications.get)
+        confidence = classifications[best_match]
 
         #TODO Clarify between Doji and Long-legged doji
         #TODO Clarify between Inverted Hammer and Shooting star
@@ -94,7 +95,8 @@ class CandleClassifier:
             if self.wb_ < 0.05:
                 best_match = CandleType.SHAVEN_BOTTOM
 
-        return best_match
+        ret = (best_match, confidence)
+        return ret
 
 class Candle:
     def __init__(self, open, high, low, close, date = None):
@@ -120,7 +122,7 @@ class Candle:
             self.color_ = Color.RED
 
         self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
-        self.type_ = self.__calcType()
+        (self.type_, self.confidence_) = self.__calcType()
         self.date_ = date
 
     def validate(self, open, close, high, low):
@@ -141,9 +143,17 @@ class Candle:
     def getType(self):
         return self.type_
 
+    def getConfidence(self):
+        return round(self.confidence_,2)
+
     def getWeekday(self):
         return calendar.day_name[self.date_.weekday()]
 
     def __calcType(self):
         classifier = CandleClassifier(self)
         return classifier.getType()
+
+d = datetime.date(2020,3,7)
+doji = Candle(0.333,1,0,0.666,d)
+print(doji.getType())
+print(doji.getWeekday())
