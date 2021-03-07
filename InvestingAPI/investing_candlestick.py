@@ -10,7 +10,7 @@ class InvestingCandlestickAnalysisReliability(Enum):
     HIGH = 'High'
 #TODO get confidence number for reliability
 class InvestingCandleStickAnalysisResponse:
-    def __init__(self, pattern, reliability, timeframe, candles_ago, date):
+    def __init__(self, pattern="None", reliability=InvestingCandlestickAnalysisReliability.LOW, timeframe="", candles_ago=0, date=datetime.now()):
         self.pattern = pattern
         self.reliability = reliability
         self.timeframe = timeframe
@@ -62,14 +62,16 @@ class InvestingCandlestickAnalysis:
 
         row_id = 0
         table = soup.find("tr", id="row" + str(row_id))
+        responses = list()
         while table is not None:
             response = self.__parseTable(table)
 
             if (response is not None) and (response.timeframe == period):
                 response.print()
-
+                responses.append(response)
             row_id += 1
             table = soup.find("tr", id="row" + str(row_id))
+        return responses
 
     def __getSoup(self, symbol):
         symbol = symbol.upper()
@@ -126,6 +128,3 @@ class InvestingCandlestickAnalysis:
         elif timeframe == "30":
             return "30m"
         return timeframe
-
-i = InvestingCandlestickAnalysis()
-i.getAnalysis("BTCUSD", '30m')

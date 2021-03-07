@@ -11,7 +11,7 @@ class CandleCsvWriter:
 
         candle_data = candle.getData()
 
-        row = [str(candle_data[0]), str(candle_data[1]), str(candle_data[2]), str(candle_data[3]), str(candle_data[4]), str(candle_data[5]), str(candle_data[6])]
+        row = [str(candle_data[0]), str(candle_data[1]), str(candle_data[2]), str(candle_data[3]), str(candle_data[4]), str(candle_data[5]), candle_data[6].pattern]
         self.__writeRow(row)
 
     def __writeHeader(self):

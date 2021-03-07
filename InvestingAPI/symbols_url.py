@@ -72,3 +72,8 @@ SYMBOLS_URL = {
             "GOLD": ("https://www.investing.com/commodities/gold", 8830),
             "NATGAS": ("https://www.investing.com/commodities/gold", 8862),
         }
+
+XTB_TO_INVESTING={
+    "BITCOIN":"BTCUSD",
+    "ETHEREUM":"ETHUSD"
+}
