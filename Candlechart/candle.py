@@ -155,8 +155,14 @@ class Candle:
     def getWeekday(self):
         return calendar.day_name[self.date_.weekday()]
 
-    def setTechnicalAnalysis(self, investing):
-        self.technical_analysis_ = investing
+    def setTechnicalAnalysis(self, analysis):
+        self.technical_analysis_ = analysis
 
     def getTechnicalAnalysis(self):
         return self.technical_analysis_
+
+    def setCandlestickAnalysis(self, analysis):
+        self.candlestick_analysis_ = analysis
+
+    def getCandlestickAnalysis(self):
+        return self.candlestick_analysis_
