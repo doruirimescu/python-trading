@@ -65,12 +65,7 @@ class InvestingCandlestickAnalysis:
         while table is not None:
             response = self.__parseTable(table)
 
-            if (period is None) or (response.timeframe == period):
-
-                #Check that it is not a current candle
-                if(response.date is not ''):
-                    date = datetime.strptime(response.date, self.__getTimeFormatter(response.timeframe))
-
+            if (response is not None) and (response.timeframe == period):
                 response.print()
 
             row_id += 1
@@ -112,6 +107,12 @@ class InvestingCandlestickAnalysis:
             elif counter == 11:
                 date = child.contents[0]
             counter += 1
+
+        if date is '':
+            print("EMPTY DATE")
+            return None
+        else:
+            date = datetime.strptime(date, self.__getTimeFormatter(timeframe))
 
         return InvestingCandleStickAnalysisResponse(pattern, reliability, timeframe, candles_ago, date)
 
