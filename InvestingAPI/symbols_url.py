@@ -29,6 +29,14 @@ SYMBOLS_URL = {
             "EURSEK": ("https://www.investing.com/currencies/eur-sek", 61),
             "EURTRY": ("https://www.investing.com/currencies/eur-try", 66),
             "EURUSD": ("https://www.investing.com/currencies/eur-usd", 1),
+
+            "USDMXN": ("https://www.investing.com/currencies/usd-mxn", 39),
+            "USDJPY": ("https://www.investing.com/currencies/usd-jpy", 3),
+            "USDCHF": ("https://www.investing.com/currencies/usd-chf", 4),
+            "USDCAD": ("https://www.investing.com/currencies/usd-cad-technical", 7),
+            "GBPUSD": ("https://www.investing.com/currencies/gbp-usd-technical", 2),
+            "AUDUSD": ("https://www.investing.com/currencies/aud-usd-technical", 5),
+
             # Indices
             "DE30": ("https://www.investing.com/indices/germany-30", 172),
             "EU50": ("https://www.investing.com/indices/eu-stocks-50-futures", 8867),
