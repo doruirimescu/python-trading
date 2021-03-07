@@ -56,15 +56,12 @@ class InvestingCandlestickAnalysis:
             return "%b %y"
 
     def getAnalysis(self, symbol, period=None):
-        ret = list()
 
         soup = self.__getSoup(symbol)
 
         row_id = 0
         table = soup.find("tr", id="row" + str(row_id))
-
         while table is not None:
-
             response = self.__parseTable(table)
 
             if (period is None) or (response.timeframe == period):
@@ -129,4 +126,4 @@ class InvestingCandlestickAnalysis:
         return timeframe
 
 i = InvestingCandlestickAnalysis()
-i.getAnalysis("BTCUSD")
+i.getAnalysis("BTCUSD", '30m')

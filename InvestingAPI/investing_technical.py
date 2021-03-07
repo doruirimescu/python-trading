@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
 import symbols_url
+from timeframes import TIMEFRAMES as TIMEFRAMES
 
 # Defines a response from investing.com
 class InvestingAnalysisResponse(Enum):
@@ -13,8 +14,7 @@ class InvestingAnalysisResponse(Enum):
     NEUTRAL = "Neutral"
     BUY = "Buy"
     STRONG_BUY = "Strong Buy"
-#TODO call class InvestingTechnicalAnalysis
-#TODO get confidence number for tech analysis
+
 class Investing:
     def __init__(self):
 
@@ -33,22 +33,10 @@ class Investing:
             "Referer": self.symbols[symbol][0],
             "X-Requested-With": "XMLHttpRequest",
         }
-
-        periods = {
-            "1m": 60,
-            "5m": 300,
-            "15m": 900,
-            "30m": 1800,
-            "1h": 3600,
-            "5h": 18000,
-            "D": 86400,
-            "W": "week",
-            "M": "month",
-        }
-
         body = {"pairID": self.symbols[symbol][1], "period": "", "viewType": "normal"}
 
         with requests.Session() as s:
+            periods = dict(zip(TIMEFRAMES, {60, 300, 900, 1800, 3600, 86400, 'week', 'month'}))
             body["period"] = periods[period]
             r = s.post(
                 "https://www.investing.com/instruments/Service/GetTechincalData",
@@ -56,14 +44,12 @@ class Investing:
                 headers=headers,
             )
             soup = bs(r.content, "lxml")
-            response = list()
 
             for i in soup.select("#techStudiesInnerWrap .summary"):
                 response_text = i.select("span")[0].text
-                print(response_text)
-                response.append(InvestingAnalysisResponse(response_text))
-        return response
+                return(InvestingAnalysisResponse(response_text))
+
 
 
 i = Investing()
-print(i.getAnalysis("BTCUSD", "30m"))
+print(i.getAnalysis("BTCUSD", "15m"))

@@ -86,7 +86,14 @@ from datetime import datetime
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv')
 
-#df = df[1:60]
 
 candlechart = CandleChart(df['AAPL.Open'], df['AAPL.High'], df['AAPL.Low'], df['AAPL.Close'], df['Date'] )
 candlechart.plot()
+
+import talib
+num=talib.CDL3WHITESOLDIERS(df['AAPL.Open'], df['AAPL.High'], df['AAPL.Low'], df['AAPL.Close'])
+
+for ind,val in enumerate(num):
+    if val == 100:
+        print(ind)
+print(df['Date'][29])
