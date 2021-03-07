@@ -16,6 +16,7 @@ class InvestingCandleStickAnalysisResponse:
         self.timeframe = timeframe
         self.candles_ago = candles_ago
         self.date = date
+        self.timestamp = datetime.timestamp(date)
 
     def print(self):
         print("Pattern: \t" + self.pattern)
