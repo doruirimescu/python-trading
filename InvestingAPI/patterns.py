@@ -220,5 +220,8 @@ class AbandonedBabyBearish(CandlestickPattern):
         """
         CandlestickPattern.__init__(self, name, indication, reliability, description)
 
+# class FallingThreeMethods(CandlestickPattern)
+
+# class RisingThreeMethods(CandlestickPattern)
 p = AbandonedBabyBearish()
 print(p)
