@@ -128,7 +128,6 @@ class Candle:
         else:
             self.color_ = Color.RED
 
-        self.body_percentage_ = float( abs(open-close)/(abs(high-low)) )
         self.date_ = date
 
         classifier = CandleClassifier(self)
@@ -166,3 +165,6 @@ class Candle:
 
     def getCandlestickAnalysis(self):
         return self.candlestick_analysis_
+
+    def getData(self):
+        return (self.open_, self.high_, self.low_, self.close_, self.date_, self.technical_analysis_, self.candlestick_analysis_)

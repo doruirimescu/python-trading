@@ -9,11 +9,13 @@ class CandleCsvWriter:
         if not os.path.isfile(self.path):
             self.__writeHeader()
 
-        row = [str(candle.open_), str(candle.high_), str(candle.low_), str(candle.close_), str(candle.date_), candle.getTechnicalAnalysis(), candle.getCandlestickAnalysis()]
+        candle_data = candle.getData()
+
+        row = [str(candle_data[0]), str(candle_data[1]), str(candle_data[2]), str(candle_data[3]), str(candle_data[4]), str(candle_data[5]), str(candle_data[6])]
         self.__writeRow(row)
 
     def __writeHeader(self):
-        row=['Open', 'High', 'Low', 'Close', 'Date', 'Technical', 'Pattern']
+        row=['Open', 'High', 'Low', 'Close', 'Date', 'Technical', 'Candlestick']
         self.__writeRow(row)
 
     def __writeRow(self, row):
