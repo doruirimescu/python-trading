@@ -13,7 +13,8 @@ class InvestingAnalysisResponse(Enum):
     NEUTRAL = "Neutral"
     BUY = "Buy"
     STRONG_BUY = "Strong Buy"
-
+#TODO call class InvestingTechnicalAnalysis
+#TODO get confidence number for tech analysis
 class Investing:
     def __init__(self):
 

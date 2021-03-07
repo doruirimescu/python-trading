@@ -8,14 +8,22 @@ class InvestingCandlestickAnalysisReliability(Enum):
     LOW = 'Low'
     MEDIUM = 'Medium'
     HIGH = 'High'
-
+#TODO get confidence number for reliability
 class InvestingCandleStickAnalysisResponse:
-    def __init__(self, pattern, timeframe, reliability, candles_ago, date):
+    def __init__(self, pattern, reliability, timeframe, candles_ago, date):
         self.pattern = pattern
-        self.timeframe = timeframe
         self.reliability = reliability
+        self.timeframe = timeframe
         self.candles_ago = candles_ago
         self.date = date
+
+    def print(self):
+        print("Pattern: \t" + self.pattern)
+        print("Timeframe: \t" + self.timeframe)
+        print("Reliability: \t" + self.reliability.name)
+        print("Candles ago: \t" + self.candles_ago)
+        print(self.date)
+        print("------------------------------")
 
 class InvestingCandlestickAnalysis:
     def __init__(self):
@@ -26,17 +34,6 @@ class InvestingCandlestickAnalysis:
     def getAvailableSymbols(self):
         response = [i for i, j in self.symbols.items()]
         return response
-
-    def __sanitizeTimeframe(self, timeframe):
-        if timeframe == "1":
-            return "1m"
-        elif timeframe == "5":
-            return "5m"
-        elif timeframe == "15":
-            return "15m"
-        elif timeframe == "30":
-            return "30m"
-        return timeframe
 
     def __getTimeFormatter(self, timeframe):
         if timeframe =='1m':
@@ -61,60 +58,75 @@ class InvestingCandlestickAnalysis:
     def getAnalysis(self, symbol, period=None):
         ret = list()
 
+        soup = self.__getSoup(symbol)
+
+        row_id = 0
+        table = soup.find("tr", id="row" + str(row_id))
+
+        while table is not None:
+
+            response = self.__parseTable(table)
+
+            if (period is None) or (response.timeframe == period):
+
+                #Check that it is not a current candle
+                if(response.date is not ''):
+                    date = datetime.strptime(response.date, self.__getTimeFormatter(response.timeframe))
+
+                response.print()
+
+            row_id += 1
+            table = soup.find("tr", id="row" + str(row_id))
+
+    def __getSoup(self, symbol):
         symbol = symbol.upper()
         headers = {
             "User-Agent": "Mozilla/5.0",
             "Content-Type": "application/x-www-form-urlencoded",
             "X-Requested-With": "XMLHttpRequest",
         }
-
         url = self.symbols[symbol][0] + "-candlestick"
 
         with requests.Session() as s:
             r = s.post(url, headers=headers)
             soup = bs(r.content, "lxml")
-            response = list()
+            return soup
+        return None
 
-            row_id = 0
-            table = soup.find("tr", id="row" + str(row_id))
-            while table is not None:
-                pattern = str()
-                timeframe = str()
-                reliability = str()
-                candles_ago = str()
-                date = str()
+    def __parseTable(self, table):
+        pattern = str()
+        timeframe = str()
+        reliability = str()
+        candles_ago = str()
+        date = str()
 
-                counter = 0
-                for child in table.contents:
-                    if counter == 3:
-                        pattern = child.contents[0]
-                    elif counter == 5:
-                        timeframe = child.contents[0]
-                        timeframe = self.__sanitizeTimeframe(timeframe)
-                    elif counter == 7:
-                        reliability = InvestingCandlestickAnalysisReliability(child["title"])
-                    elif counter == 9:
-                        candles_ago = child.contents[0]
-                    elif counter == 11:
-                        date = child.contents[0]
-                    counter += 1
+        counter = 0
+        for child in table.contents:
+            if counter == 3:
+                pattern = child.contents[0]
+            elif counter == 5:
+                timeframe = child.contents[0]
+                timeframe = self.__sanitizeTimeframe(timeframe)
+            elif counter == 7:
+                reliability = InvestingCandlestickAnalysisReliability(child["title"])
+            elif counter == 9:
+                candles_ago = child.contents[0]
+            elif counter == 11:
+                date = child.contents[0]
+            counter += 1
 
-                if (period is None) or (timeframe == period):
+        return InvestingCandleStickAnalysisResponse(pattern, reliability, timeframe, candles_ago, date)
 
-                    #Check that it is not a current candle
-                    if(date is not ''):
-                        date = datetime.strptime(date, self.__getTimeFormatter(timeframe))
-
-                    print("Pattern: \t" + pattern)
-                    print("Timeframe: \t" + timeframe)
-                    print("Reliability: \t" + reliability.name)
-                    print("Candles ago: \t" + candles_ago)
-                    print(date)
-
-                    print("------------------------------")
-
-                row_id += 1
-                table = soup.find("tr", id="row" + str(row_id))
+    def __sanitizeTimeframe(self, timeframe):
+        if timeframe == "1":
+            return "1m"
+        elif timeframe == "5":
+            return "5m"
+        elif timeframe == "15":
+            return "15m"
+        elif timeframe == "30":
+            return "30m"
+        return timeframe
 
 i = InvestingCandlestickAnalysis()
 i.getAnalysis("BTCUSD")
