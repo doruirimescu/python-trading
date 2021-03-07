@@ -3,7 +3,7 @@ import pytest
 import unittest
 import datetime
 from bs4 import BeautifulSoup as bs
-from investing import InvestingAnalysisResponse
+from investing_technical import InvestingTechnicalAnalysisResponse
 
 class TestCandle(unittest.TestCase):
 
@@ -74,23 +74,23 @@ class TestCandle(unittest.TestCase):
         self.assertEqual(type_with_confidence.type, candle.CandleType.BODY)
         self.assertAlmostEqual(type_with_confidence.confidence, 76.67,2)
 
-    def test_getInvestingAnalysis(self):
+    def test_getTechnicalAnalysis(self):
         body = candle.Candle(0.25,1,0,0.7)
 
-        body.setInvestingAnalysis(InvestingAnalysisResponse.STRONG_SELL)
-        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.STRONG_SELL)
+        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.STRONG_SELL)
+        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.STRONG_SELL)
 
-        body.setInvestingAnalysis(InvestingAnalysisResponse.SELL)
-        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.SELL)
+        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.SELL)
+        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.SELL)
 
-        body.setInvestingAnalysis(InvestingAnalysisResponse.NEUTRAL)
-        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.NEUTRAL)
+        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.NEUTRAL)
+        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.NEUTRAL)
 
-        body.setInvestingAnalysis(InvestingAnalysisResponse.BUY)
-        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.BUY)
+        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.BUY)
+        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.BUY)
 
-        body.setInvestingAnalysis(InvestingAnalysisResponse.STRONG_BUY)
-        self.assertEqual(body.getInvestingAnalysis(), InvestingAnalysisResponse.STRONG_BUY)
+        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.STRONG_BUY)
+        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.STRONG_BUY)
 
     def test_getWeekday(self):
         body = candle.Candle(0.25,1,0,0.7, datetime.date(2021,3,5))
