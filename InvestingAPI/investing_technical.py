@@ -36,7 +36,7 @@ class Investing:
         body = {"pairID": self.symbols[symbol][1], "period": "", "viewType": "normal"}
 
         with requests.Session() as s:
-            periods = dict(zip(TIMEFRAMES, [60, 300, 900, 1800, 3600, 86400, 'week', 'month']))
+            periods = dict(zip(TIMEFRAMES, [60, 300, 900, 1800, 3600, 18000, 86400, 'week', 'month']))
             body["period"] = periods[period]
             r = s.post(
                 "https://www.investing.com/instruments/Service/GetTechincalData",
@@ -44,10 +44,9 @@ class Investing:
                 headers=headers,
             )
             soup = bs(r.content, "lxml")
-
             for i in soup.select("#techStudiesInnerWrap .summary"):
                 response_text = i.select("span")[0].text
                 return(InvestingAnalysisResponse(response_text))
 
 i = Investing()
-print(i.getAnalysis("BTCUSD", "15m"))
+print(i.getAnalysis("EURUSD", "1M"))
