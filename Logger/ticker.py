@@ -26,6 +26,8 @@ class Ticker:
         day = now.day
         weekday = now.weekday()
 
+        print("Ticking... " + now.strftime("%d/%m/%Y, %H:%M:%S"))
+
         if second == 1:
             if(self.timeframe == '1m'):
                 return True
@@ -44,3 +46,8 @@ class Ticker:
             elif(self.timeframe == '1W' and weekday == 0 and hour == 12 and minute == 0):
                 return True
         return False
+
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("Closing ticker")
