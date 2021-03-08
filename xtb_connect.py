@@ -7,8 +7,12 @@ from datetime import timedelta
 from candle import Candle
 from candleCsvWriter import CandleCsvWriter
 
-import investing_candlestick
-import investing_technical
+from investing_candlestick import PatternAnalyzer
+from investing_candlestick import PatternAnalysis
+from investing_candlestick import PatternReliability
+
+from investing_technical import TechnicalAnalyzer
+from investing_technical import TechnicalAnalysis
 
 import time
 import timeframes
@@ -53,18 +57,10 @@ class DataLogger:
             date    = datetime.fromtimestamp(h['timestamp'])
             candle = Candle(open, high, low, close, date)
             candle.setTechnicalAnalysis("")
-            candle.setCandlestickAnalysis(investing_candlestick.InvestingCandleStickAnalysisResponse())
+            candle.setCandlestickAnalysis(PatternAnalysis())
             self.candle_dictionary[date] = candle
 
-        # # Get last candlestick patterns and match to candles
-        i = investing_candlestick.InvestingCandlestickAnalysis()
-        candle_patterns = i.getAnalysis(self.symbolToInvesting(), self.timeframe)
-        for pattern in candle_patterns:
-            print(pattern.date)
-            if pattern.date in self.candle_dictionary:
-                #TODO find a way to compare reliabilities because you can have more patterns on same date
-                #if pattern.reliability > self.candle_dictionary[pattern.date].getCandlestickAnalysis().reliability:
-                self.candle_dictionary[pattern.date].setCandlestickAnalysis(pattern)
+        self.__updatePatterns()
 
         for key in self.candle_dictionary:
             CandleCsvWriter(self.symbol, self.timeframe, self.candle_dictionary[key])
@@ -92,8 +88,8 @@ class DataLogger:
             new_candle = Candle(open, high, low, close, date)
 
             # 3. Update candlestick tech and patterns
-            inv_tech = investing_technical.InvestingTechnicalAnalysis()
-            analysis = inv_tech.getAnalysis(self.symbolToInvesting(), self.timeframe)
+            inv_tech = TechnicalAnalyzer()
+            analysis = inv_tech.analyse(self.symbolToInvesting(), self.timeframe)
             new_candle.setTechnicalAnalysis(analysis.name)
             self.candle_dictionary[date] = new_candle
 
@@ -104,9 +100,20 @@ class DataLogger:
             # 5. Print oldest candle to file
             CandleCsvWriter(self.symbol, self.timeframe, oldest_candle)
 
-        #i = investing_technical.InvestingTechnicalAnalysis()
-        #print(i.getAnalysis(self.symbolToInvesting(), self.timeframe))
-        #print(i.getAnalysis(self.symbol, self.timeframe))
+    def __updatePatterns(self):
+        # # Get last candlestick patterns and match to candles
+        i = PatternAnalyzer()
+        candle_patterns = i.analyse(self.symbolToInvesting(), self.timeframe)
+        for pattern in candle_patterns:
+            print(pattern.date)
+            if pattern.date in self.candle_dictionary:
+                current_reliability = self.candle_dictionary[pattern.date].getCandlestickAnalysis().reliability
+
+                if pattern.reliability is PatternReliability.HIGH:
+                    self.candle_dictionary[pattern.date].setCandlestickAnalysis(pattern)
+
+                elif pattern.reliability is PatternReliability.MEDIUM and current_reliability is PatternReliability.LOW:
+                    self.candle_dictionary[pattern.date].setCandlestickAnalysis(pattern)
 
     def symbolToInvesting(self):
         if self.symbol is "BITCOIN":
