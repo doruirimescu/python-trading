@@ -6,7 +6,7 @@ import symbols_url
 from timeframes import TIMEFRAMES as TIMEFRAMES
 
 # Defines a response from investing.com
-class InvestingTechnicalAnalysisResponse(Enum):
+class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""
 
     STRONG_SELL = "Strong Sell"
@@ -15,7 +15,7 @@ class InvestingTechnicalAnalysisResponse(Enum):
     BUY = "Buy"
     STRONG_BUY = "Strong Buy"
 
-class InvestingTechnicalAnalysis:
+class TechnicalAnalyzer:
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
@@ -29,7 +29,7 @@ class InvestingTechnicalAnalysis:
         soup = self.__getSoup(symbol, period)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
-            return(InvestingTechnicalAnalysisResponse(response_text))
+            return(TechnicalAnalysis(response_text))
 
     def __getSoup(self, symbol, period):
         symbol = symbol.upper()
@@ -53,5 +53,5 @@ class InvestingTechnicalAnalysis:
             return soup
         return None
 
-i = InvestingTechnicalAnalysis()
+i = TechnicalAnalyzer()
 print(i.getAnalysis("AUDUSD", "1h"))
