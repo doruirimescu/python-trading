@@ -14,8 +14,11 @@ from investing_candlestick import PatternReliability
 from investing_technical import TechnicalAnalyzer
 from investing_technical import TechnicalAnalysis
 
+from ticker import Ticker
+
 import time
 import timeframes
+
 class Session:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Login to xtb.')
@@ -36,12 +39,12 @@ class Session:
         self.client.logout()
 
 class DataLogger:
-    def __init__(self, symbol, timeframe, windowsize = 20):
+    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20):
         self.symbol = symbol
         self.timeframe = timeframe
         self.windowsize = windowsize
-        self.session = Session()
-        self.client = self.session.login()
+        self.client = Session().login()
+        self.path_ = path
 
         # # Get last WINDOW_SIZE candles
         hist = self.client.get_lastn_candle_history(symbol, timeframes.TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
@@ -61,16 +64,14 @@ class DataLogger:
         self.__updatePatterns()
 
         for key in self.candle_dictionary:
-            CandleCsvWriter(self.symbol, self.timeframe, self.candle_dictionary[key])
+            CandleCsvWriter(self.symbol, self.timeframe, self.candle_dictionary[key], self.path_)
 
-    def mainLoop(self, stopDate):
-        looprate_seconds = timeframes.TIMEFRAME_TO_MINUTES[self.timeframe] * 60
-        print("Looping at rate: " + str(looprate_seconds))
-        ##TODO: sync timing properly
-        while datetime.now() < stopDate:
-            time.sleep(looprate_seconds)
-            self.loopOnce()
-        self.session.logout()
+    def mainLoop(self):
+        ticker = Ticker(self.timeframe)
+        while True:
+            time.sleep(1)
+            if ticker.tick():
+                self.loopOnce()
 
     def loopOnce(self):
         # 1. Get the latest candle
@@ -80,38 +81,38 @@ class DataLogger:
         low     = h['low']
         close   = h['close']
         date    = datetime.fromtimestamp(h['timestamp'])
+        print(date)
 
         # 2. If candle not in dictionary, update dictionary with new candle
-        if date in self.candle_dictionary:
-            print("Candle already in dictionary")
-        else:
-            print("Inserting new candle into dictionary")
-            new_candle = Candle(open, high, low, close, date)
+        new_candle = Candle(open, high, low, close, date)
 
-            # 3. Update candlestick tech and patterns
-            inv_tech = TechnicalAnalyzer()
-            analysis = inv_tech.analyse(self.symbolToInvesting(), self.timeframe)
-            new_candle.setTechnicalAnalysis(analysis.name)
-            self.candle_dictionary[date] = new_candle
-            print("New candle tech: "+ new_candle.getTechnicalAnalysis())
+        # 3. Update candlestick tech
+        inv_tech = TechnicalAnalyzer()
+        analysis = inv_tech.analyse(self.symbolToInvesting(), self.timeframe)
+        new_candle.setTechnicalAnalysis(analysis.name)
+        self.candle_dictionary[date] = new_candle
+        print("New candle tech: "+ new_candle.getTechnicalAnalysis())
 
-            # 4. Remove oldest candle from dict
-            oldest_key = list(self.candle_dictionary.keys())[0]
-            oldest_candle = self.candle_dictionary.pop(oldest_key)
+        # 4. Update candle pattern
+        self.__updatePatterns()
 
-            # 5. Print newest candle to file
-            CandleCsvWriter(self.symbol, self.timeframe, new_candle)
+        # 4. Remove oldest candle from dict
+        oldest_key = list(self.candle_dictionary.keys())[0]
+        oldest_candle = self.candle_dictionary.pop(oldest_key)
+
+        # 5. Print newest candle to file
+        CandleCsvWriter(self.symbol, self.timeframe, new_candle, self.path_)
 
     def __updatePatterns(self):
         # # Get last candlestick patterns and match to candles
         i = PatternAnalyzer()
         candle_patterns = i.analyse(self.symbolToInvesting(), self.timeframe)
         for pattern in candle_patterns:
-            print(pattern.date)
             if pattern.date in self.candle_dictionary:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
                 if pattern.isMoreReliableThan(current_pattern):
                     self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
+                    print("New candle pattern: " + pattern.pattern)
 
     def symbolToInvesting(self):
         if self.symbol is "BITCOIN":
@@ -121,26 +122,13 @@ class DataLogger:
         else:
             return self.symbol
 
-data_logger = DataLogger('BITCOIN', '1h', 100)
-data_logger.mainLoop( datetime.now() + timedelta(hours=24))
+    def __enter__(self):
+        return self
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.client.logout()
+        print("Stopped logging")
 
-
-
-
-# # CHECK IF MARKET IS OPEN FOR EURUSD
-# client.check_if_market_open(["EURUSD"])
-
-# # BUY ONE VOLUME (FOR EURUSD THAT CORRESPONDS TO 100000 units)
-# #client.open_trade('buy', "EURUSD", 1)
-
-# # SEE IF ACTUAL GAIN IS ABOVE 100 THEN CLOSE THE TRADE
-# trades = client.update_trades() # GET CURRENT TRADES
-
-# trade_ids = [trade_id for trade_id in trades.keys()]
-# for trade in trade_ids:
-#     actual_profit = client.get_trade_profit(trade) # CHECK PROFIT
-#     if actual_profit >= 100:
-#         client.close_trade(trade) # CLOSE TRADE
-# # CLOSE ALL OPEN TRADES
-# client.close_all_trades()
+with DataLogger('EURUSD', '1m', "/home/doru/personal/trading/data2/", 100) as data_logger:
+    print("Started logging")
+    data_logger.mainLoop()

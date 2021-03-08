@@ -7,7 +7,7 @@ from investing_candlestick import PatternReliability
 class TestPatternAnalysis(unittest.TestCase):
     def test_isMoreReliableThan_High_None(self):
         p1 = PatternAnalysis("p1", PatternReliability.HIGH)
-        p2 = None
+        p2 = PatternAnalysis("p1", None)
         self.assertEqual(p1.isMoreReliableThan(p2), True)
 
     def test_isMoreReliableThan_High_High(self):

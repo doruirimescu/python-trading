@@ -1,7 +1,8 @@
 from enum import Enum
 import datetime
 import calendar
-
+from investing_candlestick import PatternAnalysis
+from investing_candlestick import PatternReliability
 
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern"""
@@ -125,6 +126,7 @@ class Candle:
         self.close_ = close
         self.high_ = high
         self.low_ = low
+        self.candlestick_analysis_ = PatternAnalysis()
 
         if self.open_ < self.close_:
             self.color_ = Color.GREEN
@@ -163,10 +165,10 @@ class Candle:
     def getTechnicalAnalysis(self):
         return self.technical_analysis_
 
-    def setCandlestickAnalysis(self, analysis):
+    def setPatternAnalysis(self, analysis):
         self.candlestick_analysis_ = analysis
 
-    def getCandlestickAnalysis(self):
+    def getPatternAnalysis(self):
         return self.candlestick_analysis_
 
     def getData(self):

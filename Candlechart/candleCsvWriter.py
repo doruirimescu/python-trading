@@ -4,8 +4,8 @@ from datetime import datetime
 from candle import Candle
 
 class CandleCsvWriter:
-    def __init__(self, symbol, timeframe, candle):
-        self.path = '/home/doru/personal/trading/data/'+symbol+"-"+timeframe+".csv"
+    def __init__(self, symbol, timeframe, candle, path = '/home/doru/personal/trading/data/'):
+        self.path = path + symbol+"-"+timeframe+".csv"
         if not os.path.isfile(self.path):
             self.__writeHeader()
 

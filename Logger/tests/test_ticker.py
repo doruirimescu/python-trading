@@ -5,6 +5,11 @@ from datetime import datetime
 
 class TestTicker(unittest.TestCase):
 
+    def test_ticker_raises_exception(self):
+        with self.assertRaises(Exception) as context:
+            t = Ticker('16m')
+        self.assertTrue('Timeframe' in str(context.exception))
+
     def test_tick_1minute_true(self):
         #Arrange
         year = 2020

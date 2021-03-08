@@ -29,7 +29,7 @@ class PatternAnalysis:
         print("------------------------------")
 
     def isMoreReliableThan(self, other):
-        if other is None:
+        if other.reliability is None:
             return True
         elif (self.reliability is PatternReliability.HIGH and other.reliability is not PatternReliability.HIGH):
             return True

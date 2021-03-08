@@ -3,7 +3,7 @@ import pytest
 import unittest
 import datetime
 from bs4 import BeautifulSoup as bs
-from investing_technical import InvestingTechnicalAnalysisResponse
+from investing_technical import TechnicalAnalysis
 
 class TestCandle(unittest.TestCase):
 
@@ -77,20 +77,20 @@ class TestCandle(unittest.TestCase):
     def test_getTechnicalAnalysis(self):
         body = candle.Candle(0.25,1,0,0.7)
 
-        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.STRONG_SELL)
-        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.STRONG_SELL)
+        body.setTechnicalAnalysis(TechnicalAnalysis.STRONG_SELL)
+        self.assertEqual(body.getTechnicalAnalysis(), TechnicalAnalysis.STRONG_SELL)
 
-        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.SELL)
-        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.SELL)
+        body.setTechnicalAnalysis(TechnicalAnalysis.SELL)
+        self.assertEqual(body.getTechnicalAnalysis(), TechnicalAnalysis.SELL)
 
-        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.NEUTRAL)
-        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.NEUTRAL)
+        body.setTechnicalAnalysis(TechnicalAnalysis.NEUTRAL)
+        self.assertEqual(body.getTechnicalAnalysis(), TechnicalAnalysis.NEUTRAL)
 
-        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.BUY)
-        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.BUY)
+        body.setTechnicalAnalysis(TechnicalAnalysis.BUY)
+        self.assertEqual(body.getTechnicalAnalysis(), TechnicalAnalysis.BUY)
 
-        body.setTechnicalAnalysis(InvestingTechnicalAnalysisResponse.STRONG_BUY)
-        self.assertEqual(body.getTechnicalAnalysis(), InvestingTechnicalAnalysisResponse.STRONG_BUY)
+        body.setTechnicalAnalysis(TechnicalAnalysis.STRONG_BUY)
+        self.assertEqual(body.getTechnicalAnalysis(), TechnicalAnalysis.STRONG_BUY)
 
     def test_getWeekday(self):
         body = candle.Candle(0.25,1,0,0.7, datetime.date(2021,3,5))
