@@ -1,8 +1,8 @@
 import pytest
 import unittest
 import datetime
-from investing_candlestick import PatternAnalysis
-from investing_candlestick import PatternReliability
+from Trading.InvestingAPI.investing_candlestick import PatternAnalysis
+from Trading.InvestingAPI.investing_candlestick import PatternReliability
 
 class TestPatternAnalysis(unittest.TestCase):
     def test_isMoreReliableThan_High_None(self):

@@ -19,3 +19,5 @@ pip3 install pytest
 
 #Install aenum
 pip install aenum
+
+pip install requests
