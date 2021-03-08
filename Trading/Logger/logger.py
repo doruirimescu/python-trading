@@ -4,17 +4,18 @@ import getpass
 from XTBApi.api import Client
 from datetime import datetime
 from datetime import timedelta
-from candle import Candle
-from candleCsvWriter import CandleCsvWriter
 
-from investing_candlestick import PatternAnalyzer
-from investing_candlestick import PatternAnalysis
-from investing_candlestick import PatternReliability
+from Trading.Candlechart.candle import Candle
+from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
-from investing_technical import TechnicalAnalyzer
-from investing_technical import TechnicalAnalysis
+from Trading.InvestingAPI.investing_candlestick import PatternAnalyzer
+from Trading.InvestingAPI.investing_candlestick import PatternAnalysis
+from Trading.InvestingAPI.investing_candlestick import PatternReliability
 
-from ticker import Ticker
+from Trading.InvestingAPI.investing_technical import TechnicalAnalyzer
+from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
+
+from Trading.Logger.ticker import Ticker
 
 import time
 import timeframes
