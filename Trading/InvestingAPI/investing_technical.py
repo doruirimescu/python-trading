@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
 import symbols_url
-from timeframes import TIMEFRAMES as TIMEFRAMES
-
+from Trading.InvestingAPI.timeframes import *
 # Defines a response from investing.com
 class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""

@@ -1,8 +1,6 @@
 import pytest
 import unittest
 import datetime
-from patterns import CandlestickPattern
-from patterns import CandlestickPatternIndication
 
 class TestPatterns(unittest.TestCase):
     def test_1(self):
