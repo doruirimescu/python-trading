@@ -16,9 +16,10 @@ from Trading.InvestingAPI.investing_technical import TechnicalAnalyzer
 from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
 
 from Trading.Logger.ticker import Ticker
+from Trading.InvestingAPI.timeframes import TIMEFRAMES
+from Trading.InvestingAPI.timeframes import TIMEFRAME_TO_MINUTES
 
 import time
-import timeframes
 
 class Session:
     def __init__(self):
@@ -48,7 +49,7 @@ class DataLogger:
         self.path_ = path
 
         # # Get last WINDOW_SIZE candles
-        hist = self.client.get_lastn_candle_history(symbol, timeframes.TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
+        hist = self.client.get_lastn_candle_history(symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
 
         self.candle_dictionary = dict()
         for h in hist:
@@ -76,7 +77,7 @@ class DataLogger:
 
     def loopOnce(self):
         # 1. Get the latest candle
-        h = self.client.get_lastn_candle_history(self.symbol, timeframes.TIMEFRAME_TO_MINUTES[self.timeframe] * 60, 1)[0]
+        h = self.client.get_lastn_candle_history(self.symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, 1)[0]
         open    = h['open']
         high    = h['high']
         low     = h['low']

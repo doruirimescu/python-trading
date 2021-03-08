@@ -1,8 +1,7 @@
 import csv
 import os.path
 from datetime import datetime
-from candle import Candle
-
+from Trading.Candlechart.candle import CandleClassifier
 class CandleCsvWriter:
     def __init__(self, symbol, timeframe, candle, path = '/home/doru/personal/trading/data/'):
         self.path = path + symbol+"-"+timeframe+".csv"
