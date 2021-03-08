@@ -4,13 +4,15 @@ from enum import Enum
 from datetime import datetime
 import symbols_url
 
-class InvestingCandlestickAnalysisReliability(Enum):
+class PatternReliability(Enum):
     LOW = 'Low'
     MEDIUM = 'Medium'
     HIGH = 'High'
+
+
 #TODO get confidence number for reliability
-class InvestingCandleStickAnalysisResponse:
-    def __init__(self, pattern="None", reliability=InvestingCandlestickAnalysisReliability.LOW, timeframe="", candles_ago=0, date=datetime.now()):
+class PatternAnalysis:
+    def __init__(self, pattern="None", reliability=PatternReliability.LOW, timeframe="", candles_ago=0, date=datetime.now()):
         self.pattern = pattern
         self.reliability = reliability
         self.timeframe = timeframe
@@ -26,7 +28,15 @@ class InvestingCandleStickAnalysisResponse:
         print(self.date)
         print("------------------------------")
 
-class InvestingCandlestickAnalysis:
+    def isMoreReliableThan(self, other):
+        if (self.reliability is PatternReliability.HIGH and other.reliability is not PatternReliability.HIGH):
+            return True
+        elif (self.reliability is PatternReliability.MEDIUM and other.reliability is PatternReliability.LOW):
+            return True
+        else:
+            return False
+
+class PatternAnalyzer:
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
@@ -56,7 +66,7 @@ class InvestingCandlestickAnalysis:
         elif timeframe =='1M':
             return "%b %y"
 
-    def getAnalysis(self, symbol, period=None):
+    def analyse(self, symbol, period=None):
 
         soup = self.__getSoup(symbol)
 
@@ -103,7 +113,7 @@ class InvestingCandlestickAnalysis:
                 timeframe = child.contents[0]
                 timeframe = self.__sanitizeTimeframe(timeframe)
             elif counter == 7:
-                reliability = InvestingCandlestickAnalysisReliability(child["title"])
+                reliability = PatternReliability(child["title"])
             elif counter == 9:
                 candles_ago = child.contents[0]
             elif counter == 11:
@@ -116,7 +126,7 @@ class InvestingCandlestickAnalysis:
         else:
             date = datetime.strptime(date, self.__getTimeFormatter(timeframe))
 
-        return InvestingCandleStickAnalysisResponse(pattern, reliability, timeframe, candles_ago, date)
+        return PatternAnalysis(pattern, reliability, timeframe, candles_ago, date)
 
     def __sanitizeTimeframe(self, timeframe):
         if timeframe == "1":
