@@ -5,6 +5,7 @@ from datetime import datetime
 from Trading.InvestingAPI.symbols_url import SYMBOLS_URL
 from Trading.InvestingAPI.timeframes import TIMEFRAMES
 
+__all__=['TechnicalAnalysis', 'TechnicalAnalyzer']
 # Defines a response from investing.com
 class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""

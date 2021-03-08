@@ -12,8 +12,7 @@ from Trading.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.InvestingAPI.investing_candlestick import PatternAnalysis
 from Trading.InvestingAPI.investing_candlestick import PatternReliability
 
-from Trading.InvestingAPI.investing_technical import TechnicalAnalyzer
-from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
+from Trading.InvestingAPI.investing_technical import *
 
 from Trading.Logger.ticker import Ticker
 from Trading.InvestingAPI.timeframes import *

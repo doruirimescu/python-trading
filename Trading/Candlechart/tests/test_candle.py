@@ -4,6 +4,7 @@ import unittest
 import datetime
 
 from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
+
 from Trading.Candlechart.candle import Candle
 from Trading.Candlechart.candle import Color
 from Trading.Candlechart.candle import CandleType
