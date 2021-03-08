@@ -21,11 +21,7 @@ class TechnicalAnalyzer:
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
         self.symbols = symbols_url.SYMBOLS_URL
 
-    def getAvailableSymbols(self):
-        response = [i for i, j in self.symbols.items()]
-        return response
-
-    def getAnalysis(self, symbol, period):
+    def analyse(self, symbol, period):
         soup = self.__getSoup(symbol, period)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
@@ -52,6 +48,3 @@ class TechnicalAnalyzer:
             soup = bs(r.content, "lxml")
             return soup
         return None
-
-i = TechnicalAnalyzer()
-print(i.getAnalysis("AUDUSD", "1h"))
