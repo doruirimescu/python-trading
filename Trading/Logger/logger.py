@@ -128,7 +128,3 @@ class DataLogger:
     def __exit__(self, exc_type, exc_value, traceback):
         self.client.logout()
         print("Stopped logging")
-
-with DataLogger('EURUSD', '1m', "/home/doru/personal/trading/data2/", 100) as data_logger:
-    print("Started logging")
-    data_logger.mainLoop()
