@@ -29,7 +29,9 @@ class PatternAnalysis:
         print("------------------------------")
 
     def isMoreReliableThan(self, other):
-        if (self.reliability is PatternReliability.HIGH and other.reliability is not PatternReliability.HIGH):
+        if other is None:
+            return True
+        elif (self.reliability is PatternReliability.HIGH and other.reliability is not PatternReliability.HIGH):
             return True
         elif (self.reliability is PatternReliability.MEDIUM and other.reliability is PatternReliability.LOW):
             return True
