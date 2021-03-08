@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
-import symbols_url
+from Trading.InvestingAPI.symbols_url import SYMBOLS_URL
 
 class PatternReliability(Enum):
     LOW = 'Low'
@@ -42,7 +42,7 @@ class PatternAnalyzer:
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
-        self.symbols = symbols_url.SYMBOLS_URL
+        self.symbols = SYMBOLS_URL
 
     def getAvailableSymbols(self):
         response = [i for i, j in self.symbols.items()]
