@@ -16,8 +16,7 @@ from Trading.InvestingAPI.investing_technical import TechnicalAnalyzer
 from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
 
 from Trading.Logger.ticker import Ticker
-from Trading.InvestingAPI.timeframes import TIMEFRAMES
-from Trading.InvestingAPI.timeframes import TIMEFRAME_TO_MINUTES
+from Trading.InvestingAPI.timeframes import *
 
 import time
 
