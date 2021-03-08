@@ -2,8 +2,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
-import symbols_url
-from Trading.InvestingAPI.timeframes import *
+from Trading.InvestingAPI.symbols_url import SYMBOLS_URL
+from Trading.InvestingAPI.timeframes import TIMEFRAMES
+
 # Defines a response from investing.com
 class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""
@@ -18,7 +19,7 @@ class TechnicalAnalyzer:
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
-        self.symbols = symbols_url.SYMBOLS_URL
+        self.symbols = SYMBOLS_URL
 
     def analyse(self, symbol, period):
         soup = self.__getSoup(symbol, period)
