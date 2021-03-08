@@ -44,7 +44,3 @@ class Ticker:
             elif(self.timeframe == '1W' and weekday == 0 and hour == 12 and minute == 0):
                 return True
         return False
-
-    def isTradingNow(self, symbol):
-        #TODO find out if symbol is trading otherwise don't tick
-        pass
