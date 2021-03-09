@@ -46,6 +46,8 @@ class DataLogger:
         self.client = Session().login()
         self.path_ = path
 
+        self.csv_writer = CandleCsvWriter(self.symbol, self.timeframe, self.path_)
+
         # # Get last WINDOW_SIZE candles
         hist = self.client.get_lastn_candle_history(symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
 
@@ -64,7 +66,7 @@ class DataLogger:
         self.__updatePatterns()
 
         for key in self.candle_dictionary:
-            CandleCsvWriter(self.symbol, self.timeframe, self.candle_dictionary[key], self.path_)
+            self.csv_writer.writeCandle(self.candle_dictionary[key])
 
     def mainLoop(self):
         ticker = Ticker(self.timeframe)
@@ -101,7 +103,7 @@ class DataLogger:
         oldest_candle = self.candle_dictionary.pop(oldest_key)
 
         # 5. Print newest candle to file
-        CandleCsvWriter(self.symbol, self.timeframe, new_candle, self.path_)
+        self.csv_writer.writeCandle(new_candle)
 
     def __updatePatterns(self):
         # # Get last candlestick patterns and match to candles
