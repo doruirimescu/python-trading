@@ -9,14 +9,24 @@ class IndicatorActionsToAnalysis:
     def convert(self, actions):
         n_buy = 0
         n_sell = 0
+        n_neutral = 0
         for action in actions:
             if action == IndicatorAction.BUY:
                 n_buy += 1
             elif action == IndicatorAction.SELL:
                 n_sell += 1
-
+            else:
+                n_neutral += 1
         percentage_buy  = n_buy  / (n_buy + n_sell) * 100
         percentage_sell = n_sell / (n_buy + n_sell) * 100
+
+        if (n_neutral + n_sell) >= n_buy:
+            if percentage_buy > self.__strong:
+                return TechnicalAnalysis.BUY
+
+        if(n_neutral + n_buy) >= n_sell:
+            if percentage_sell > self.__strong:
+                return TechnicalAnalysis.SELL
 
         if percentage_buy > self.__strong:
             return TechnicalAnalysis.STRONG_BUY
