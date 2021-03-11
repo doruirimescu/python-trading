@@ -2,7 +2,7 @@ import pytest
 import unittest
 from Trading.Indicators.indicator_value_to_action import IndicatorAction
 from Trading.Indicators.indicator_actions_to_analysis import IndicatorActionsToAnalysis
-from Trading.InvestingAPI.investing_technical import TechnicalAnalysis as TA
+from Trading.Indicators.indicator_actions_to_analysis import TechnicalAnalysis as TA
 class TestIndicatorActionsToAnalysis(unittest.TestCase):
     def BSN(self, buy, sell, neutral):
         actions = list()
