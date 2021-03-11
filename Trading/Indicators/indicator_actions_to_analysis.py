@@ -2,9 +2,10 @@ from Trading.Indicators.indicator_value_to_action import IndicatorAction
 from Trading.InvestingAPI.investing_technical import TechnicalAnalysis
 
 class IndicatorActionsToAnalysis:
-    def __init__(self, strong=70.0, weak=50.0):
+    def __init__(self, n_indicators = 12, strong=70.0, weak=50.0):
         self.__strong = strong
         self.__weak = weak
+        self.__n_indicators = n_indicators
 
     def convert(self, actions):
         n_buy = 0
@@ -20,9 +21,9 @@ class IndicatorActionsToAnalysis:
         percentage_buy  = n_buy  / (n_buy + n_sell) * 100
         percentage_sell = n_sell / (n_buy + n_sell) * 100
 
-        if n_buy >=6:
+        if n_buy >=self.__n_indicators/2:
             return TechnicalAnalysis.STRONG_BUY
-        elif n_sell >=6:
+        elif n_sell >=self.__n_indicators/2:
             return TechnicalAnalysis.STRONG_SELL
 
         if percentage_buy > percentage_sell:
@@ -31,22 +32,3 @@ class IndicatorActionsToAnalysis:
             return TechnicalAnalysis.SELL
         else:
             return TechnicalAnalysis.NEUTRAL
-
-        # if (n_neutral + n_sell) >= n_buy:
-        #     if percentage_buy > self.__strong:
-        #         return TechnicalAnalysis.BUY
-
-        # if(n_neutral + n_buy) >= n_sell:
-        #     if percentage_sell > self.__strong:
-        #         return TechnicalAnalysis.SELL
-
-        # if percentage_buy >= self.__strong:
-        #     return TechnicalAnalysis.STRONG_BUY
-        # elif percentage_buy > self.__weak:
-        #     return TechnicalAnalysis.BUY
-        # elif percentage_sell >= self.__strong:
-        #     return TechnicalAnalysis.STRONG_SELL
-        # elif percentage_sell > self.__weak:
-        #     return TechnicalAnalysis.SELL
-        # elif percentage_buy == percentage_sell:
-        #     return TechnicalAnalysis.NEUTRAL
