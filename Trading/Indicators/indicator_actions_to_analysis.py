@@ -20,21 +20,33 @@ class IndicatorActionsToAnalysis:
         percentage_buy  = n_buy  / (n_buy + n_sell) * 100
         percentage_sell = n_sell / (n_buy + n_sell) * 100
 
-        if (n_neutral + n_sell) >= n_buy:
-            if percentage_buy > self.__strong:
-                return TechnicalAnalysis.BUY
-
-        if(n_neutral + n_buy) >= n_sell:
-            if percentage_sell > self.__strong:
-                return TechnicalAnalysis.SELL
-
-        if percentage_buy > self.__strong:
+        if n_buy >=6:
             return TechnicalAnalysis.STRONG_BUY
-        elif percentage_buy > self.__weak:
-            return TechnicalAnalysis.BUY
-        elif percentage_sell > self.__strong:
+        elif n_sell >=6:
             return TechnicalAnalysis.STRONG_SELL
-        elif percentage_sell > self.__weak:
+
+        if percentage_buy > percentage_sell:
+            return TechnicalAnalysis.BUY
+        if percentage_sell > percentage_buy:
             return TechnicalAnalysis.SELL
-        elif percentage_buy == percentage_sell:
+        else:
             return TechnicalAnalysis.NEUTRAL
+
+        # if (n_neutral + n_sell) >= n_buy:
+        #     if percentage_buy > self.__strong:
+        #         return TechnicalAnalysis.BUY
+
+        # if(n_neutral + n_buy) >= n_sell:
+        #     if percentage_sell > self.__strong:
+        #         return TechnicalAnalysis.SELL
+
+        # if percentage_buy >= self.__strong:
+        #     return TechnicalAnalysis.STRONG_BUY
+        # elif percentage_buy > self.__weak:
+        #     return TechnicalAnalysis.BUY
+        # elif percentage_sell >= self.__strong:
+        #     return TechnicalAnalysis.STRONG_SELL
+        # elif percentage_sell > self.__weak:
+        #     return TechnicalAnalysis.SELL
+        # elif percentage_buy == percentage_sell:
+        #     return TechnicalAnalysis.NEUTRAL

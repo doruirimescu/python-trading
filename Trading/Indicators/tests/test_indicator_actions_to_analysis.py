@@ -107,13 +107,25 @@ class TestIndicatorActionsToAnalysis(unittest.TestCase):
         result = self.BSN(4,2,4)
         self.assertEqual(TA.BUY, result)
 
-    # def test_24(self): INVESTIGATE WHY IT IS NOT WORKING
-    #     result = self.BSN(1,5,2)
-    #     self.assertEqual(TA.SELL, result)
-
     def test_24(self):
+        result = self.BSN(7,0,3)
+        self.assertEqual(TA.STRONG_BUY, result)
+
+    def test_25(self):
+        result = self.BSN(7,3,1)
+        self.assertEqual(TA.STRONG_BUY, result)
+
+    def test_28(self):
+        result = self.BSN(1,5,2)
+        self.assertEqual(TA.SELL, result)
+
+    def test_26(self):
         result = self.BSN(4,3,4)
         self.assertEqual(TA.BUY, result)
+
+    def test_27(self):
+        result = self.BSN(8,1,1)
+        self.assertEqual(TA.STRONG_BUY, result)
 
     #Other tests
     def test_B2_S1_N5(self):
