@@ -143,6 +143,14 @@ class TestIndicatorActionsToAnalysis(unittest.TestCase):
         result = self.BSN(4,2,2)
         self.assertEqual(TA.BUY, result)
 
+    def test_32(self):
+        result = self.BSN(2,4,5)
+        self.assertEqual(TA.SELL, result)
+
+    def test_33(self):
+        result = self.BSN(8,2,1)
+        self.assertEqual(TA.STRONG_BUY, result)
+
     #Other tests
     def test_B2_S1_N5(self):
         actions = [IndicatorAction.BUY, IndicatorAction.BUY, IndicatorAction.SELL, IndicatorAction.NEUTRAL, IndicatorAction.NEUTRAL, IndicatorAction.NEUTRAL, IndicatorAction.NEUTRAL, IndicatorAction.NEUTRAL]
