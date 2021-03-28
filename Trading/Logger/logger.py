@@ -19,7 +19,7 @@ from Trading.InvestingAPI.timeframes import *
 
 import time
 
-class Session:
+class SessionInfo:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Login to xtb.')
         parser.add_argument('-u', dest='username', type=str, required=True)
@@ -27,29 +27,22 @@ class Session:
         self.username = args.username    # 11989223
         self.password = getpass.getpass()
 
-        # # FIRST INIT THE CLIENT
-        self.client = Client()
-
-    def login(self):
-        # # THEN LOGIN
-        self.client.login(self.username, self.password, mode="demo")
-        return self.client
-
-    def logout(self):
-        self.client.logout()
 
 class DataLogger:
     def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20):
         self.symbol = symbol
         self.timeframe = timeframe
         self.windowsize = windowsize
-        self.client = Session().login()
         self.path_ = path
+        self.session_info = SessionInfo()
 
         self.csv_writer = CandleCsvWriter(self.symbol, self.timeframe, self.path_)
 
         # # Get last WINDOW_SIZE candles
-        hist = self.client.get_lastn_candle_history(symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
+        client = Client()
+        client.login(self.session_info.username, self.session_info.password, mode ="demo")
+        hist = client.get_lastn_candle_history(symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
+        client.logout()
 
         self.candle_dictionary = dict()
         for h in hist:
@@ -77,7 +70,11 @@ class DataLogger:
 
     def loopOnce(self):
         # 1. Get the latest candle
-        h = self.client.get_lastn_candle_history(self.symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, 1)[0]
+        client = Client()
+        client.login(self.session_info.username, self.session_info.password, mode ="demo")
+        h = client.get_lastn_candle_history(self.symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, 1)[0]
+        client.logout()
+
         open    = h['open']
         high    = h['high']
         low     = h['low']
@@ -128,5 +125,4 @@ class DataLogger:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.client.logout()
         print("Stopped logging")
