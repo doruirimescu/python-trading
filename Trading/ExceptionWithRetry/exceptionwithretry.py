@@ -11,8 +11,8 @@ class ExceptionWithRetry:
         if self._retries < self._max_retries:
             self._retries = self._retries + 1
             try:
-                self._method(*args)
+                return self._method(*args)
             except Exception as e:
                 print(e)
                 time.sleep(self._time_sleep)
-                self.run(args)
+                return self.run(args)
