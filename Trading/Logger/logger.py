@@ -12,6 +12,8 @@ from Trading.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.InvestingAPI.investing_candlestick import PatternAnalysis
 from Trading.InvestingAPI.investing_candlestick import PatternReliability
 
+from Trading.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
+
 from Trading.InvestingAPI.investing_technical import *
 
 from Trading.Logger.ticker import Ticker
@@ -27,22 +29,30 @@ class SessionInfo:
         self.username = args.username    # 11989223
         self.password = getpass.getpass()
 
-
 class DataLogger:
-    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20):
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.windowsize = windowsize
-        self.path_ = path
-        self.session_info = SessionInfo()
+    def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
+        client = Client()
+        ewr = ExceptionWithRetry(client.login, 5, 0.5)
+        ewr.run([self._session_info.username, self._session_info.password, mode])
 
-        self.csv_writer = CandleCsvWriter(self.symbol, self.timeframe, self.path_)
+        ewr = ExceptionWithRetry(client.get_lastn_candle_history, 5, 0.5)
+        result = ewr.run( [symbol, TIMEFRAME_TO_MINUTES[self._timeframe] * 60, N] )
+
+        ewr = ExceptionWithRetry(client.logout, 5, 0.5)
+        ewr.run([])
+        return result
+
+    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
+        self._symbol = symbol
+        self._timeframe = timeframe
+        self._mode = mode
+        self._path = path
+        self._session_info = SessionInfo()
+
+        self.csv_writer = CandleCsvWriter(self._symbol, self._timeframe, self._path)
 
         # # Get last WINDOW_SIZE candles
-        client = Client()
-        client.login(self.session_info.username, self.session_info.password, mode ="demo")
-        hist = client.get_lastn_candle_history(symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, self.windowsize)
-        client.logout()
+        hist = self._getLastNCandleHistory(self._symbol, self._timeframe, windowsize, self._mode)
 
         self.candle_dictionary = dict()
         for h in hist:
@@ -62,7 +72,7 @@ class DataLogger:
             self.csv_writer.writeCandle(self.candle_dictionary[key])
 
     def mainLoop(self):
-        ticker = Ticker(self.timeframe)
+        ticker = Ticker(self._timeframe)
         while True:
             time.sleep(1)
             if ticker.tick():
@@ -70,10 +80,7 @@ class DataLogger:
 
     def loopOnce(self):
         # 1. Get the latest candle
-        client = Client()
-        client.login(self.session_info.username, self.session_info.password, mode ="demo")
-        h = client.get_lastn_candle_history(self.symbol, TIMEFRAME_TO_MINUTES[self.timeframe] * 60, 1)[0]
-        client.logout()
+        h = self._getLastNCandleHistory(self._symbol, self._timeframe, 1, self._mode)[0]
 
         open    = h['open']
         high    = h['high']
@@ -87,7 +94,7 @@ class DataLogger:
 
         # 3. Update candlestick tech
         inv_tech = TechnicalAnalyzer()
-        analysis = inv_tech.analyse(self.symbolToInvesting(), self.timeframe)
+        analysis = inv_tech.analyse(self.symbolToInvesting(), self._timeframe)
         new_candle.setTechnicalAnalysis(analysis.name)
         self.candle_dictionary[date] = new_candle
         print("New candle tech: "+ new_candle.getTechnicalAnalysis())
@@ -105,7 +112,7 @@ class DataLogger:
     def __updatePatterns(self):
         # # Get last candlestick patterns and match to candles
         i = PatternAnalyzer()
-        candle_patterns = i.analyse(self.symbolToInvesting(), self.timeframe)
+        candle_patterns = i.analyse(self.symbolToInvesting(), self._timeframe)
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
@@ -114,12 +121,12 @@ class DataLogger:
                     print("New candle pattern: " + pattern.pattern)
 
     def symbolToInvesting(self):
-        if self.symbol is "BITCOIN":
+        if self._symbol is "BITCOIN":
             return "BTCUSD"
-        elif self.symbol is "ETHEREUM":
+        elif self._symbol is "ETHEREUM":
             return "ETHUSD"
         else:
-            return self.symbol
+            return self._symbol
 
     def __enter__(self):
         return self
