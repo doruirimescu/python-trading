@@ -3,6 +3,11 @@ import unittest
 
 from Trading.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
 
+class TestMethods:
+    def method(self, arg):
+        arg.append(arg[-1] + 20)
+        raise Exception("Not gonna happen")
+
 def method(arg):
     arg.append(arg[-1] + 1)
     raise Exception("Not gonna happen")
@@ -38,3 +43,10 @@ class TestExceptionWithRetry(unittest.TestCase):
         arg =[1,2]
         ewr.run([arg])
         self.assertEqual(arg, [1,2,3,4])
+
+    def test_5(self):
+        t = TestMethods()
+        ewr = ExceptionWithRetry(t.method, 5, 0.0)
+        arg = [0]
+        ewr.run([arg])
+        self.assertEqual(arg, [0, 20, 40, 60, 80, 100])
