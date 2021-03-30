@@ -11,6 +11,8 @@ def method2(arg1, arg2):
     arg1.append(arg1[-1] + arg2)
     raise Exception("Not gonna happen")
 
+def method_caller(arg):
+    method(arg)
 class TestExceptionWithRetry(unittest.TestCase):
 
     def test_1(self):
@@ -30,3 +32,9 @@ class TestExceptionWithRetry(unittest.TestCase):
         arg = [0]
         ewr.run([arg, 1])
         self.assertEqual(arg,[0,1,2])
+
+    def test_4(self):
+        ewr = ExceptionWithRetry(method_caller, 2, 0.0)
+        arg =[1,2]
+        ewr.run([arg])
+        self.assertEqual(arg, [1,2,3,4])
