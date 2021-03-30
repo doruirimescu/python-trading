@@ -32,15 +32,27 @@ class SessionInfo:
 class DataLogger:
     def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
         client = Client()
-        ewr = ExceptionWithRetry(client.login, 5, 0.5)
+        ewr = ExceptionWithRetry(client.login, 10, 1.0)
         ewr.run([self._session_info.username, self._session_info.password, mode])
 
-        ewr = ExceptionWithRetry(client.get_lastn_candle_history, 5, 0.5)
+        ewr = ExceptionWithRetry(client.get_lastn_candle_history, 10, 1.0)
         result = ewr.run( [symbol, TIMEFRAME_TO_MINUTES[self._timeframe] * 60, N] )
 
-        ewr = ExceptionWithRetry(client.logout, 5, 0.5)
+        ewr = ExceptionWithRetry(client.logout, 10, 1.0)
         ewr.run([])
         return result
+
+    def _getPatternAnalysis(self):
+        i = PatternAnalyzer()
+        ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
+        analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
+        return analysis
+
+    def _getTechnicalAnalysis(self):
+        inv_tech = TechnicalAnalyzer()
+        ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
+        analysis = ewr.run([self._symbolToInvesting(), self._timeframe])
+        return analysis
 
     def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
         self._symbol = symbol
@@ -66,7 +78,7 @@ class DataLogger:
             candle.setPatternAnalysis(PatternAnalysis())
             self.candle_dictionary[date] = candle
 
-        self.__updatePatterns()
+        self._updatePatterns()
 
         for key in self.candle_dictionary:
             self.csv_writer.writeCandle(self.candle_dictionary[key])
@@ -76,43 +88,40 @@ class DataLogger:
         while True:
             time.sleep(1)
             if ticker.tick():
-                self.loopOnce()
+                self._loopOnce()
 
-    def loopOnce(self):
+    def _loopOnce(self):
         # 1. Get the latest candle
         h = self._getLastNCandleHistory(self._symbol, self._timeframe, 1, self._mode)[0]
-
         open    = h['open']
         high    = h['high']
         low     = h['low']
         close   = h['close']
         date    = datetime.fromtimestamp(h['timestamp'])
-        print(date)
 
-        # 2. If candle not in dictionary, update dictionary with new candle
-        new_candle = Candle(open, high, low, close, date)
+        if date not in self.candle_dictionary:
+            # 2. If candle not in dictionary, update dictionary with new candle
+            new_candle = Candle(open, high, low, close, date)
 
-        # 3. Update candlestick tech
-        inv_tech = TechnicalAnalyzer()
-        analysis = inv_tech.analyse(self.symbolToInvesting(), self._timeframe)
-        new_candle.setTechnicalAnalysis(analysis.name)
-        self.candle_dictionary[date] = new_candle
-        print("New candle tech: "+ new_candle.getTechnicalAnalysis())
+            # 3. Update candlestick tech
+            technical_analysis = self._getTechnicalAnalysis()
+            new_candle.setTechnicalAnalysis(technical_analysis.name)
+            self.candle_dictionary[date] = new_candle
+            print("New candle technical analysis: " + new_candle.getTechnicalAnalysis())
 
-        # 4. Update candle pattern
-        self.__updatePatterns()
+            # 4. Update candle pattern
+            self._updatePatterns()
 
-        # 4. Remove oldest candle from dict
-        oldest_key = list(self.candle_dictionary.keys())[0]
-        oldest_candle = self.candle_dictionary.pop(oldest_key)
+            # 4. Remove oldest candle from dict
+            oldest_key = list(self.candle_dictionary.keys())[0]
+            oldest_candle = self.candle_dictionary.pop(oldest_key)
 
-        # 5. Print newest candle to file
-        self.csv_writer.writeCandle(new_candle)
+            # 5. Print newest candle to file
+            self.csv_writer.writeCandle(new_candle)
 
-    def __updatePatterns(self):
+    def _updatePatterns(self):
         # # Get last candlestick patterns and match to candles
-        i = PatternAnalyzer()
-        candle_patterns = i.analyse(self.symbolToInvesting(), self._timeframe)
+        candle_patterns = self._getPatternAnalysis()
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
@@ -120,7 +129,7 @@ class DataLogger:
                     self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
                     print("New candle pattern: " + pattern.pattern)
 
-    def symbolToInvesting(self):
+    def _symbolToInvesting(self):
         if self._symbol is "BITCOIN":
             return "BTCUSD"
         elif self._symbol is "ETHEREUM":

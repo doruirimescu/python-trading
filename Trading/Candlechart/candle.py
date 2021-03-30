@@ -57,6 +57,12 @@ class CandleClassifier:
         self.low_ = candle.low_
 
         self.swing_ = abs(self.high_ - self.low_)
+
+        # Would cause divisions by zero
+        if self.swing_ == 0.0:
+            self.type_with_confidence_ = CandleType.UNDEFINED
+            return
+
         self.body_ = abs(self.open_ - self.close_) / (abs(self.high_ - self.low_))
 
         self.c_ = candle.getColor() == Color.GREEN
