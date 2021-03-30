@@ -30,6 +30,35 @@ class SessionInfo:
         self.password = getpass.getpass()
 
 class DataLogger:
+    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
+        self._symbol = symbol
+        self._timeframe = timeframe
+        self._mode = mode
+        self._path = path
+        self._session_info = SessionInfo()
+
+        self.csv_writer = CandleCsvWriter(self._symbol, self._timeframe, self._path)
+
+        # # Get last WINDOW_SIZE candles
+        hist = self._getLastNCandleHistory(self._symbol, self._timeframe, windowsize, self._mode)
+
+        self.candle_dictionary = dict()
+        for ohlct in hist:
+            open    = ohlct['open']
+            high    = ohlct['high']
+            low     = ohlct['low']
+            close   = ohlct['close']
+            date    = datetime.fromtimestamp(ohlct['timestamp'])
+            candle = Candle(open, high, low, close, date)
+            candle.setTechnicalAnalysis("")
+            candle.setPatternAnalysis(PatternAnalysis())
+            self.candle_dictionary[date] = candle
+
+        self._updatePatterns()
+
+        for key in self.candle_dictionary:
+            self.csv_writer.writeCandle(self.candle_dictionary[key])
+
     def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
         client = Client()
         ewr = ExceptionWithRetry(client.login, 10, 1.0)
@@ -54,34 +83,6 @@ class DataLogger:
         analysis = ewr.run([self._symbolToInvesting(), self._timeframe])
         return analysis
 
-    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
-        self._symbol = symbol
-        self._timeframe = timeframe
-        self._mode = mode
-        self._path = path
-        self._session_info = SessionInfo()
-
-        self.csv_writer = CandleCsvWriter(self._symbol, self._timeframe, self._path)
-
-        # # Get last WINDOW_SIZE candles
-        hist = self._getLastNCandleHistory(self._symbol, self._timeframe, windowsize, self._mode)
-
-        self.candle_dictionary = dict()
-        for h in hist:
-            open    = h['open']
-            high    = h['high']
-            low     = h['low']
-            close   = h['close']
-            date    = datetime.fromtimestamp(h['timestamp'])
-            candle = Candle(open, high, low, close, date)
-            candle.setTechnicalAnalysis("")
-            candle.setPatternAnalysis(PatternAnalysis())
-            self.candle_dictionary[date] = candle
-
-        self._updatePatterns()
-
-        for key in self.candle_dictionary:
-            self.csv_writer.writeCandle(self.candle_dictionary[key])
 
     def mainLoop(self):
         ticker = Ticker(self._timeframe)
@@ -92,12 +93,12 @@ class DataLogger:
 
     def _loopOnce(self):
         # 1. Get the latest candle
-        h = self._getLastNCandleHistory(self._symbol, self._timeframe, 1, self._mode)[0]
-        open    = h['open']
-        high    = h['high']
-        low     = h['low']
-        close   = h['close']
-        date    = datetime.fromtimestamp(h['timestamp'])
+        ohlct = self._getLastNCandleHistory(self._symbol, self._timeframe, 1, self._mode)[0]
+        open    = ohlct['open']
+        high    = ohlct['high']
+        low     = ohlct['low']
+        close   = ohlct['close']
+        date    = datetime.fromtimestamp(ohlct['timestamp'])
 
         if date not in self.candle_dictionary:
             # 2. If candle not in dictionary, update dictionary with new candle
