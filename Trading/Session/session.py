@@ -28,6 +28,3 @@ class XTBSession(Session):
 
     def __del__(self):
         self.client.logout()
-
-client = None
-x = XTBSession(client)
