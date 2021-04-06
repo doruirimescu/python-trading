@@ -126,9 +126,14 @@ class DataLogger:
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
+                print("Current_pattern")
+                current_pattern.print()
                 if pattern.isMoreReliableThan(current_pattern):
                     self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
-                    print("New candle pattern: " + pattern.pattern)
+                    print("Replacing old pattern with new candle pattern: " + pattern.pattern)
+            else:
+                print("Added new candle pattern")
+                self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
 
     def _symbolToInvesting(self):
         if self._symbol is "BITCOIN":
