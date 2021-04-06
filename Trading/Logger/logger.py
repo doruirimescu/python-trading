@@ -8,16 +8,16 @@ from datetime import timedelta
 from Trading.Candlechart.candle import Candle
 from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
-from Trading.InvestingAPI.investing_candlestick import PatternAnalyzer
-from Trading.InvestingAPI.investing_candlestick import PatternAnalysis
-from Trading.InvestingAPI.investing_candlestick import PatternReliability
+from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalyzer
+from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalysis
+from Trading.Live.InvestingAPI.investing_candlestick import PatternReliability
 
 from Trading.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
 
-from Trading.InvestingAPI.investing_technical import *
+from Trading.Live.InvestingAPI.investing_technical import *
 
 from Trading.Logger.ticker import Ticker
-from Trading.InvestingAPI.timeframes import *
+from Trading.Live.InvestingAPI.timeframes import *
 
 import time
 
