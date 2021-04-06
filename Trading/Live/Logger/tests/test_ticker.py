@@ -1,6 +1,6 @@
 import pytest
 import unittest
-from Trading.Logger.ticker import Ticker
+from Trading.Live.Logger.ticker import Ticker
 from datetime import datetime
 
 class TestTicker(unittest.TestCase):

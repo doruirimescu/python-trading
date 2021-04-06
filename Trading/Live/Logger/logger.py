@@ -16,7 +16,7 @@ from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetr
 
 from Trading.Live.InvestingAPI.investing_technical import *
 
-from Trading.Logger.ticker import Ticker
+from Trading.Live.Logger.ticker import Ticker
 from Trading.Live.InvestingAPI.timeframes import *
 
 import time
