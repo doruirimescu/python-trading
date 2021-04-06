@@ -24,7 +24,7 @@ class PatternAnalysis:
         print("Pattern: \t" + self.pattern)
         print("Timeframe: \t" + self.timeframe)
         print("Reliability: \t" + self.reliability.name)
-        print("Candles ago: \t" + self.candles_ago)
+        print("Candles ago: \t" + str(self.candles_ago))
         print(self.date)
         print("------------------------------")
 
