@@ -8,5 +8,4 @@ Candlechart/.vscode/
 InvestingAPI/.vscode/
 Logger/__pycache__
 Logger/tests/__pycache__
-/data/
-/data2/
+Trading/scripts/data/
