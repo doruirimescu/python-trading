@@ -1,4 +1,4 @@
-from Trading.Logger.logger import DataLogger
+from Trading.Live.Logger.logger import DataLogger
 
 # 11989223
 with DataLogger('EURUSD', '1m', "data/", 20) as data_logger:
