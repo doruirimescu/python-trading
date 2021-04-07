@@ -48,7 +48,7 @@ class PatternAnalyzer:
         response = [i for i, j in self.symbols.items()]
         return response
 
-    def __getTimeFormatter(self, timeframe):
+    def _getTimeFormatter(self, timeframe):
         if timeframe =='1m':
             return "%b %d, %Y %I:%M%p"
         elif timeframe =='5m':
@@ -70,13 +70,13 @@ class PatternAnalyzer:
 
     def analyse(self, symbol, period=None):
 
-        soup = self.__getSoup(symbol)
+        soup = self._getSoup(symbol)
 
         row_id = 0
         table = soup.find("tr", id="row" + str(row_id))
         responses = list()
         while table is not None:
-            response = self.__parseTable(table)
+            response = self._parseTable(table)
 
             if (response is not None) and (response.timeframe == period):
                 response.print()
@@ -85,7 +85,7 @@ class PatternAnalyzer:
             table = soup.find("tr", id="row" + str(row_id))
         return responses
 
-    def __getSoup(self, symbol):
+    def _getSoup(self, symbol):
         symbol = symbol.upper()
         headers = {
             "User-Agent": "Mozilla/5.0",
@@ -100,7 +100,7 @@ class PatternAnalyzer:
             return soup
         return None
 
-    def __parseTable(self, table):
+    def _parseTable(self, table):
         pattern = str()
         timeframe = str()
         reliability = str()
@@ -113,7 +113,7 @@ class PatternAnalyzer:
                 pattern = child.contents[0]
             elif counter == 5:
                 timeframe = child.contents[0]
-                timeframe = self.__sanitizeTimeframe(timeframe)
+                timeframe = self._sanitizeTimeframe(timeframe)
             elif counter == 7:
                 reliability = PatternReliability(child["title"])
             elif counter == 9:
@@ -126,11 +126,11 @@ class PatternAnalyzer:
             print("EMPTY DATE")
             return None
         else:
-            date = datetime.strptime(date, self.__getTimeFormatter(timeframe))
+            date = datetime.strptime(date, self._getTimeFormatter(timeframe))
 
         return PatternAnalysis(pattern, reliability, timeframe, candles_ago, date)
 
-    def __sanitizeTimeframe(self, timeframe):
+    def _sanitizeTimeframe(self, timeframe):
         if timeframe == "1":
             return "1m"
         elif timeframe == "5":
