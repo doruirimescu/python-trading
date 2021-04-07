@@ -72,9 +72,8 @@ class DataLogger:
 
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
-        #analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
-
-        return i.analyse(self._symbolToInvesting(), self._timeframe)
+        analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
+        return analysis
 
     def _getTechnicalAnalysis(self):
         inv_tech = TechnicalAnalyzer()
