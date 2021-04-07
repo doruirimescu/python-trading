@@ -1,4 +1,3 @@
-import argparse
 import getpass
 
 from XTBApi.api import Client
@@ -22,20 +21,17 @@ from Trading.Live.InvestingAPI.timeframes import *
 import time
 
 class SessionInfo:
-    def __init__(self):
-        parser = argparse.ArgumentParser(description='Login to xtb.')
-        parser.add_argument('-u', dest='username', type=str, required=True)
-        args = parser.parse_args()
-        self.username = args.username    # 11989223
-        self.password = getpass.getpass()
+    def __init__(self, username):
+        self.username = username
+        self.password = getpass.getpass("XTB password:")
 
 class DataLogger:
-    def __init__(self, symbol, timeframe, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
+    def __init__(self, symbol, timeframe, username, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
         self._symbol = symbol
         self._timeframe = timeframe
         self._mode = mode
         self._path = path
-        self._session_info = SessionInfo()
+        self._session_info = SessionInfo(username)
 
         self.csv_writer = CandleCsvWriter(self._symbol, self._timeframe, self._path)
 
@@ -55,12 +51,13 @@ class DataLogger:
             self.candle_dictionary[date] = candle
 
         self._updatePatterns()
-
         for key in self.candle_dictionary:
             self.csv_writer.writeCandle(self.candle_dictionary[key])
 
+
     def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
         client = Client()
+
         ewr = ExceptionWithRetry(client.login, 10, 1.0)
         ewr.run([self._session_info.username, self._session_info.password, mode])
 
@@ -72,10 +69,12 @@ class DataLogger:
         return result
 
     def _getPatternAnalysis(self):
+
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
-        analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
-        return analysis
+        #analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
+
+        return i.analyse(self._symbolToInvesting(), self._timeframe)
 
     def _getTechnicalAnalysis(self):
         inv_tech = TechnicalAnalyzer()
@@ -123,6 +122,8 @@ class DataLogger:
     def _updatePatterns(self):
         # # Get last candlestick patterns and match to candles
         candle_patterns = self._getPatternAnalysis()
+        if candle_patterns is None:
+            return
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
@@ -136,9 +137,9 @@ class DataLogger:
                 self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
 
     def _symbolToInvesting(self):
-        if self._symbol is "BITCOIN":
+        if self._symbol == "BITCOIN":
             return "BTCUSD"
-        elif self._symbol is "ETHEREUM":
+        elif self._symbol == "ETHEREUM":
             return "ETHUSD"
         else:
             return self._symbol
