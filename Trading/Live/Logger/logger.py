@@ -69,7 +69,6 @@ class DataLogger:
         return result
 
     def _getPatternAnalysis(self):
-
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
         analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
@@ -122,6 +121,7 @@ class DataLogger:
         # # Get last candlestick patterns and match to candles
         candle_patterns = self._getPatternAnalysis()
         if candle_patterns is None:
+            print("None candle patterns")
             return
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
