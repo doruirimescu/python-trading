@@ -14,9 +14,9 @@ class CandleCsvWriter:
 
     def __writeHeader(self):
         row=['Open', 'High', 'Low', 'Close', 'Date', 'Technical', 'Candlestick']
-        self.__writeRow(row)
+        self._writeRow(row)
 
-    def __writeRow(self, row):
+    def _writeRow(self, row):
         with open(self.path, 'a', newline='') as csvfile:
             spamwriter = csv.writer(csvfile, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -24,14 +24,16 @@ class CandleCsvWriter:
 
     def writeCandle(self, candle):
         candle_data = candle.getData()
-        row = [str(candle_data[0]), str(candle_data[1]), str(candle_data[2]), str(candle_data[3]), str(candle_data[4]), str(candle_data[5]), candle_data[6].pattern]
+        OPEN, HIGH, LOW, CLOSE, DATE, TECH, PAT = (0,1,2,3,4,5,6)
+        row = [str(candle_data[OPEN]), str(candle_data[HIGH]), str(candle_data[LOW]),
+                str(candle_data[CLOSE]), str(candle_data[DATE]), str(candle_data[TECH]), candle_data[PAT].pattern]
 
-        if candle_data[4] < self.log_open_date:
-            self.log_open_date = candle_data[4]
-        elif candle_data[4] > self.log_close_date:
-            self.log_close_date = candle_data[4]
+        if candle_data[DATE] < self.log_open_date:
+            self.log_open_date = candle_data[DATE]
+        elif candle_data[DATE] > self.log_close_date:
+            self.log_close_date = candle_data[DATE]
 
-        self.__writeRow(row)
+        self._writeRow(row)
 
     def __del__(self):
         path = os.path.abspath(self.path)
