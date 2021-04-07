@@ -79,7 +79,7 @@ class PatternAnalyzer:
             response = self._parseTable(table)
 
             if (response is not None) and (response.timeframe == period):
-                response.print()
+                #response.print()
                 responses.append(response)
             row_id += 1
             table = soup.find("tr", id="row" + str(row_id))
