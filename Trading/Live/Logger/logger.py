@@ -17,7 +17,7 @@ from Trading.Live.InvestingAPI.investing_technical import *
 
 from Trading.Live.Logger.ticker import Ticker
 from Trading.Live.InvestingAPI.timeframes import *
-
+from Trading.Instrument.instrument import Instrument
 import time
 
 class SessionInfo:
@@ -25,18 +25,18 @@ class SessionInfo:
         self.username = username
         self.password = getpass.getpass("XTB password:")
 
+#objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
 class DataLogger:
-    def __init__(self, symbol, timeframe, username, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
-        self._symbol = symbol
-        self._timeframe = timeframe
+    def __init__(self, instrument, username, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
+        self._instrument = instrument
         self._mode = mode
         self._path = path
         self._session_info = SessionInfo(username)
 
-        self.csv_writer = CandleCsvWriter(self._symbol, self._timeframe, self._path)
+        self.csv_writer = CandleCsvWriter(instrument, self._path)
 
         # # Get last WINDOW_SIZE candles
-        hist = self._getLastNCandleHistory(self._symbol, self._timeframe, windowsize, self._mode)
+        hist = self._getLastNCandleHistory(self._instrument, windowsize, self._mode)
 
         self.candle_dictionary = dict()
         for ohlct in hist:
@@ -52,14 +52,14 @@ class DataLogger:
 
         self._updatePatterns()
 
-    def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
+    def _getLastNCandleHistory(self, instrument, N, mode):
         client = Client()
 
         ewr = ExceptionWithRetry(client.login, 10, 1.0)
         ewr.run([self._session_info.username, self._session_info.password, mode])
 
         ewr = ExceptionWithRetry(client.get_lastn_candle_history, 10, 1.0)
-        result = ewr.run( [symbol, TIMEFRAME_TO_MINUTES[self._timeframe] * 60, N] )
+        result = ewr.run( [instrument.symbol, TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N] )
 
         ewr = ExceptionWithRetry(client.logout, 10, 1.0)
         ewr.run([])
@@ -68,17 +68,17 @@ class DataLogger:
     def _getPatternAnalysis(self):
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
-        analysis = ewr.run( [self._symbolToInvesting(), self._timeframe] )
+        analysis = ewr.run( [self._symbolToInvesting(), self._instrument.timeframe] )
         return analysis
 
     def _getTechnicalAnalysis(self):
         inv_tech = TechnicalAnalyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
-        analysis = ewr.run([self._symbolToInvesting(), self._timeframe])
+        analysis = ewr.run([self._symbolToInvesting(), self._instrument.timeframe])
         return analysis
 
     def mainLoop(self):
-        ticker = Ticker(self._timeframe)
+        ticker = Ticker(self._instrument.timeframe)
         while True:
             time.sleep(1)
             if ticker.tick():
@@ -86,7 +86,7 @@ class DataLogger:
 
     def _loopOnce(self):
         # 1. Get the latest candle
-        ohlct = self._getLastNCandleHistory(self._symbol, self._timeframe, 1, self._mode)[0]
+        ohlct = self._getLastNCandleHistory(self._instrument, 1, self._mode)[0]
         open    = ohlct['open']
         high    = ohlct['high']
         low     = ohlct['low']
@@ -132,12 +132,12 @@ class DataLogger:
                 self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
 
     def _symbolToInvesting(self):
-        if self._symbol == "BITCOIN":
+        if self._instrument.symbol == "BITCOIN":
             return "BTCUSD"
-        elif self._symbol == "ETHEREUM":
+        elif self._instrument.symbol == "ETHEREUM":
             return "ETHUSD"
         else:
-            return self._symbol
+            return self._instrument.symbol
 
     def __enter__(self):
         return self
