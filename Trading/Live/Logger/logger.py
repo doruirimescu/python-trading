@@ -22,18 +22,18 @@ from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 import time
 
 class SessionInfo:
-    def __init__(self, username):
+    def __init__(self, username, mode):
         self.username = username
         self.password = getpass.getpass("XTB password:")
-
+        self.mode = mode
 #objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
 class DataLogger:
     def __init__(self, instrument: Instrument, username: str, csvwriter: CandleCsvWriter, windowsize = 20, mode = "demo"):
         self._instrument = instrument
         self._mode = mode
-        self._session_info = SessionInfo(username)
-
+        self._session_info = SessionInfo(username, mode)
         self._csv_writer = csvwriter
+        self._client = Client(self._session_info.username, self._session_info.password, self._session_info.mode)
 
         # # Get last WINDOW_SIZE candles
         hist = self._getLastNCandleHistory(self._instrument, windowsize, self._mode)
@@ -53,15 +53,14 @@ class DataLogger:
         self._updatePatterns()
 
     def _getLastNCandleHistory(self, instrument, N, mode):
-        client = Client()
 
-        ewr = ExceptionWithRetry(client.login, 10, 1.0)
-        ewr.run([self._session_info.username, self._session_info.password, mode])
+        ewr = ExceptionWithRetry(self._client.login, 10, 1.0)
+        ewr.run([])
 
-        ewr = ExceptionWithRetry(client.get_lastn_candle_history, 10, 1.0)
+        ewr = ExceptionWithRetry(self._client.get_lastn_candle_history, 10, 1.0)
         result = ewr.run( [instrument.symbol, TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N] )
 
-        ewr = ExceptionWithRetry(client.logout, 10, 1.0)
+        ewr = ExceptionWithRetry(self._client.logout, 10, 1.0)
         ewr.run([])
         return result
 
