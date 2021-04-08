@@ -3,3 +3,5 @@ from dataclasses import dataclass
 class Instrument:
     symbol : str
     timeframe :str
+
+#TODO: add InvestingInstrument

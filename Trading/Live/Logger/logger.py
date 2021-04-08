@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timedelta
 
 from Trading.Candlechart.candle import Candle
-from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalysis
@@ -18,6 +17,8 @@ from Trading.Live.InvestingAPI.investing_technical import *
 from Trading.Live.Logger.ticker import Ticker
 from Trading.Live.InvestingAPI.timeframes import *
 from Trading.Instrument.instrument import Instrument
+from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
+
 import time
 
 class SessionInfo:
@@ -27,13 +28,12 @@ class SessionInfo:
 
 #objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
 class DataLogger:
-    def __init__(self, instrument, username, path = '/home/doru/personal/trading/data/', windowsize = 20, mode = "demo"):
+    def __init__(self, instrument: Instrument, username: str, csvwriter: CandleCsvWriter, windowsize = 20, mode = "demo"):
         self._instrument = instrument
         self._mode = mode
-        self._path = path
         self._session_info = SessionInfo(username)
 
-        self.csv_writer = CandleCsvWriter(instrument, self._path)
+        self._csv_writer = csvwriter
 
         # # Get last WINDOW_SIZE candles
         hist = self._getLastNCandleHistory(self._instrument, windowsize, self._mode)
@@ -111,7 +111,7 @@ class DataLogger:
             oldest_candle = self.candle_dictionary.pop(oldest_key)
 
             # 5. Print oldest candle to file
-            self.csv_writer.writeCandle(oldest_candle)
+            self._csv_writer.writeCandle(oldest_candle)
 
     def _updatePatterns(self):
         # # Get last candlestick patterns and match to candles
@@ -145,5 +145,5 @@ class DataLogger:
     def __exit__(self, exc_type, exc_value, traceback):
         # Write remaining candles to file!
         for key in self.candle_dictionary:
-            self.csv_writer.writeCandle(self.candle_dictionary[key])
+            self._csv_writer.writeCandle(self.candle_dictionary[key])
         print("Stopped logging")
