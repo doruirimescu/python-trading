@@ -51,9 +51,6 @@ class DataLogger:
             self.candle_dictionary[date] = candle
 
         self._updatePatterns()
-        for key in self.candle_dictionary:
-            self.csv_writer.writeCandle(self.candle_dictionary[key])
-
 
     def _getLastNCandleHistory(self, symbol, timeframe, N, mode):
         client = Client()
@@ -79,7 +76,6 @@ class DataLogger:
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
         analysis = ewr.run([self._symbolToInvesting(), self._timeframe])
         return analysis
-
 
     def mainLoop(self):
         ticker = Ticker(self._timeframe)
@@ -114,8 +110,8 @@ class DataLogger:
             oldest_key = list(self.candle_dictionary.keys())[0]
             oldest_candle = self.candle_dictionary.pop(oldest_key)
 
-            # 5. Print newest candle to file
-            self.csv_writer.writeCandle(new_candle)
+            # 5. Print oldest candle to file
+            self.csv_writer.writeCandle(oldest_candle)
 
     def _updatePatterns(self):
         # # Get last candlestick patterns and match to candles
@@ -147,4 +143,7 @@ class DataLogger:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        # Write remaining candles to file!
+        for key in self.candle_dictionary:
+            self.csv_writer.writeCandle(self.candle_dictionary[key])
         print("Stopped logging")
