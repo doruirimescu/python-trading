@@ -9,3 +9,4 @@ InvestingAPI/.vscode/
 Logger/__pycache__
 Logger/tests/__pycache__
 Trading/Live/scripts/data/
+Trading/Live/scripts/log/

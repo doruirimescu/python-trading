@@ -29,7 +29,7 @@ if __name__ == '__main__':
     client = Client(username, password, mode)
     st = ServerTester(client)
 
-    filename = "Server_test_results" + getTimeNowStr()+'.csv'
+    filename = "log/Server_test_results" + getTimeNowStr()+'.csv'
     writeRow(filename, ['Date', 'Status'])
     while True:
         response = st.test()
