@@ -1,8 +1,10 @@
 from Trading.Live.Logger.logger import DataLogger
 from Trading.Instrument.instrument import Instrument
 from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
+from Trading.Live.Client.client import XTBLoggingClient
 
 import argparse
+import getpass
 
 def getInstrument():
     parser = argparse.ArgumentParser(description='Enter currency and timeframe.')
@@ -22,7 +24,8 @@ if __name__ == '__main__':
     username = readUsername()
     instrument = getInstrument()
     csvwriter = CandleCsvWriter(instrument, "data/")
+    xtb_client = XTBLoggingClient(username, getpass.getpass())
 
-    with DataLogger(instrument, username, csvwriter, 100) as data_logger:
+    with DataLogger(instrument, xtb_client, csvwriter, 100) as data_logger:
         print("Started logging")
         data_logger.mainLoop()

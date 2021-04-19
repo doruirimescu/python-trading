@@ -1,6 +1,6 @@
 import getpass
 
-from XTBApi.api import Client
+from Trading.Live.Client.client import XTBLoggingClient, Client
 from datetime import datetime
 from datetime import timedelta
 
@@ -21,30 +21,25 @@ from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
 import time
 
-class SessionInfo:
-    def __init__(self, username, mode):
-        self.username = username
-        self.password = getpass.getpass("XTB password:")
-        self.mode = mode
-#objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
+# objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
 class DataLogger:
-    def __init__(self, instrument: Instrument, username: str, csvwriter: CandleCsvWriter, windowsize = 20, mode = "demo"):
+    def __init__(self, instrument: Instrument, client: Client, csvwriter: CandleCsvWriter, windowsize = 20):
         self._instrument = instrument
-        self._mode = mode
-        self._session_info = SessionInfo(username, mode)
         self._csv_writer = csvwriter
-        self._client = Client(self._session_info.username, self._session_info.password, self._session_info.mode)
+        self._client = client
 
         # # Get last WINDOW_SIZE candles
-        hist = self._getLastNCandleHistory(self._instrument, windowsize, self._mode)
+        hist = self._getLastNCandleHistory(self._instrument, windowsize)
 
         self.candle_dictionary = dict()
-        for ohlct in hist:
-            open    = ohlct['open']
-            high    = ohlct['high']
-            low     = ohlct['low']
-            close   = ohlct['close']
-            date    = datetime.fromtimestamp(ohlct['timestamp'])
+
+        for i in range(len(hist['open'])):
+            open = hist['open'][i]
+            high = hist['high'][i]
+            low = hist['low'][i]
+            close = hist['close'][i]
+            date = hist['date'][i]
+
             candle = Candle(open, high, low, close, date)
             candle.setTechnicalAnalysis("")
             candle.setPatternAnalysis(PatternAnalysis())
@@ -52,17 +47,8 @@ class DataLogger:
 
         self._updatePatterns()
 
-    def _getLastNCandleHistory(self, instrument, N, mode):
-
-        ewr = ExceptionWithRetry(self._client.login, 10, 1.0)
-        ewr.run([])
-
-        ewr = ExceptionWithRetry(self._client.get_lastn_candle_history, 10, 1.0)
-        result = ewr.run( [instrument.symbol, TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N] )
-
-        ewr = ExceptionWithRetry(self._client.logout, 10, 1.0)
-        ewr.run([])
-        return result
+    def _getLastNCandleHistory(self, instrument, N):
+        return self._client.getLastNCandleHistory(instrument, N)
 
     def _getPatternAnalysis(self):
         i = PatternAnalyzer()
@@ -85,12 +71,13 @@ class DataLogger:
 
     def _loopOnce(self):
         # 1. Get the latest candle
-        ohlct = self._getLastNCandleHistory(self._instrument, 1, self._mode)[0]
-        open    = ohlct['open']
-        high    = ohlct['high']
-        low     = ohlct['low']
-        close   = ohlct['close']
-        date    = datetime.fromtimestamp(ohlct['timestamp'])
+        ohlct = self._getLastNCandleHistory(self._instrument, 1)
+
+        open    = ohlct['open'][0]
+        high    = ohlct['high'][0]
+        low     = ohlct['low'][0]
+        close   = ohlct['close'][0]
+        date    = ohlct['date'][0]
 
         if date not in self.candle_dictionary:
             # 2. If candle not in dictionary, update dictionary with new candle

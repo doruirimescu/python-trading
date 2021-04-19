@@ -78,7 +78,7 @@ class XTBLoggingClient(LoggingClient):
         if (not self._isServerUp):
             return None
 
-        instrument.symbol = SYMBOL_TO_X[instrument.symbol][SYMBOL_XTB_INDEX]
+        instrument.symbol = instrument.symbol
         self._client.login()
         hist = self._client.get_lastn_candle_history(instrument.symbol, TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
         self._client.logout()
