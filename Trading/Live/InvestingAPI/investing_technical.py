@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
-from Trading.Live.InvestingAPI.timeframes import TIMEFRAMES
+from Trading.Instrument.timeframes import TIMEFRAMES
 
 __all__=['TechnicalAnalysis', 'TechnicalAnalyzer']
 # Defines a response from investing.com

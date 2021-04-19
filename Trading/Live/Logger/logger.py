@@ -15,8 +15,8 @@ from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetr
 from Trading.Live.InvestingAPI.investing_technical import *
 
 from Trading.Live.Logger.ticker import Ticker
-from Trading.Live.InvestingAPI.timeframes import *
 from Trading.Instrument.instrument import Instrument
+from Trading.Instrument.timeframes import *
 from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
 import time

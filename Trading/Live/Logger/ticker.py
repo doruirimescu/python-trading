@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 from datetime import timedelta
-from Trading.Live.InvestingAPI.timeframes import *
+from Trading.Instrument.timeframes import *
 import time
 
 class Ticker:

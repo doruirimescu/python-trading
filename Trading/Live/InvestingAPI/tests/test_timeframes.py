@@ -1,7 +1,7 @@
 import pytest
 import unittest
 import datetime
-from Trading.Live.InvestingAPI.timeframes import TIMEFRAME_TO_MINUTES
+from Trading.Instrument.timeframes import TIMEFRAME_TO_MINUTES
 
 class TestTimeframes(unittest.TestCase):
 
