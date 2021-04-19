@@ -2,7 +2,7 @@ from XTBApi.api import Client
 from datetime import datetime
 from dataclasses import dataclass
 import logging
-
+#TODO: Use ExceptionWithRetry
 __all = ['ServerTest', 'ServerTester']
 
 @dataclass
