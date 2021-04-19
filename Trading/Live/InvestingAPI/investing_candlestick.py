@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 
 class PatternReliability(Enum):
@@ -79,7 +79,7 @@ class PatternAnalyzer:
             response = self._parseTable(table)
 
             if (response is not None) and (response.timeframe == period):
-                #response.print()
+                response.print()
                 responses.append(response)
             row_id += 1
             table = soup.find("tr", id="row" + str(row_id))
@@ -126,7 +126,9 @@ class PatternAnalyzer:
             print("EMPTY DATE")
             return None
         else:
+            INVESTING_TIME_CORRECTION = 7
             date = datetime.strptime(date, self._getTimeFormatter(timeframe))
+            date = date + timedelta(hours = INVESTING_TIME_CORRECTION)
 
         return PatternAnalysis(pattern, reliability, timeframe, candles_ago, date)
 
