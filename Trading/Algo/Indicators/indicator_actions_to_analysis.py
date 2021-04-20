@@ -1,4 +1,4 @@
-from Trading.Indicators.indicator_value_to_action import IndicatorAction
+from Trading.Algo.Indicators.indicator_value_to_action import IndicatorAction
 from enum import Enum
 class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""

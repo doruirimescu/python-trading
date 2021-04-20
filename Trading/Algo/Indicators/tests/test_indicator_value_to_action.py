@@ -1,7 +1,7 @@
 import pytest
 import unittest
-from Trading.Indicators.indicator_value_to_action import IndicatorAction
-from Trading.Indicators.indicator_value_to_action import IndicatorValueToAction
+from Trading.Algo.Indicators.indicator_value_to_action import IndicatorAction
+from Trading.Algo.Indicators.indicator_value_to_action import IndicatorValueToAction
 
 class TestIndicatorValueToAction(unittest.TestCase):
 
