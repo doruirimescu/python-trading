@@ -9,20 +9,20 @@ class IndicatorAction(Enum):
 #An indicator value is between 0 and 100.
 class IndicatorValueToAction:
     def __init__(self, overbought, oversold, neutral):
-        self.__overbought = overbought
-        self.__oversold = oversold
-        self.__neutral = neutral
-        self.__neutral_low = 50 - neutral
-        self.__neutral_high = 50 + neutral
+        self._overbought = overbought
+        self._oversold = oversold
+        self._neutral = neutral
+        self._neutral_low = 50 - neutral
+        self._neutral_high = 50 + neutral
 
     def analyse(self, value):
-        if value > self.__overbought:
+        if value > self._overbought:
             return IndicatorAction.OVERBOUGHT
-        elif value < self.__oversold:
+        elif value < self._oversold:
             return IndicatorAction.OVERSOLD
-        elif (value >= self.__neutral_low) and (value <= self.__neutral_high):
+        elif (value >= self._neutral_low) and (value <= self._neutral_high):
             return IndicatorAction.NEUTRAL
-        elif value > self.__neutral_high and value <= self.__overbought:
+        elif value > self._neutral_high and value <= self._overbought:
             return IndicatorAction.BUY
-        elif value < self.__neutral_low and value >= self.__oversold:
+        elif value < self._neutral_low and value >= self._oversold:
             return IndicatorAction.SELL
