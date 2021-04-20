@@ -4,15 +4,13 @@ class TechnicalAnalysis(Enum):
     """Enumeration class for investing.com analysis response"""
 
     STRONG_SELL = "Strong Sell"
-    SELL = "Sell"
-    NEUTRAL = "Neutral"
-    BUY = "Buy"
-    STRONG_BUY = "Strong Buy"
+    SELL        = "Sell"
+    NEUTRAL     = "Neutral"
+    BUY         = "Buy"
+    STRONG_BUY  = "Strong Buy"
 class IndicatorActionsToAnalysis:
     def __init__(self, n_indicators = 12, strong=70.0, weak=50.0):
-        self.__strong = strong
-        self.__weak = weak
-        self.__n_indicators = n_indicators
+        self._n_indicators = n_indicators
 
     def convert(self, actions):
         n_buy = 0
@@ -28,9 +26,9 @@ class IndicatorActionsToAnalysis:
         percentage_buy  = n_buy  / (n_buy + n_sell) * 100
         percentage_sell = n_sell / (n_buy + n_sell) * 100
 
-        if n_buy >=self.__n_indicators/2:
+        if n_buy >=self._n_indicators/2:
             return TechnicalAnalysis.STRONG_BUY
-        elif n_sell >=self.__n_indicators/2:
+        elif n_sell >=self._n_indicators/2:
             return TechnicalAnalysis.STRONG_SELL
 
         if percentage_buy > percentage_sell:
