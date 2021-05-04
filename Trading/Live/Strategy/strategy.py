@@ -7,21 +7,18 @@
 #
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from enum import Enum
-__all__ = ["Action", "TransactionType", "decideAction", "decideTransaction"]
-
+__all__ = ["Action", "TransactionType", "decideAction"]
 
 class Action:
-    BUY = "buy",    # to enter a trade with buy
+    BUY  = "buy",    # to enter a trade with buy
     SELL = "sell",   # to enter a trade with sell
-    NO = "no",     # no action
+    NO   = "no",     # no action
     STOP = "stop"    # to close a trade
 
-
 class TransactionType:
-    BUY = "buy",
+    BUY  = "buy",
     SELL = "sell"
-    NO = "no"
-
+    NO   = "no"
 
 def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: TechnicalAnalysis):
     SS = TechnicalAnalysis.STRONG_SELL
@@ -60,14 +57,5 @@ def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: Technic
         (SB, N):    STOP,
         (SB, B):    NO,
         (SB, SB):   NO}
+
     return decisions[(previous_analysis, current_analysis)]
-
-
-def decideTransaction(action_to_take: Action, current_position: TransactionType):
-
-    if current_position == TransactionType.BUY:
-        if action_to_take == Action.SELL:
-            return Action.STOP
-
-    if current_position == TransactionType.SELL:
-        pass
