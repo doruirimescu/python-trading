@@ -4,17 +4,8 @@ from enum import Enum
 from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 from Trading.Instrument.timeframes import TIMEFRAMES
-
-__all__=['TechnicalAnalysis', 'TechnicalAnalyzer']
-# Defines a response from investing.com
-class TechnicalAnalysis(Enum):
-    """Enumeration class for investing.com analysis response"""
-
-    STRONG_SELL = "Strong Sell"
-    SELL = "Sell"
-    NEUTRAL = "Neutral"
-    BUY = "Buy"
-    STRONG_BUY = "Strong Buy"
+from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
+__all__=['TechnicalAnalyzer']
 
 class TechnicalAnalyzer:
     def __init__(self):

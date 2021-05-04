@@ -1,13 +1,7 @@
 from Trading.Algo.Indicators.indicator_value_to_action import IndicatorAction
+from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from enum import Enum
-class TechnicalAnalysis(Enum):
-    """Enumeration class for investing.com analysis response"""
 
-    STRONG_SELL = "Strong Sell"
-    SELL        = "Sell"
-    NEUTRAL     = "Neutral"
-    BUY         = "Buy"
-    STRONG_BUY  = "Strong Buy"
 class IndicatorActionsToAnalysis:
     def __init__(self, n_indicators = 12, strong=70.0, weak=50.0):
         self._n_indicators = n_indicators
