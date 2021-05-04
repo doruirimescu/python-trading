@@ -1,7 +1,7 @@
 import pytest
 import unittest
 from unittest.mock import MagicMock
-from Trading.Live.Strategy.strategy import *
+from Trading.Algo.Strategy.strategy import *
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 
 class TestInvestingSignals(unittest.TestCase):
