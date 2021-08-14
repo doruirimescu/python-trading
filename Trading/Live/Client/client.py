@@ -21,53 +21,6 @@ class LoggingClient(ABC):
     def getLastNCandleHistory(self):
         pass
 
-# class YahooFinanceLoggingCient(LoggingClient):
-#     def __init__(self):
-#         print("No init required")
-
-#     def getLastNCandleHistory(self, instrument: Instrument, N: int):
-
-#         ticker = yf.Ticker(SYMBOL_TO_X[instrument.symbol][SYMBOL_YFINANCE_INDEX])
-
-#         start_time = datetime.now() - self._getTimeDelta(instrument.timeframe, N)
-#         end_time = datetime.now()
-
-#         timeframe = TIMEFRAME_TO_YFINANCE[instrument.timeframe]
-#         data = ticker.history(interval=timeframe, start= start_time, end= end_time)
-
-#         second_last_date = data.index[len(data)-2]
-#         last_date = data.index[len(data)-1]
-#         time_difference_minutes = (last_date - second_last_date).total_seconds()/60
-
-#         if time_difference_minutes < TIMEFRAME_TO_MINUTES[instrument.timeframe]:
-#             print("Last candle is not finished yet")
-#             data.drop(data.tail(1).index, inplace=True)
-
-#         data = data.tail(N)
-
-#         date = list()
-#         for dat in data.index:
-#             print(dateToTimezone(dat))
-#             date.append(dateToTimezone(dat))
-
-#         open    = data['Open']
-#         high    = data['High']
-#         low     = data['Low']
-#         close   = data['Close']
-
-#         print(data)
-#         return {'open':open, 'high':high, 'low':low, 'close':close, 'date': date}
-
-#     def _getTimeDelta(self, timeframe, N):
-#         n_minutes = max(5, TIMEFRAME_TO_MINUTES[timeframe] * (N+1))
-#         return timedelta(minutes= n_minutes)
-# def dateToTimezone(date, timezone="UTC"):
-#     if date.tzinfo == None:
-#         new_date = pytz.timezone(timezone).localize(date)
-#         return new_date
-#     else:
-#         return date.astimezone(timezone)
-
 #! Use only centralized market instruments, otherwise there will be a large variation in
 class XTBLoggingClient(LoggingClient):
     def __init__(self, uname, pwd, mode="demo", logging = False):
