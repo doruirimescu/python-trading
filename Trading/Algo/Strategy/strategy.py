@@ -7,20 +7,33 @@
 #
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from enum import Enum
+from dataclasses import dataclass
+
 __all__ = ["Action", "TransactionType", "decideAction"]
 
+@dataclass
 class Action:
     BUY  = "buy",    # to enter a trade with buy
     SELL = "sell",   # to enter a trade with sell
     NO   = "no",     # no action
     STOP = "stop"    # to close a trade
 
+@dataclass
 class TransactionType:
     BUY  = "buy",
     SELL = "sell"
     NO   = "no"
 
 def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: TechnicalAnalysis):
+    """Given a previous and current analysis, decide what action to take.
+
+    Args:
+        previous_analysis (TechnicalAnalysis): Previous analysis for given instrument.
+        current_analysis (TechnicalAnalysis): Current analysis for given instrument.
+
+    Returns:
+        Action: Action to take.
+    """
     SS = TechnicalAnalysis.STRONG_SELL
     S = TechnicalAnalysis.SELL
     N = TechnicalAnalysis.NEUTRAL
