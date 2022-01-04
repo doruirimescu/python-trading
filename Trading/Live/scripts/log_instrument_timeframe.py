@@ -6,6 +6,16 @@ from Trading.Live.Client.client import XTBLoggingClient
 import argparse
 import getpass
 
+"""This script is used to log the candles and technical analysis of an instrument.
+The username is read from a file called username.txt. The password needs to be given by the user when
+prompted.
+
+Make an xtb.com demo account. The username is the numerical code which appears next to DEMO
+on the xstation platform when you are logged in.
+
+Currently this script works only with investing.com symbols.
+"""
+
 def getInstrument():
     parser = argparse.ArgumentParser(description='Enter currency and timeframe.')
     parser.add_argument('-s', dest='symbol', type=str, required=True)
