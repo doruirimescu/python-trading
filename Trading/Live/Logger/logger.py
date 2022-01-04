@@ -1,14 +1,8 @@
-import getpass
-
-from Trading.Live.Client.client import XTBLoggingClient, Client
-from datetime import datetime
-from datetime import timedelta
-
 from Trading.Candlechart.candle import Candle
+from Trading.Live.Client.client import LoggingClient
 
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalysis
-from Trading.Live.InvestingAPI.investing_candlestick import PatternReliability
 
 from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
 
@@ -21,9 +15,9 @@ from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
 import time
 
-# objects used to be mocked: CandleCsvWriter, Client, TechnicalAnalyzer, PatternAnalyzer
+# objects used to be mocked: CandleCsvWriter, LoggingClient, TechnicalAnalyzer, PatternAnalyzer
 class DataLogger:
-    def __init__(self, instrument: Instrument, client: Client, csvwriter: CandleCsvWriter, windowsize = 20):
+    def __init__(self, instrument: Instrument, client: LoggingClient, csvwriter: CandleCsvWriter, windowsize = 20):
         self._instrument = instrument
         self._csv_writer = csvwriter
         self._client = client
