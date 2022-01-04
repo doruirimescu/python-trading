@@ -1,4 +1,3 @@
-#Maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
 SYMBOLS_URL = {
             # Forex
             "USDJPY": ("https://www.investing.com/currencies/usd-jpy", 3),
@@ -72,3 +71,5 @@ SYMBOLS_URL = {
             "GOLD": ("https://www.investing.com/commodities/gold", 8830),
             "NATGAS": ("https://www.investing.com/commodities/gold", 8862),
         }
+"""Maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
+"""
