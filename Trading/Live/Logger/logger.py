@@ -47,13 +47,13 @@ class DataLogger:
     def _getPatternAnalysis(self):
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
-        analysis = ewr.run( [self._symbolToInvesting(), self._instrument.timeframe] )
+        analysis = ewr.run( [self._instrument.symbol, self._instrument.timeframe] )
         return analysis
 
     def _getTechnicalAnalysis(self):
         inv_tech = TechnicalAnalyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
-        analysis = ewr.run([self._symbolToInvesting(), self._instrument.timeframe])
+        analysis = ewr.run([self._instrument.symbol, self._instrument.timeframe])
         return analysis
 
     def mainLoop(self):
@@ -110,14 +110,6 @@ class DataLogger:
             else:
                 print("Added new candle pattern")
                 self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
-
-    def _symbolToInvesting(self):
-        if self._instrument.symbol == "BITCOIN":
-            return "BTCUSD"
-        elif self._instrument.symbol == "ETHEREUM":
-            return "ETHUSD"
-        else:
-            return self._instrument.symbol
 
     def __enter__(self):
         return self
