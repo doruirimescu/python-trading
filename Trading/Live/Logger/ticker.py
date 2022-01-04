@@ -1,20 +1,39 @@
 import time
 from datetime import datetime
-from datetime import timedelta
 from Trading.Instrument.timeframes import *
 import time
 
 class Ticker:
+    """Ticker class which is used to determine if the time specified in timeframe has passed.
+    Ticks every second.
+    """
     def __init__(self, timeframe):
         self.validate(timeframe)
         self.timeframe = timeframe
         self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe]*60
 
     def validate(self, timeframe):
+        """Check if the timeframe is supported
+
+        Args:
+            timeframe (str): String which determines timeframe to tick.
+
+        Raises:
+            Exception: Timeframe not supported
+        """
         if timeframe not in TIMEFRAMES:
             raise Exception("Timeframe not supported")
 
     def tick(self, test=None):
+        """Check if the time has elapsed or not.
+
+        Args:
+            test (Mock datetime, optional): Used to mock the datetime.now() method. Defaults to None.
+
+        Returns:
+            bool: True if the time has passed, False otherwise.
+        """
+
         now = datetime.now()
         if test is not None:
             now = test
