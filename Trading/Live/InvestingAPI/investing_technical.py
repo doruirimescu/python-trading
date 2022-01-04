@@ -8,6 +8,8 @@ from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 __all__=['TechnicalAnalyzer']
 
 class TechnicalAnalyzer:
+    """Investing.com technical analyzer which generates TechnicalAnalysis responses
+    """
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
