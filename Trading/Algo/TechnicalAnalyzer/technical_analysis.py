@@ -1,7 +1,7 @@
 from enum import Enum
 
 class TechnicalAnalysis(Enum):
-    """Enumeration class for investing.com analysis response"""
+    """Enumeration class for a technical analysis response"""
 
     STRONG_SELL = "Strong Sell"
     SELL        = "Sell"
