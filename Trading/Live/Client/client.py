@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 
 import yfinance as yf
@@ -13,13 +13,60 @@ import pytz
 
 from XTBApi.api import Client as XTBClient
 from Trading.Live.Logger.server_tester import *
-
 class LoggingClient(ABC):
+    @abstractmethod
     def __init__(self, uname=0, pwd=0, mode=0):
         pass
 
+    @abstractmethod
     def getLastNCandleHistory(self):
         pass
+
+class TradingClient(ABC):
+    @abstractmethod
+    def __init__(self, uname=0, pwd=0, mode=0):
+        pass
+
+    @abstractmethod
+    def buy(self, instrument, volume):
+        pass
+
+    @abstractmethod
+    def sell(self, instrument, volume):
+        pass
+
+    @abstractmethod
+    def closeTrade(self, trade_id):
+        pass
+
+class XTBTradingClient():
+    def __init__(self, uname, pwd, mode="demo", logging = False):
+        self._client = XTBClient(uname, pwd, mode, logging)
+        self._server_tester = ServerTester(self._client)
+
+    def buy(self, instrument, volume):
+        """Opens a buy trade on the XTB trading platform. Returns the id of the trade id
+        """
+        self._client.login()
+        response = self._client.open_trade(mode="buy", symbol=instrument.symbol, volume=volume)
+        self._client.logout()
+        return response
+
+    def sell(self, instrument, volume):
+        """Opens a sell trade on the XTB trading platform. Returns the trade id
+        """
+        self._client.login()
+        response = self._client.open_trade(mode="sell", symbol=instrument.symbol, volume=volume)
+        self._client.logout()
+        return response
+
+    def closeTrade(self, trade_id):
+        """Closes a trade by trade id
+        """
+        self._client.login()
+        response = self._client.close_trade_fix(trade_id)
+        self._client.logout()
+
 
 #! Use only centralized market instruments, otherwise there will be a large variation in
 class XTBLoggingClient(LoggingClient):
