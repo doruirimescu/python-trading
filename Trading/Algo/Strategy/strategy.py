@@ -1,12 +1,4 @@
-
-#! Monitor investing.com
-# Neutral -> Strong Buy  buy
-# Neutral -> Strong Sell sell
-#
-#
-#
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
-from enum import Enum
 from dataclasses import dataclass
 
 __all__ = ["Action", "TransactionType", "decideAction"]
