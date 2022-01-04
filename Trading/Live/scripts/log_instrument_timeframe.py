@@ -17,6 +17,11 @@ Currently this script works only with investing.com symbols.
 """
 
 def getInstrument():
+    """Creates an instrument object from the command line arguments.
+
+    Returns:
+        Instrument: Instrument for which the logging is performed.
+    """
     parser = argparse.ArgumentParser(description='Enter currency and timeframe.')
     parser.add_argument('-s', dest='symbol', type=str, required=True)
     parser.add_argument('-t', dest='timeframe', type=str, required=True)
@@ -24,6 +29,11 @@ def getInstrument():
     return Instrument(args.symbol, args.timeframe)
 
 def readUsername():
+    """Reads the username from a file called username.txt.
+
+    Returns:
+        str: username
+    """
     f = open("username.txt", "r")
     lines = f.readlines()
     username = lines[0].rstrip()
