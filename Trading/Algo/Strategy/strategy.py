@@ -26,6 +26,8 @@ def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: Technic
     Returns:
         Action: Action to take.
     """
+
+    # Create abbreviations for ease of use
     SS = TechnicalAnalysis.STRONG_SELL
     S = TechnicalAnalysis.SELL
     N = TechnicalAnalysis.NEUTRAL
