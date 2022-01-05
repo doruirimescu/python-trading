@@ -1,15 +1,9 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
-import yfinance as yf
-from pandas import DataFrame
 
 from Trading.Instrument.instrument import Instrument
 from Trading.Instrument.timeframes import TIMEFRAME_TO_MINUTES
-from Trading.Instrument.timeframes import TIMEFRAME_TO_YFINANCE
-
-from Trading.Instrument.symbol_investing_to_x import SYMBOL_TO_X, SYMBOL_YFINANCE_INDEX, SYMBOL_XTB_INDEX
-import pytz
 
 from XTBApi.api import Client as XTBClient
 from Trading.Live.Logger.server_tester import *
