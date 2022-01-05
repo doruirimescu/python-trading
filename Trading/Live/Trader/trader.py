@@ -1,11 +1,11 @@
 from Trading.Algo.Strategy.strategy import *
 from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
-from Trading.Live.Client.client import XTBLoggingClient, Client
+from Trading.Live.Client.client import LoggingClient
 from Trading.Instrument.instrument import Instrument
 from Trading.Live.InvestingAPI.investing_technical import *
 
 class Trader:
-    def __init__(self, instrument: Instrument, client: Client, technical_analyzer):
+    def __init__(self, instrument: Instrument, client: TradingClient, technical_analyzer):
 
         self._instrument = instrument
         self._client = client
