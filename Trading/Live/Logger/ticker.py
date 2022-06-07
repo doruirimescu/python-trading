@@ -1,16 +1,20 @@
-import time
 from datetime import datetime
 from Trading.Instrument.timeframes import *
 import time
+import logging
+
 
 class Ticker:
     """Ticker class which is used to determine if the time specified in timeframe has passed.
     Ticks every second.
     """
+
     def __init__(self, timeframe):
         self.validate(timeframe)
         self.timeframe = timeframe
         self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe]*60
+        self.LOGGER = logging.getLogger('Ticker')
+        self.LOGGER.setLevel(logging.DEBUG)
 
     def validate(self, timeframe):
         """Check if the timeframe is supported
@@ -43,7 +47,7 @@ class Ticker:
         day = now.day
         weekday = now.weekday()
 
-        print("Ticking... " + now.strftime("%d/%m/%Y, %H:%M:%S"))
+        self.LOGGER.debug("Ticking... ")
 
         if second == 1:
             if(self.timeframe == '1m'):
@@ -52,7 +56,7 @@ class Ticker:
                 return True
             elif(self.timeframe == '15m' and (minute % 15 == 0)):
                 return True
-            elif(self.timeframe == '30m' and (minute % 30  == 0)):
+            elif(self.timeframe == '30m' and (minute % 30 == 0)):
                 return True
             elif(self.timeframe == '1h' and (minute == 0)):
                 return True
@@ -66,5 +70,6 @@ class Ticker:
 
     def __enter__(self):
         return self
-    def __exit__(self, exc_type, exc_value, traceback):
-        print("Closing ticker")
+
+    def __del__(self):
+        self.LOGGER.debug("Deleting ticker")
