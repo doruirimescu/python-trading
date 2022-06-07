@@ -16,8 +16,10 @@ from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 import time
 
 # objects used to be mocked: CandleCsvWriter, LoggingClient, TechnicalAnalyzer, PatternAnalyzer
+
+
 class DataLogger:
-    def __init__(self, instrument: Instrument, client: LoggingClient, csvwriter: CandleCsvWriter, windowsize = 20):
+    def __init__(self, instrument: Instrument, client: LoggingClient, csvwriter: CandleCsvWriter, windowsize=20):
         self._instrument = instrument
         self._csv_writer = csvwriter
         self._client = client
@@ -47,13 +49,13 @@ class DataLogger:
     def _getPatternAnalysis(self):
         i = PatternAnalyzer()
         ewr = ExceptionWithRetry(i.analyse, 10, 1.0)
-        analysis = ewr.run( [self._instrument.symbol, self._instrument.timeframe] )
+        analysis = ewr.run([self._instrument])
         return analysis
 
     def _getTechnicalAnalysis(self):
         inv_tech = TechnicalAnalyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
-        analysis = ewr.run([self._instrument.symbol, self._instrument.timeframe])
+        analysis = ewr.run([self._instrument])
         return analysis
 
     def mainLoop(self):
@@ -67,11 +69,11 @@ class DataLogger:
         # 1. Get the latest candle
         ohlct = self._getLastNCandleHistory(self._instrument, 1)
 
-        open    = ohlct['open'][0]
-        high    = ohlct['high'][0]
-        low     = ohlct['low'][0]
-        close   = ohlct['close'][0]
-        date    = ohlct['date'][0]
+        open = ohlct['open'][0]
+        high = ohlct['high'][0]
+        low = ohlct['low'][0]
+        close = ohlct['close'][0]
+        date = ohlct['date'][0]
 
         if date not in self.candle_dictionary:
             # 2. If candle not in dictionary, update dictionary with new candle

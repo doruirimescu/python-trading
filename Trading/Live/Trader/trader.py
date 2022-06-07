@@ -26,7 +26,7 @@ class Trader:
 
     def _getTechnicalAnalysis(self):
         ewr = ExceptionWithRetry(self._technical_analyzer.analyse, 10, 1.0)
-        analysis = ewr.run([self._instrument.symbol, self._instrument.timeframe])
+        analysis = ewr.run([self._instrument])
         return analysis
 
     def trade(self):

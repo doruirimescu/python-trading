@@ -1,3 +1,4 @@
+from Trading.Instrument.instrument import Instrument
 import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
@@ -17,8 +18,8 @@ class TechnicalAnalyzer:
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
         self.symbols = SYMBOLS_URL
 
-    def analyse(self, symbol, period):
-        soup = self.__getSoup(symbol, period)
+    def analyse(self, instrument):
+        soup = self.__getSoup(instrument.getSymbolInvesting(), instrument.timeframe)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
             return(TechnicalAnalysis(response_text))
@@ -45,6 +46,7 @@ class TechnicalAnalyzer:
             return soup
         return None
 
+
 # ta = TechnicalAnalyzer()
-# analysis = ta.analyse("BTCUSD", "1h")
+# analysis = ta.analyse(Instrument("BITCOIN", "1h"))
 # print(analysis)

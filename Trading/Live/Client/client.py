@@ -46,7 +46,7 @@ class XTBTradingClient():
         """Opens a buy trade on the XTB trading platform. Returns the id of the trade id
         """
         self._client.login()
-        response = self._client.open_trade(mode="buy", symbol=instrument.symbol, volume=volume)
+        response = self._client.open_trade(mode="buy", symbol=instrument.getSymbolXTB(), volume=volume)
         self._client.logout()
         return response
 
@@ -54,7 +54,7 @@ class XTBTradingClient():
         """Opens a sell trade on the XTB trading platform. Returns the trade id
         """
         self._client.login()
-        response = self._client.open_trade(mode="sell", symbol=instrument.symbol, volume=volume)
+        response = self._client.open_trade(mode="sell", symbol=instrument.getSymbolXTB(), volume=volume)
         self._client.logout()
         return response
 
@@ -75,10 +75,9 @@ class XTBLoggingClient(LoggingClient):
         if (not self._isServerUp):
             return None
 
-        instrument.symbol = instrument.symbol
         self._client.login()
         hist = self._client.get_lastn_candle_history(
-            instrument.symbol, TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
+            instrument.getSymbolXTB(), TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
         self._client.logout()
 
         open = list()

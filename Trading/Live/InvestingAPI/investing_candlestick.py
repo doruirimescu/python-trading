@@ -4,13 +4,14 @@ from enum import Enum
 from datetime import datetime, timedelta
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 
+
 class PatternReliability(Enum):
     LOW = 'Low'
     MEDIUM = 'Medium'
     HIGH = 'High'
 
 
-#TODO get confidence number for reliability
+# TODO get confidence number for reliability
 class PatternAnalysis:
     def __init__(self, pattern="None", reliability=PatternReliability.LOW, timeframe="", candles_ago=0, date=datetime.now()):
         self.pattern = pattern
@@ -38,6 +39,7 @@ class PatternAnalysis:
         else:
             return False
 
+
 class PatternAnalyzer:
     def __init__(self):
 
@@ -49,28 +51,28 @@ class PatternAnalyzer:
         return response
 
     def _getTimeFormatter(self, timeframe):
-        if timeframe =='1m':
+        if timeframe == '1m':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='5m':
+        elif timeframe == '5m':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='15m':
+        elif timeframe == '15m':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='30m':
+        elif timeframe == '30m':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='1H':
+        elif timeframe == '1H':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='5H':
+        elif timeframe == '5H':
             return "%b %d, %Y %I:%M%p"
-        elif timeframe =='1D':
+        elif timeframe == '1D':
             return "%b %d, %Y"
-        elif timeframe =='1W':
+        elif timeframe == '1W':
             return "%b %d, %Y"
-        elif timeframe =='1M':
+        elif timeframe == '1M':
             return "%b %y"
 
-    def analyse(self, symbol, period=None):
+    def analyse(self, instrument):
 
-        soup = self._getSoup(symbol)
+        soup = self._getSoup(instrument.getSymbolInvesting())
 
         row_id = 0
         table = soup.find("tr", id="row" + str(row_id))
@@ -78,7 +80,7 @@ class PatternAnalyzer:
         while table is not None:
             response = self._parseTable(table)
 
-            if (response is not None) and (response.timeframe == period):
+            if (response is not None) and (response.timeframe == instrument.timeframe):
                 response.print()
                 responses.append(response)
             row_id += 1
@@ -128,7 +130,7 @@ class PatternAnalyzer:
         else:
             INVESTING_TIME_CORRECTION = 7
             date = datetime.strptime(date, self._getTimeFormatter(timeframe))
-            date = date + timedelta(hours = INVESTING_TIME_CORRECTION)
+            date = date + timedelta(hours=INVESTING_TIME_CORRECTION)
 
         return PatternAnalysis(pattern, reliability, timeframe, candles_ago, date)
 
