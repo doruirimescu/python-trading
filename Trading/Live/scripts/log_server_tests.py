@@ -5,6 +5,7 @@ from Trading.Live.Logger.server_tester import *
 from XTBApi.api import Client
 import csv
 
+
 def readUsername():
     f = open("username.txt", "r")
     lines = f.readlines()
@@ -12,14 +13,17 @@ def readUsername():
     f.close()
     return username
 
+
 def getTimeNowStr():
     return str(datetime.now())
+
 
 def writeRow(path, row):
     with open(path, 'a', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=';',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
         spamwriter.writerow(row)
+
 
 if __name__ == '__main__':
     username = readUsername()
