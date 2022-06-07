@@ -1,6 +1,5 @@
 from datetime import datetime
 from Trading.Instrument.timeframes import *
-import time
 import logging
 
 
@@ -13,8 +12,7 @@ class Ticker:
         self.validate(timeframe)
         self.timeframe = timeframe
         self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe]*60
-        self.LOGGER = logging.getLogger('Ticker')
-        self.LOGGER.setLevel(logging.DEBUG)
+        self.LOGGER = logging.getLogger('Main Logger')
 
     def validate(self, timeframe):
         """Check if the timeframe is supported
@@ -47,7 +45,7 @@ class Ticker:
         day = now.day
         weekday = now.weekday()
 
-        self.LOGGER.debug("Ticking... ")
+        self.LOGGER.debug("Ticker - Ticking... ")
 
         if second == 1:
             if(self.timeframe == '1m'):
@@ -72,4 +70,4 @@ class Ticker:
         return self
 
     def __del__(self):
-        self.LOGGER.debug("Deleting ticker")
+        self.LOGGER.debug("Ticker - Deleting ticker")
