@@ -40,6 +40,10 @@ if __name__ == '__main__':
     TICKER_LOGGER.setLevel(logging.DEBUG)
     TICKER_LOGGER.propagate = True
 
+    STRATEGY_LOGGER = logging.getLogger('Strategy')
+    STRATEGY_LOGGER.setLevel(logging.DEBUG)
+    STRATEGY_LOGGER.propagate = True
+
     load_dotenv()
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
