@@ -5,11 +5,13 @@ from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 from Trading.Instrument.timeframes import TIMEFRAMES
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
-__all__=['TechnicalAnalyzer']
+__all__ = ['TechnicalAnalyzer']
+
 
 class TechnicalAnalyzer:
     """Investing.com technical analyzer which generates TechnicalAnalysis responses
     """
+
     def __init__(self):
 
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
@@ -42,3 +44,7 @@ class TechnicalAnalyzer:
             soup = bs(r.content, "lxml")
             return soup
         return None
+
+# ta = TechnicalAnalyzer()
+# analysis = ta.analyse("BTCUSD", "1h")
+# print(analysis)
