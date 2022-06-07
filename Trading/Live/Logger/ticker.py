@@ -12,7 +12,7 @@ class Ticker:
         self.validate(timeframe)
         self.timeframe = timeframe
         self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe]*60
-        self.LOGGER = logging.getLogger('Main Logger')
+        self.LOGGER = logging.getLogger('Ticker')
 
     def validate(self, timeframe):
         """Check if the timeframe is supported
@@ -45,7 +45,7 @@ class Ticker:
         day = now.day
         weekday = now.weekday()
 
-        self.LOGGER.debug("Ticker - Ticking... ")
+        self.LOGGER.debug("Ticking... ")
 
         if second == 1:
             if(self.timeframe == '1m'):
@@ -70,4 +70,4 @@ class Ticker:
         return self
 
     def __del__(self):
-        self.LOGGER.debug("Ticker - Deleting ticker")
+        self.LOGGER.debug("Deleting ticker")
