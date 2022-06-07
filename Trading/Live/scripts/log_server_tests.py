@@ -4,14 +4,8 @@ import time
 from Trading.Live.Logger.server_tester import *
 from XTBApi.api import Client
 import csv
-
-
-def readUsername():
-    f = open("username.txt", "r")
-    lines = f.readlines()
-    username = lines[0].rstrip()
-    f.close()
-    return username
+from dotenv import load_dotenv
+import os
 
 
 def getTimeNowStr():
@@ -26,8 +20,9 @@ def writeRow(path, row):
 
 
 if __name__ == '__main__':
-    username = readUsername()
-    password = getpass.getpass("XTB password:")
+    load_dotenv()
+    username = os.getenv("XTB_USERNAME")
+    password = os.getenv("XTB_PASSWORD")
     mode = 'demo'
 
     client = Client(username, password, mode)
