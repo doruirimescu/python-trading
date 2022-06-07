@@ -21,3 +21,4 @@ pip3 install pytest
 pip install aenum
 
 pip install requests
+pip install python-dotenv
