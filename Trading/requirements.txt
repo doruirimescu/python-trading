@@ -1,0 +1,13 @@
+# For investing api
+bs4
+lxml
+argparse
+
+# For candle
+pandas
+plotly
+
+pytest
+aenum
+requests
+python-dotenv
