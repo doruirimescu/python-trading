@@ -2,7 +2,7 @@ from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from dataclasses import dataclass
 import logging
 
-__all__ = ["Action", "TransactionType", "decideAction"]
+__all__ = ["Action", "decideAction"]
 
 
 @dataclass
@@ -11,13 +11,6 @@ class Action:
     SELL = "sell",   # to enter a trade with sell
     NO = "no",     # no action
     STOP = "stop"    # to close a trade
-
-
-@dataclass
-class TransactionType:
-    BUY = "buy",
-    SELL = "sell"
-    NO = "no"
 
 
 def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: TechnicalAnalysis):
@@ -69,4 +62,6 @@ def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: Technic
         (SB, B):    NO,
         (SB, SB):   NO}
     LOGGER.debug("Deciding action for previous analysis: %s, current analysis: %s", previous_analysis, current_analysis)
+    if previous_analysis is None or current_analysis is None:
+        return NO
     return decisions[(previous_analysis, current_analysis)]
