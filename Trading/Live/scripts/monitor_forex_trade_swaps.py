@@ -7,6 +7,7 @@ import os
 import logging
 from time import sleep
 
+from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
 
 if __name__ == '__main__':
 
@@ -42,13 +43,15 @@ if __name__ == '__main__':
         send_email(subject, body, recipients)
         MAIN_LOGGER.info(body)
 
+    monitor_once_or_retry = ExceptionWithRetry(monitor_once, 5, 1.0)
+
     if monitor_forex_trade_swaps_once == "True":
-        monitor_once()
+        monitor_once_or_retry.run([])
     else:
         while True:
             hour_now = datetime.now().hour
             minute_now = datetime.now(). minute
             if hour_now == 7:
                 # Each morning at 7 am
-                monitor_once()
+                monitor_once_or_retry.run([])
             sleep(3600)
