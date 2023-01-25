@@ -83,6 +83,7 @@ class XTBTradingClient():
 
         total_profit = 0.0
         total_swap = 0.0
+        text_message = ""
         for trade in open_trades:
             symbol = trade['symbol']
             symbol_info = self._client.get_symbol(symbol)
@@ -91,9 +92,48 @@ class XTBTradingClient():
                 pair_swap = float(trade['storage'])
                 total_profit += pair_profit
                 total_swap += pair_swap
-                print("Pair:\t{}\tProfit:{:>10}\tSwap:{:>10}".format(symbol, pair_profit, pair_swap))
+                text_message += "Pair:\t{}\tProfit:{:>10}\tSwap:{:>10}".format(symbol, pair_profit, pair_swap)
+                text_message += "\n"
         self._client.logout()
-        return (total_profit, total_swap)
+
+        total_profit = round(total_profit, 5)
+        return (total_profit, total_swap, text_message)
+
+    def getSwapsOfForexOpenTrades(self):
+        self._client.login()
+        open_trades = self._client.get_trades()
+        symbol_list = list()
+        for trade in open_trades:
+            symbol = trade['symbol']
+            symbol_info = self._client.get_symbol(symbol)
+            if symbol_info['categoryName'] == 'FX':
+                short_long = trade['cmd']
+                if short_long == 0:
+                    swap = symbol_info['swapLong']
+                elif short_long == 1:
+                    swap = symbol_info['swapShort']
+                symbol_list.append((symbol, swap,))
+        return symbol_list
+
+    def getTopTenBiggestSwaps(self):
+        self._client.login()
+        all_symbols = self._client.get_all_symbols()
+
+        symbol_list = list()
+        for symbol in all_symbols:
+            if symbol['categoryName'] == 'FX':
+                sym = symbol['symbol']
+                sl = symbol['swapLong']
+                ss = symbol['swapShort']
+                symbol_list.append((sym, sl, ss,))
+        import operator
+        sorted_list = sorted(symbol_list, key=operator.itemgetter(2,1), reverse=True)
+
+        for sym, sl, ss in sorted_list[0:10]:
+            print("Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}".format(
+                                sym, sl, ss))
+        self._client.logout()
+        return sorted_list
 
 
 class XTBLoggingClient(LoggingClient):
