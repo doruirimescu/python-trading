@@ -37,7 +37,7 @@ if __name__ == '__main__':
                 send_email(subject, body, recipients)
 
         total_profit, total_swap, text_message = client.getTotalForexOpenTradesProfitAndSwap()
-        subject = "Daily swap report" + str(datetime.now())
+        subject = "Daily swap report " + str(datetime.now())
         body = text_message + f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}"
         recipients = ["dorustefan.irimescu@gmail.com"]
         send_email(subject, body, recipients)
