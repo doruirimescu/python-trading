@@ -4,7 +4,6 @@ from Trading.Live.Email.send_email import send_email
 from dotenv import load_dotenv
 from datetime import datetime
 import os
-from Trading.Live.Logger.ticker import Ticker
 import logging
 from time import sleep
 
