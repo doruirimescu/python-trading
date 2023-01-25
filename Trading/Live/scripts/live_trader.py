@@ -24,6 +24,11 @@ def getInstrument():
 
 
 if __name__ == '__main__':
+    # TODO: use optimal risk management for volume calculation
+    # TODO: Try to aim for 50 50 trades, so put stop loss and take profit very close
+    # TODO: to current price, such that every random fluctuation in either side will trigger
+    # TODO: Scale accordingly, that the take profit lie inside of 1 standard deviation
+    # TODO: of last price swings.
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT)
@@ -37,7 +42,7 @@ if __name__ == '__main__':
     TRADER_LOGGER.propagate = True
 
     TICKER_LOGGER = logging.getLogger('Ticker')
-    TICKER_LOGGER.setLevel(logging.DEBUG)
+    TICKER_LOGGER.setLevel(logging.INFO)
     TICKER_LOGGER.propagate = True
 
     STRATEGY_LOGGER = logging.getLogger('Strategy')
