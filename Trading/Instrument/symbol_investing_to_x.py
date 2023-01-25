@@ -6,5 +6,9 @@ SYMBOL_TO_X = {
     "BITCOIN":   ["BITCOIN", "BTCUSD"],
     "BTCUSD":  ["BITCOIN", "BTCUSD"],
     "GOLD":     ["GOLD", "GOLD"],
-    "EURUSD":   ["EURUSD", "EURUSD"]
+    "EURUSD":   ["EURUSD", "EURUSD"],
+    "EURCHF":   ["EURCHF", "EURCHF"],
+    "EURHUF":   ["EURHUF", "EURHUF"],
+    "CHFHUF":   ["CHFHUF", "CHFHUF"],
+    "USDHUF":   ["USDHUF", "USDHUF"]
 }
