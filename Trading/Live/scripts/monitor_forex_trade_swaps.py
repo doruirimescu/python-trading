@@ -21,7 +21,7 @@ if __name__ == '__main__':
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
     mode = os.getenv("XTB_MODE")
-    monitor_forex_trade_swaps_once = bool(os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE"))
+    monitor_forex_trade_swaps_once = os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE")
     client = XTBTradingClient(username, password, mode, False)
 
     open_trade_swaps = client.getSwapsOfForexOpenTrades()
@@ -42,13 +42,13 @@ if __name__ == '__main__':
         send_email(subject, body, recipients)
         MAIN_LOGGER.info(body)
 
-    if monitor_forex_trade_swaps_once:
+    if monitor_forex_trade_swaps_once == "True":
         monitor_once()
     else:
         while True:
             hour_now = datetime.now().hour
             minute_now = datetime.now(). minute
-            monitor_once()
             if hour_now == 7:
                 # Each morning at 7 am
-                sleep(3600)
+                monitor_once()
+            sleep(3600)
