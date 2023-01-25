@@ -65,6 +65,33 @@ class XTBTradingClient():
         response = self._client.close_trade_fix(trade_id['order'])
         self._client.logout()
 
+    def getOpenTrades(self):
+        self._client.login()
+        response = self._client.get_trades()
+        self._client.logout()
+        return response
+
+    def getSymbol(self, symbol):
+        self._client.login()
+        response = self._client.get_symbol(symbol)
+        self._client.logout()
+        return response
+
+    def getTotalForexOpenTradesProfitAndSwap(self):
+        total_profit = 0.0
+        total_swap = 0.0
+        open_trades = self.getOpenTrades()
+        for trade in open_trades:
+            symbol = trade['symbol']
+            symbol_info = self.getSymbol(symbol)
+            if symbol_info['categoryName'] == 'FX':
+                pair_profit = float(trade['profit'])
+                pair_swap = float(trade['storage'])
+                total_profit += pair_profit
+                total_swap += pair_swap
+                print("Pair:\t{}\tProfit:{:>10}\tSwap:{:>10}".format(symbol, pair_profit, pair_swap))
+        return (total_profit, total_swap)
+
 
 class XTBLoggingClient(LoggingClient):
     def __init__(self, uname, pwd, mode="demo", logging=False):
