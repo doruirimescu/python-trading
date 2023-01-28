@@ -103,9 +103,12 @@ class XTBLoggingClient(LoggingClient):
                 to_date = to_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
                 from_date = from_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
                 return (from_date, to_date)
+        return (None, None)
 
     def isMarketOpen(self, symbol: str) -> bool:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
+        if from_t is None or to_t is None:
+            return False
         time_now_cet = getDatetimeNowCet()
         if time_now_cet > from_t and time_now_cet < to_t:
             return True
