@@ -1,10 +1,10 @@
-from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
+from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.indicators.indicator_value_to_action import IndicatorValueToAction, IndicatorAction
 from abc import ABC, abstractmethod
 import numpy
 import talib
 
-class TechnicalAnalyzer(ABC):
+class technical_analyzer(ABC):
     @abstractmethod
     def __init__(self):
         pass
