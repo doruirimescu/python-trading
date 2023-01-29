@@ -1,7 +1,7 @@
 from exception_with_retry import exception_with_retry
 
 from Trading.Live.Client.client import XTBTradingClient
-from Trading.Utils.send_email import send_email
+from Trading.utils.send_email import send_email
 
 from dotenv import load_dotenv
 from datetime import datetime
@@ -35,14 +35,12 @@ if __name__ == '__main__':
             if swap < 0.0:
                 subject = "Swap has gone negative for " + symbol
                 body = f"Symbol: {symbol} Swap: {str(swap)} Date:{str(datetime.now())}"
-                recipients = ["dorustefan.irimescu@gmail.com"]
-                send_email(subject, body, recipients)
+                send_email(subject, body)
 
         total_profit, total_swap, text_message = client.getTotalForexOpenTradesProfitAndSwap()
         subject = "Daily swap report " + str(datetime.now())
         body = text_message + f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}"
-        recipients = ["dorustefan.irimescu@gmail.com"]
-        send_email(subject, body, recipients)
+        send_email(subject, body)
         MAIN_LOGGER.info(body)
 
     if monitor_forex_trade_swaps_once == "True":

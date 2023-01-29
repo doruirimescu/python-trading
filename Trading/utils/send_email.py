@@ -28,7 +28,7 @@ def send_email_if_exception_occurs(subject: str = "Exception occurred"):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
-                func(*args, **kwargs)
+                return func(*args, **kwargs)
             except Exception as e:
                 import traceback
                 body = f"Exception {e} occurred when executing function: {func.__name__} \
@@ -37,17 +37,17 @@ def send_email_if_exception_occurs(subject: str = "Exception occurred"):
         return wrapper
     return decorator
 
-from exception_with_retry import exception_with_retry
-@send_email_if_exception_occurs()
-@exception_with_retry(n_retry=1, sleep_time_s=1)
-def myMethod(n: int):
-    print(f"Got  {str(n)}")
-    if n < 0:
-        raise Exception("Some exception stuff")
-    else:
-        return 1
+# from exception_with_retry import exception_with_retry
+# @send_email_if_exception_occurs()
+# @exception_with_retry(n_retry=1, sleep_time_s=1)
+# def myMethod(n: int):
+#     print(f"Got  {str(n)}")
+#     if n < 0:
+#         raise Exception("Some exception stuff")
+#     else:
+#         return 1
 
-myMethod(-1)
+# myMethod(-1)
 # subject = "Email Subject"
 # body = "This is the body of the text message"
 # send_email(subject, body)

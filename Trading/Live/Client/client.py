@@ -1,7 +1,7 @@
 from datetime import datetime
 from exception_with_retry import exception_with_retry
-from Trading.Utils.time import getDatetimeNowCet
-from Trading.Utils.send_email import send_email_if_exception_occurs
+from Trading.utils.time import getDatetimeNowCet
+from Trading.utils.send_email import send_email_if_exception_occurs
 
 from Trading.Instrument.instrument import Instrument
 from Trading.Instrument.timeframes import TIMEFRAME_TO_MINUTES
