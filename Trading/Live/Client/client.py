@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 from exception_with_retry import exception_with_retry
 from Trading.Utils.time import getDatetimeNowCet
@@ -16,38 +15,9 @@ import pytz
 from collections import namedtuple
 
 
-class LoggingClient(ABC):
-    @abstractmethod
-    def __init__(self, uname=0, pwd=0, mode=0):
-        pass
-
-    @abstractmethod
-    def getLastNCandleHistory(self):
-        pass
-
-
-class TradingClient(ABC):
-    @abstractmethod
-    def __init__(self, uname=0, pwd=0, mode=0):
-        pass
-
-    @abstractmethod
-    def buy(self, instrument, volume):
-        pass
-
-    @abstractmethod
-    def sell(self, instrument, volume):
-        pass
-
-    @abstractmethod
-    def closeTrade(self, trade_id):
-        pass
-
-
 TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
 
-
-class XTBLoggingClient(LoggingClient):
+class XTBLoggingClient:
     def __init__(self, uname, pwd, mode="demo", logging=False):
         self._client = XTBClient(uname, pwd, mode, logging)
         self._server_tester = ServerTester(self._client)
