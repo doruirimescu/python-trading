@@ -1,3 +1,5 @@
+from exception_with_retry import exception_with_retry
+
 from Trading.Live.Client.client import XTBTradingClient
 from Trading.Live.Email.send_email import send_email
 
@@ -7,7 +9,6 @@ import os
 import logging
 from time import sleep
 
-from exception_with_retry import ExceptionWithRetry
 
 if __name__ == '__main__':
 
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     open_trade_swaps = client.getSwapsOfForexOpenTrades()
     MAIN_LOGGER.info("Open trade swaps: " + str(open_trade_swaps))
 
+    @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
         for symbol, swap in open_trade_swaps:
             if swap < 0.0:
@@ -43,15 +45,13 @@ if __name__ == '__main__':
         send_email(subject, body, recipients)
         MAIN_LOGGER.info(body)
 
-    monitor_once_or_retry = ExceptionWithRetry(monitor_once, 5, 1.0)
-
     if monitor_forex_trade_swaps_once == "True":
-        monitor_once_or_retry.run()
+        monitor_once()
     else:
         while True:
             hour_now = datetime.now().hour
             minute_now = datetime.now(). minute
             if hour_now == 7:
                 # Each morning at 7 am
-                monitor_once_or_retry.run()
+                monitor_once()
             sleep(3600)
