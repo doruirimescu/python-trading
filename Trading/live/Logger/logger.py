@@ -1,12 +1,12 @@
 from Trading.candlechart.candle import Candle
 from Trading.live.client.client import LoggingClient
 
-from Trading.live.InvestingAPI.investing_candlestick import PatternAnalyzer
-from Trading.live.InvestingAPI.investing_candlestick import PatternAnalysis
+from Trading.live.investing_api.investing_candlestick import PatternAnalyzer
+from Trading.live.investing_api.investing_candlestick import PatternAnalysis
 
 from exception_with_retry import ExceptionWithRetry
 
-from Trading.live.InvestingAPI.investing_technical import *
+from Trading.live.investing_api.investing_technical import *
 
 from Trading.live.Logger.ticker import Ticker
 from Trading.instrument.instrument import instrument

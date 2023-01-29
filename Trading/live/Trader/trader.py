@@ -2,7 +2,7 @@ from Trading.algo.strategy.strategy import *
 from exception_with_retry import ExceptionWithRetry
 from Trading.live.client.client import TradingClient
 from Trading.instrument.instrument import instrument
-from Trading.live.InvestingAPI.investing_technical import *
+from Trading.live.investing_api.investing_technical import *
 import logging
 
 

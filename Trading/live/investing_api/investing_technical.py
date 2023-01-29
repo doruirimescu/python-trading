@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
-from Trading.live.InvestingAPI.symbols_url import SYMBOLS_URL
+from Trading.live.investing_api.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 __all__ = ['technical_analyzer']
