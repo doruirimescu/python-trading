@@ -6,15 +6,15 @@ from Trading.live.investing_api.investing_technical import *
 import logging
 
 
-class Trader:
+class InvestingTrader:
     '''
-        trader uses a client and a technical analyzer in order to decide what to do.
+        Trader uses a client and a technical analyzer in order to decide what to do.
         It processes one trade at a time.
         It places a trade according to the decision.
         It also stops the current trade.
     '''
 
-    def __init__(self, instrument: instrument, client: XTBTradingClient, technical_analyzer):
+    def __init__(self, instrument: Instrument, client: XTBTradingClient, technical_analyzer: InvestingTechnicalAnalyzer):
 
         self._instrument = instrument
         self._client = client
@@ -27,7 +27,7 @@ class Trader:
 
     def _getTechnicalAnalysis(self):
         ewr = ExceptionWithRetry(self._technical_analyzer.analyse, 10, 1.0)
-        analysis = ewr.run([self._instrument])
+        analysis = ewr.run(self._instrument)
         return analysis
 
     def trade(self):

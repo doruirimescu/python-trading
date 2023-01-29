@@ -53,7 +53,7 @@ class DataLogger:
         return analysis
 
     def _getTechnicalAnalysis(self):
-        inv_tech = TechnicalAnalyzer()
+        inv_tech = InvestingTechnicalAnalyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
         analysis = ewr.run([self._instrument])
         return analysis

@@ -3,10 +3,11 @@ from bs4 import BeautifulSoup as bs
 from Trading.live.investing_api.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
-__all__ = ['TechnicalAnalyzer']
+from Trading.instrument.instrument import Instrument
+__all__ = ['InvestingTechnicalAnalyzer']
 
 
-class TechnicalAnalyzer:
+class InvestingTechnicalAnalyzer:
     """Investing.com technical analyzer which generates TechnicalAnalysis responses
     """
 
@@ -15,7 +16,7 @@ class TechnicalAnalyzer:
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
         self.symbols = SYMBOLS_URL
 
-    def analyse(self, instrument):
+    def analyse(self, instrument: Instrument) -> TechnicalAnalysis:
         soup = self.__get_soup(instrument.get_symbol_investing(), instrument.timeframe)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
@@ -42,8 +43,3 @@ class TechnicalAnalyzer:
             soup = bs(r.content, "lxml")
             return soup
         return None
-
-
-# ta = technical_analyzer()
-# analysis = ta.analyse(Instrument("BITCOIN", "1h"))
-# print(analysis)

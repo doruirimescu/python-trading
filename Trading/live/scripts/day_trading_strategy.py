@@ -67,14 +67,7 @@ SYMBOLS = [
 
 from dataclasses import dataclass
 from datetime import date
-@dataclass
-class Trade:
-    date_: date
-    open_price: float
-    close_price: float
-    profit: float
-    volume: int
-    position_id: str
+from Trading.algo.trade.trade import TradeType, Trade
 
 trades_dict = dict()
 
@@ -91,7 +84,7 @@ def perform_trade(client, volume_eur: int, symbol: str, take_profit_percentage: 
         print(f"Market is closed for {symbol}, go to sleep")
         return
 
-    todays_trade = Trade(date_now_cet, None, None, None, None, None)
+    todays_trade = Trade(date_now_cet, TradeType.BUY, None, None, None, None, None)
     trades_dict[date_now_cet] = todays_trade
 
     # Calculate volume

@@ -1,7 +1,7 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.live.trader.trader import Trader
+from Trading.live.trader.investing_trader import InvestingTrader
 from Trading.instrument.instrument import Instrument
-from Trading.live.investing_api.investing_technical import TechnicalAnalyzer
+from Trading.live.investing_api.investing_technical import InvestingTechnicalAnalyzer
 from dotenv import load_dotenv
 import time
 import os
@@ -56,8 +56,8 @@ if __name__ == '__main__':
     client = XTBTradingClient(username, password, mode, False)
 
     instrument = getInstrument()
-    technical_analyzer = TechnicalAnalyzer()
-    trader = Trader(client=client, instrument=instrument, technical_analyzer=technical_analyzer)
+    technical_analyzer = InvestingTechnicalAnalyzer()
+    trader = InvestingTrader(client=client, instrument=instrument, technical_analyzer=technical_analyzer)
 
     ticker = Ticker(instrument.timeframe)
 
