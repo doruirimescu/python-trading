@@ -26,7 +26,7 @@ class XTBLoggingClient:
         self._server_tester = ServerTester(self._client)
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    @exception_with_retry(n_retry=2, sleep_time_s=1)
     def get_last_n_candles_history(self, instrument: Instrument, N: int):
         if (not self._is_server_up):
             return None

@@ -131,13 +131,15 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
     for symbol in symbols:
         try:
             history = client.get_last_n_candles_history(Instrument(symbol, interval), last_n_days)
+            if history is None:
+                continue
         except Exception as e:
             continue
         print(f"Investigating symbol: {symbol}")
         open_high = list(zip(history['open'], history['high']))
         total = 0
         for (open_price, high_price) in open_high:
-            if high_price/open_price - 1.0 > take_profit_percentage:
+            if high_price/open_price - 1.0 >= take_profit_percentage:
                 total += 1
         if total/n > total_successful_days_percentage:
             if json_dict is None:
@@ -145,7 +147,6 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
                 json_dict[str(symbol)] = dict()
             json_dict[str(symbol)][str(last_n_days)] = {'take_profit_percentage': take_profit_percentage, 'total_successful_days': total}
             print("Success", symbol, total/n)
-            break
         else:
             print("Failure.")
     write_json_to_file_named_with_today_date(json_dict)
@@ -188,7 +189,7 @@ if __name__ == '__main__':
 
     #     time.sleep(1)
 
-    find_profitable_instruments(client, 100, 0.01, 0.49)
+    find_profitable_instruments(client, 100, 0.1, 0.49)
 
     # for symbol in SYMBOLS:
     #     try:
