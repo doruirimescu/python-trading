@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import time
 import os
 import argparse
-from Trading.live.Logger.ticker import Ticker
+from Trading.live.logger.ticker import Ticker
 import logging
 
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT)
 
-    MAIN_LOGGER = logging.getLogger('Main Logger')
+    MAIN_LOGGER = logging.getLogger('Main logger')
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 

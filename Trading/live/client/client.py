@@ -7,7 +7,7 @@ from Trading.instrument.instrument import instrument
 from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
 
 from XTBApi.api import client as XTBClient
-from Trading.live.Logger.server_tester import *
+from Trading.live.logger.server_tester import *
 
 from datetime import timedelta
 import pytz

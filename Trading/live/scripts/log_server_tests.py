@@ -1,7 +1,7 @@
 import getpass
 import datetime
 import time
-from Trading.live.Logger.server_tester import *
+from Trading.live.logger.server_tester import *
 from XTBApi.api import client
 import csv
 from dotenv import load_dotenv
