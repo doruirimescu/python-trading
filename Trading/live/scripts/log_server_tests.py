@@ -2,7 +2,7 @@ import getpass
 import datetime
 import time
 from Trading.live.Logger.server_tester import *
-from XTBApi.api import Client
+from XTBApi.api import client
 import csv
 from dotenv import load_dotenv
 import os
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     password = os.getenv("XTB_PASSWORD")
     mode = 'demo'
 
-    client = Client(username, password, mode)
+    client = client(username, password, mode)
     st = ServerTester(client)
 
     filename = "log/Server_test_results" + getTimeNowStr()+'.csv'

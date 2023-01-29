@@ -6,7 +6,7 @@ from Trading.utils.send_email import send_email_if_exception_occurs
 from Trading.instrument.instrument import instrument
 from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
 
-from XTBApi.api import Client as XTBClient
+from XTBApi.api import client as XTBClient
 from Trading.live.Logger.server_tester import *
 
 from datetime import timedelta

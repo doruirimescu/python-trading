@@ -1,4 +1,4 @@
-from Trading.live.Client.client import XTBLoggingClient
+from Trading.live.client.client import XTBLoggingClient
 from Trading.instrument.instrument import instrument
 
 from dotenv import load_dotenv

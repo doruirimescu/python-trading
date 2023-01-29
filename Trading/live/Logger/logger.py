@@ -1,5 +1,5 @@
 from Trading.candlechart.candle import Candle
-from Trading.live.Client.client import LoggingClient
+from Trading.live.client.client import LoggingClient
 
 from Trading.live.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.live.InvestingAPI.investing_candlestick import PatternAnalysis

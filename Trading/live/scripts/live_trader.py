@@ -1,4 +1,4 @@
-from Trading.live.Client.client import XTBTradingClient
+from Trading.live.client.client import XTBTradingClient
 from Trading.live.Trader.trader import Trader
 from Trading.instrument.instrument import instrument
 from Trading.live.InvestingAPI.investing_technical import technical_analyzer

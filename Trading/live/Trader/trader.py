@@ -1,6 +1,6 @@
 from Trading.algo.strategy.strategy import *
 from exception_with_retry import ExceptionWithRetry
-from Trading.live.Client.client import TradingClient
+from Trading.live.client.client import TradingClient
 from Trading.instrument.instrument import instrument
 from Trading.live.InvestingAPI.investing_technical import *
 import logging
@@ -46,21 +46,21 @@ class Trader:
             if self.current_trade is not None and self.current_trade_type == Action.SELL:
                 self.closeTrade()
             elif self.current_trade is None:
-                self.LOGGER.info("Client will buy. Should decide volume according to optimal risk")
+                self.LOGGER.info("client will buy. Should decide volume according to optimal risk")
                 self.current_trade = self._client.buy(self._instrument, 0.01)
                 self.current_trade_type = Action.BUY
         elif action == Action.SELL:
             if self.current_trade is not None and self.current_trade_type == Action.BUY:
                 self.closeTrade()
             elif self.current_trade is None:
-                self.LOGGER.info("Client will sell. Should decide volume according to optimal risk")
+                self.LOGGER.info("client will sell. Should decide volume according to optimal risk")
                 self.current_trade = self._client.sell(self._instrument, 0.01)
                 self.current_trade_type = Action.SELL
         elif action == Action.STOP and self.current_trade is not None:
             self.closeTrade()
 
     def closeTrade(self):
-        self.LOGGER.info("Client will close the current trade")
+        self.LOGGER.info("client will close the current trade")
         try:
             self._client.closeTrade(self.current_trade)
         except Exception as e:
