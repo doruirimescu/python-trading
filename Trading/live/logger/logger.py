@@ -8,7 +8,7 @@ from exception_with_retry import ExceptionWithRetry
 
 from Trading.live.investing_api.investing_technical import *
 
-from Trading.live.Logger.ticker import Ticker
+from Trading.live.logger.ticker import Ticker
 from Trading.instrument.instrument import instrument
 from Trading.instrument.timeframes import *
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
