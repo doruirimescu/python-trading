@@ -3,7 +3,7 @@ import pytest
 import unittest
 import datetime
 
-from Trading.live.InvestingAPI.investing_technical import TechnicalAnalysis
+from Trading.live.investing_api.investing_technical import TechnicalAnalysis
 
 from Trading.candlechart.candle import Candle
 from Trading.candlechart.candle import Color

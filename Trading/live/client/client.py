@@ -1,6 +1,6 @@
 from datetime import datetime
 from exception_with_retry import exception_with_retry
-from Trading.utils.time import getDatetimeNowCet
+from Trading.utils.time import get_datetime_now_cet
 from Trading.utils.send_email import send_email_if_exception_occurs
 
 from Trading.instrument.instrument import instrument
@@ -95,7 +95,7 @@ class XTBLoggingClient:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
         if from_t is None or to_t is None:
             return False
-        time_now_cet = getDatetimeNowCet()
+        time_now_cet = get_datetime_now_cet()
         if time_now_cet > from_t and time_now_cet < to_t:
             return True
         return False
@@ -104,7 +104,7 @@ class XTBLoggingClient:
     @exception_with_retry(n_retry=10, sleep_time_s=6)
     def isMarketClosingInNSeconds(self, symbol: str, n_seconds: int) -> bool:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
-        datetime_now = getDatetimeNowCet()
+        datetime_now = get_datetime_now_cet()
         dt_to_closing = to_t - datetime_now
         if dt_to_closing.total_seconds() < n_seconds:
             return True
