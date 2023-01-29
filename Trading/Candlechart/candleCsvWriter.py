@@ -2,7 +2,7 @@ import csv
 import os.path
 from datetime import datetime
 from Trading.Candlechart.candle import CandleClassifier
-from Trading.Instrument.instrument import Instrument
+from Trading.instrument.instrument import instrument
 import os
 class CandleCsvWriter:
     def __init__(self, instrument, path = '/home/doru/personal/trading/data/'):

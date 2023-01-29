@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     # for symbol in SYMBOLS:
     #     try:
-    #         history = client.getLastNCandleHistory(Instrument(symbol, interval), n)
+    #         history = client.getLastNCandleHistory(instrument(symbol, interval), n)
     #     except Exception as e:
     #         continue
     #     open_high_close = list(zip(history['open'], history['high'], history['close']))
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     # print(symbols)
     # for symbol in symbols:
     #     try:
-    #         history = client.getLastNCandleHistory(Instrument(symbol, interval), n)
+    #         history = client.getLastNCandleHistory(instrument(symbol, interval), n)
     #     except Exception as e:
     #         continue
 

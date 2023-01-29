@@ -26,7 +26,7 @@ MONITOR_FOREX_TRADE_SWAPS_ONCE="True"
 For live trading, check `live_trader.py`. Run as follows:
 `python3 live_trader.py -s BITCOIN -t 1m`
 
-For more information on available instrument names, check the `Instrument` package.
+For more information on available instrument names, check the `instrument` package.
 
 ## Pinging xtb server
 `log_server_tests.py`

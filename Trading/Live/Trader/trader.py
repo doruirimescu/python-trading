@@ -1,7 +1,7 @@
 from Trading.Algo.Strategy.strategy import *
 from exception_with_retry import ExceptionWithRetry
 from Trading.Live.Client.client import TradingClient
-from Trading.Instrument.instrument import Instrument
+from Trading.instrument.instrument import instrument
 from Trading.Live.InvestingAPI.investing_technical import *
 import logging
 
@@ -14,7 +14,7 @@ class Trader:
         It also stops the current trade.
     '''
 
-    def __init__(self, instrument: Instrument, client: TradingClient, technical_analyzer):
+    def __init__(self, instrument: instrument, client: TradingClient, technical_analyzer):
 
         self._instrument = instrument
         self._client = client

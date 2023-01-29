@@ -1,5 +1,5 @@
 from datetime import datetime
-from Trading.Instrument.timeframes import *
+from Trading.instrument.timeframes import *
 import logging
 
 

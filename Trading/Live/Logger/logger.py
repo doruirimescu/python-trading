@@ -9,8 +9,8 @@ from exception_with_retry import ExceptionWithRetry
 from Trading.Live.InvestingAPI.investing_technical import *
 
 from Trading.Live.Logger.ticker import Ticker
-from Trading.Instrument.instrument import Instrument
-from Trading.Instrument.timeframes import *
+from Trading.instrument.instrument import instrument
+from Trading.instrument.timeframes import *
 from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
 
 import time
@@ -19,7 +19,7 @@ import time
 
 
 class DataLogger:
-    def __init__(self, instrument: Instrument, client: LoggingClient, csvwriter: CandleCsvWriter, windowsize=20):
+    def __init__(self, instrument: instrument, client: LoggingClient, csvwriter: CandleCsvWriter, windowsize=20):
         self._instrument = instrument
         self._csv_writer = csvwriter
         self._client = client

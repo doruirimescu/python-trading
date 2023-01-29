@@ -3,8 +3,8 @@ from exception_with_retry import exception_with_retry
 from Trading.utils.time import getDatetimeNowCet
 from Trading.utils.send_email import send_email_if_exception_occurs
 
-from Trading.Instrument.instrument import Instrument
-from Trading.Instrument.timeframes import TIMEFRAME_TO_MINUTES
+from Trading.instrument.instrument import instrument
+from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
 
 from XTBApi.api import Client as XTBClient
 from Trading.Live.Logger.server_tester import *
@@ -24,7 +24,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getLastNCandleHistory(self, instrument: Instrument, N: int):
+    def getLastNCandleHistory(self, instrument: instrument, N: int):
         if (not self._isServerUp):
             return None
 

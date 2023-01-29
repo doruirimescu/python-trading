@@ -1,10 +1,10 @@
-from Trading.Instrument.instrument import Instrument
+from Trading.instrument.instrument import instrument
 import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
-from Trading.Instrument.timeframes import TIMEFRAMES
+from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 __all__ = ['TechnicalAnalyzer']
 
@@ -48,5 +48,5 @@ class TechnicalAnalyzer:
 
 
 # ta = TechnicalAnalyzer()
-# analysis = ta.analyse(Instrument("BITCOIN", "1h"))
+# analysis = ta.analyse(instrument("BITCOIN", "1h"))
 # print(analysis)
