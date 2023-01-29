@@ -6,7 +6,7 @@ from Trading.utils.send_email import send_email_if_exception_occurs
 from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
 
-from XTBApi.api import client as XTBClient
+from XTBApi.api import Client as XTBClient
 from Trading.live.logger.server_tester import *
 
 from datetime import timedelta
@@ -15,7 +15,10 @@ import pytz
 from collections import namedtuple
 
 
+# TODO: adjust sleep_time and retries to take into account composite functions
 TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
+Volume = namedtuple("volume", ['open_price', 'units'])
+
 
 class XTBLoggingClient:
     def __init__(self, uname, pwd, mode="demo", logging=False):
@@ -24,7 +27,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def get_last_n_candles_history(self, instrument: instrument, N: int):
+    def get_last_n_candles_history(self, instrument: Instrument, N: int):
         if (not self._is_server_up):
             return None
 
@@ -53,7 +56,10 @@ class XTBLoggingClient:
         self._client.login()
         symbols = self._client.get_all_symbols()
         self._client.logout()
-        return [s['symbol'] for s in symbols]
+        symbols = [s['symbol'] for s in symbols]
+        # Should remove _4
+        symbols = list(filter(lambda t: t[-2:] != "_4", symbols))
+        return symbols
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
@@ -89,8 +95,6 @@ class XTBLoggingClient:
                 return TradingTimes(from_date, to_date)
         return TradingTimes(None, None)
 
-    @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def is_market_open(self, symbol: str) -> bool:
         from_t, to_t = self.get_trading_hours_today_cet(symbol)
         if from_t is None or to_t is None:
@@ -100,8 +104,6 @@ class XTBLoggingClient:
             return True
         return False
 
-    @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def is_market_closing_in_n_seconds(self, symbol: str, n_seconds: int) -> bool:
         from_t, to_t = self.get_trading_hours_today_cet(symbol)
         datetime_now = get_datetime_now_cet()
@@ -153,10 +155,16 @@ class XTBLoggingClient:
                 return trade['profit']
         return None
 
+    def calculate_volume(self, symbol: str, cash_amount: int) -> Volume:
+        open_price = self.get_current_price(symbol)[1]
+        volume = int(cash_amount/open_price)
+        print(f"Calculated volume {volume} for symbol {symbol}")
+        return Volume(open_price, volume)
+
 
 class XTBTradingClient(XTBLoggingClient):
-    def __init__(self, uname, pwd, mode="demo", logging=False):
-        self._client = XTBClient(uname, pwd, mode, logging)
+    def __init__(self, uname, pwd, mode="demo", should_log=False):
+        self._client = XTBClient(uname, pwd, mode, should_log)
         self._server_tester = ServerTester(self._client)
 
     @send_email_if_exception_occurs()
@@ -259,7 +267,7 @@ class XTBTradingClient(XTBLoggingClient):
                 ss = symbol['swapShort']
                 symbol_list.append((sym, sl, ss,))
         import operator
-        sorted_list = sorted(symbol_list, key=operator.itemgetter(2,1), reverse=True)
+        sorted_list = sorted(symbol_list, key=operator.itemgetter(2, 1), reverse=True)
 
         for sym, sl, ss in sorted_list[0:10]:
             print("Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}".format(

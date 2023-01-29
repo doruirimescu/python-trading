@@ -14,7 +14,9 @@ class InvestingTrader:
         It also stops the current trade.
     '''
 
-    def __init__(self, instrument: Instrument, client: XTBTradingClient, technical_analyzer: InvestingTechnicalAnalyzer):
+    def __init__(self, instrument: Instrument,
+                 client: XTBTradingClient,
+                 technical_analyzer: InvestingTechnicalAnalyzer):
 
         self._instrument = instrument
         self._client = client

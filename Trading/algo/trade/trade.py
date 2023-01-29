@@ -1,5 +1,7 @@
 from datetime import date
 from enum import Enum
+from dataclasses import dataclass
+from typing import Optional
 
 
 class TradeType(Enum):
@@ -12,8 +14,9 @@ class Trade:
     """
     date_: date
     type_: TradeType
-    open_price: float
-    close_price: float
-    profit: float
-    volume: int
-    position_id: str
+    contract_value: int
+    volume: Optional[int] = None
+    open_price: Optional[float] = None
+    close_price: Optional[float] = None
+    profit: Optional[float] = None
+    position_id: Optional[str] = None

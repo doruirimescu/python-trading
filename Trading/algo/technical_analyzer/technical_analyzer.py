@@ -2,7 +2,7 @@ from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.indicators.indicator_value_to_action import IndicatorValueToAction, IndicatorAction
 from abc import ABC, abstractmethod
 import numpy
-import talib
+# import talib
 
 
 class TechnicalAnalyzer(ABC):
@@ -14,13 +14,14 @@ class TechnicalAnalyzer(ABC):
 class DailyBuyTechnicalAnalyzer(TechnicalAnalyzer):
     """Buy and wait for take profit, then close. Once per day.
     """
+    # TODO: lookup the instrument in a table, check if to buy or sell, and change class to DailyTechnicalAnalyzer
     def __init__(self, take_profit_percentage: float):
+        # Should take the last 100 days candles of the instrument and check if to sell or buy
         self._take_profit_percentage = take_profit_percentage
 
-    def analyse(self, has_already_traded_instrument_today: bool, open_price: float,
-                current_price: float, is_market_closing_soon: bool) -> TechnicalAnalysis:
-        """Buy once per day (when market opens). Wait for take profit target to be achieved
-        and close trade. If target not achieved, close when market is closing
+    def analyse(self, has_already_traded_instrument_today: bool = False, open_price: float = 0.0,
+                current_price: float = 0.0, is_market_closing_soon: bool = False) -> TechnicalAnalysis:
+        """Buy once per day (when market opens). Wait for take profit target to be achieved and close trade. If target not achieved, close when market is closing.
 
         Args:
             has_already_traded_instrument_today (bool): True if instrument has already been traded once today
@@ -33,10 +34,11 @@ class DailyBuyTechnicalAnalyzer(TechnicalAnalyzer):
         """
         if not has_already_traded_instrument_today:
             return TechnicalAnalysis.STRONG_BUY
-        if 1 - current_price/open_price >= self._take_profit_percentage:
-            return TechnicalAnalysis.STRONG_SELL
-        if is_market_closing_soon:
-            return TechnicalAnalysis.STRONG_SELL
+        else:
+            if 1 - current_price/open_price >= self._take_profit_percentage:
+                return TechnicalAnalysis.STRONG_SELL
+            if is_market_closing_soon:
+                return TechnicalAnalysis.STRONG_SELL
         return TechnicalAnalysis.NEUTRAL
 
 

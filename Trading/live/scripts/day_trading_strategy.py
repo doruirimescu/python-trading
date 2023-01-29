@@ -1,7 +1,12 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.time import get_date_now_cet
-from exception_with_retry import ExceptionWithRetry, exception_with_retry
-from Trading.utils.send_email import send_email_if_exception_occurs
+from Trading.algo.technical_analyzer.technical_analyzer import DailyBuyTechnicalAnalyzer
+from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
+from Trading.algo.trade.trade import TradeType, Trade
+from Trading.instrument.instrument import Instrument
+from Trading.utils.write_to_file import write_json_to_file_named_with_today_date, read_json_from_file_named_with_today_date
+from datetime import date
+from typing import Dict
 
 from dotenv import load_dotenv
 import os
@@ -9,17 +14,8 @@ import logging
 import pandas as pd
 import numpy as np
 import time
+import json
 
-import sys
-
-
-def calculate_trade_profit(trade_open_price: float, trade_closing_price: float, position: str) -> float:
-    if position.upper() == "SHORT":
-        return trade_open_price - trade_closing_price
-    elif position.upper() == "LONG":
-        return trade_closing_price - trade_open_price
-    else:
-        raise ValueError("Invalid position provided. Position can only be 'SHORT' or 'LONG'.")
 
 SYMBOLS = [
 # 'CINE.UK_9',
@@ -65,64 +61,95 @@ SYMBOLS = [
 'RGNX.US_9',
 'WVE.US']
 
-from dataclasses import dataclass
-from datetime import date
-from Trading.algo.trade.trade import TradeType, Trade
 
-trades_dict = dict()
-
-
-def perform_trade(client, volume_eur: int, symbol: str, take_profit_percentage: float):
-    global trades_dict
-
+def enter_trade(client: XTBTradingClient, contract_value: int,
+                symbol: str, take_profit_percentage: float):
     date_now_cet = get_date_now_cet()
-    if date_now_cet in trades_dict:
-        print(f"Already traded today {date_now_cet}, go to sleep")
-        return
-
-    if not client.is_market_open(symbol):
-        print(f"Market is closed for {symbol}, go to sleep")
-        return
-
-    todays_trade = Trade(date_now_cet, TradeType.BUY, None, None, None, None, None)
+    todays_trade = Trade(date_=date_now_cet, type_=TradeType.BUY, contract_value=contract_value)
     trades_dict[date_now_cet] = todays_trade
+    day_trading_analyzer = DailyBuyTechnicalAnalyzer(take_profit_percentage)
 
+    if day_trading_analyzer.analyse(has_already_traded_instrument_today=False) == TechnicalAnalysis.STRONG_BUY:
+        open_trade(client, todays_trade, contract_value)
+
+    # Prepare to close trade
+    IS_TRADE_CLOSED = False
+    while not IS_TRADE_CLOSED:
+        current_price = client.get_current_price(symbol)[0]
+        is_market_closing_soon = client.is_market_closing_in_n_seconds(symbol, 90)
+        should_close_trade = day_trading_analyzer.analyse(
+                                True, todays_trade.open_price,
+                                current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
+
+        if should_close_trade:
+            close_trade(client, todays_trade)
+            todays_trade.close_price = current_price
+            IS_TRADE_CLOSED = True
+        time.sleep(1)
+
+
+def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
     # Calculate volume
-    open_price = client.get_current_price(symbol)[1]
-    volume = int(volume_eur/open_price)
-
-    print(f"Calculate volume {volume} for symbol {symbol}")
+    open_price, volume = client.calculate_volume(symbol, contract_value)
 
     # Place trade
     open_trade_id = client.buy(symbol, volume)
 
     # Store open data
-    todays_trade.open_price = open_price
-    todays_trade.volume = volume
+    trade.open_price = open_price
+    trade.volume = volume
     print(f"Opened trade with id: {open_trade_id}")
 
     open_trades = client.get_open_trades()
     for trade in open_trades:
         if trade['symbol'] == symbol:
-            todays_trade.transaction_id = trade['position'] - 1
-            print("Transaction id: ", todays_trade.transaction_id)
+            trade.transaction_id = trade['position'] - 1
+            print("Transaction id: ", trade.transaction_id)
 
-    # Prepare to close trade
-    IS_TRADE_CLOSED = False
-    while not IS_TRADE_CLOSED:
-        close_price = client.get_current_price(symbol)[0]
-        potential_profit_percentage = 1.0 - close_price/open_price
-        should_take_profit = potential_profit_percentage > take_profit_percentage
-        is_market_closing_soon = client.is_market_closing_in_n_seconds(symbol, 90)
 
-        if  should_take_profit or is_market_closing_soon:
-            client.sell(symbol, volume)
-            IS_TRADE_CLOSED = True
-            todays_trade.close_price = close_price
-            profit = client.get_closed_trade_profit(todays_trade.transaction_id)
-            print("Profit today:", profit)
-            todays_trade.profit = profit
-        time.sleep(1)
+def close_trade(client: XTBTradingClient, trade: Trade, ):
+    # Close trade
+    client.sell(symbol, trade.volume)
+
+    # Store close trade data
+    profit = client.get_closed_trade_profit(trade.position_id)
+    print("Profit today:", profit)
+    trade.profit = profit
+
+
+def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take_profit_percentage: float = 0.1,
+                                total_successful_days_percentage: float = 0.49):
+    """Go through all the symbols,
+
+    Args:
+        last_n_days (int): _description_
+        take_profit_percentage (float, optional): _description_. Defaults to 0.1.
+        total_successful_days_percentage (float, optional): _description_. Defaults to 0.49.
+    """
+    symbols = client.get_all_symbols()
+    json_dict = read_json_from_file_named_with_today_date()
+    for symbol in symbols:
+        try:
+            history = client.get_last_n_candles_history(Instrument(symbol, interval), last_n_days)
+        except Exception as e:
+            continue
+        print(f"Investigating symbol: {symbol}")
+        open_high = list(zip(history['open'], history['high']))
+        total = 0
+        for (open_price, high_price) in open_high:
+            if high_price/open_price - 1.0 > take_profit_percentage:
+                total += 1
+        if total/n > total_successful_days_percentage:
+            if json_dict is None:
+                json_dict = dict()
+                json_dict[str(symbol)] = dict()
+            json_dict[str(symbol)][str(last_n_days)] = {'take_profit_percentage': take_profit_percentage, 'total_successful_days': total}
+            print("Success", symbol, total/n)
+            break
+        else:
+            print("Failure.")
+    write_json_to_file_named_with_today_date(json_dict)
+
 
 if __name__ == '__main__':
 
@@ -142,12 +169,26 @@ if __name__ == '__main__':
     n = 100
     p = 0.1
     interval = '1D'
-
     symbol = 'CRTO.US_9'
 
-    while True:
-        perform_trade(client, 100, symbol, 0.1)
-        time.sleep(1)
+    trades_dict: Dict[date, Trade] = dict()
+
+    # while True:
+    #     should_trade = True
+    #     date_now_cet = get_date_now_cet()
+    #     if date_now_cet in trades_dict:
+    #         print(f"Already traded today {date_now_cet}, go to sleep")
+    #         should_trade = False
+    #     if not client.is_market_open(symbol):
+    #         print(f"Market is closed for {symbol}, go to sleep")
+    #         should_trade = False
+
+    #     if should_trade:
+    #         enter_trade(client, 100, symbol, 0.1)
+
+    #     time.sleep(1)
+
+    find_profitable_instruments(client, 100, 0.01, 0.49)
 
     # for symbol in SYMBOLS:
     #     try:
@@ -171,25 +212,6 @@ if __name__ == '__main__':
     #     f.close()
     #     print("Symbol " + symbol, "Profit after 100 days at {volume} units: " + str(total))
 
-
-
-    # symbols = client.get_all_symbols()
-    # # Should remove _4
-    # symbols = list(filter(lambda t: t[-2:] != "_4", symbols))
-    # print(symbols)
-    # for symbol in symbols:
-    #     try:
-    #         history = client.get_last_n_candles_history(Instrument(symbol, interval), n)
-    #     except Exception as e:
-    #         continue
-
-    #     open_high = list(zip(history['open_price'], history['high_price']))
-    #     total = 0
-    #     for (open_price, high_price) in open_high:
-    #         if high_price/open_price - 1.0 > p:
-    #             total += 1
-    #     if total/n > 0.49:
-    #         print("Success", symbol, total/n)
 
 
 #TODO: dump jsons of last 1000 days for all instruments
