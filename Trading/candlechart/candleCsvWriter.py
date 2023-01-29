@@ -1,7 +1,7 @@
 import csv
 import os.path
 from datetime import datetime
-from Trading.Candlechart.candle import CandleClassifier
+from Trading.candlechart.candle import CandleClassifier
 from Trading.instrument.instrument import instrument
 import os
 class CandleCsvWriter:

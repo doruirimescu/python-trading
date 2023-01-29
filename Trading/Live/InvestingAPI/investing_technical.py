@@ -5,11 +5,11 @@ from enum import Enum
 from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
-from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
-__all__ = ['TechnicalAnalyzer']
+from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
+__all__ = ['technical_analyzer']
 
 
-class TechnicalAnalyzer:
+class technical_analyzer:
     """Investing.com technical analyzer which generates TechnicalAnalysis responses
     """
 
@@ -47,6 +47,6 @@ class TechnicalAnalyzer:
         return None
 
 
-# ta = TechnicalAnalyzer()
+# ta = technical_analyzer()
 # analysis = ta.analyse(instrument("BITCOIN", "1h"))
 # print(analysis)

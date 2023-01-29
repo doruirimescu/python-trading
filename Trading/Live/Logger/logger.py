@@ -1,4 +1,4 @@
-from Trading.Candlechart.candle import Candle
+from Trading.candlechart.candle import Candle
 from Trading.Live.Client.client import LoggingClient
 
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalyzer
@@ -11,11 +11,11 @@ from Trading.Live.InvestingAPI.investing_technical import *
 from Trading.Live.Logger.ticker import Ticker
 from Trading.instrument.instrument import instrument
 from Trading.instrument.timeframes import *
-from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
+from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 
 import time
 
-# objects used to be mocked: CandleCsvWriter, LoggingClient, TechnicalAnalyzer, PatternAnalyzer
+# objects used to be mocked: CandleCsvWriter, LoggingClient, technical_analyzer, PatternAnalyzer
 
 
 class DataLogger:
@@ -53,7 +53,7 @@ class DataLogger:
         return analysis
 
     def _getTechnicalAnalysis(self):
-        inv_tech = TechnicalAnalyzer()
+        inv_tech = technical_analyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
         analysis = ewr.run([self._instrument])
         return analysis

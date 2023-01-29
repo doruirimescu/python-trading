@@ -1,4 +1,4 @@
-from Trading.algo.Strategy.strategy import *
+from Trading.algo.strategy.strategy import *
 from exception_with_retry import ExceptionWithRetry
 from Trading.Live.Client.client import TradingClient
 from Trading.instrument.instrument import instrument

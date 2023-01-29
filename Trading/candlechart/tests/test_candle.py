@@ -5,9 +5,9 @@ import datetime
 
 from Trading.Live.InvestingAPI.investing_technical import TechnicalAnalysis
 
-from Trading.Candlechart.candle import Candle
-from Trading.Candlechart.candle import Color
-from Trading.Candlechart.candle import CandleType
+from Trading.candlechart.candle import Candle
+from Trading.candlechart.candle import Color
+from Trading.candlechart.candle import CandleType
 class TestCandle(unittest.TestCase):
 
     def test_getColor(self):

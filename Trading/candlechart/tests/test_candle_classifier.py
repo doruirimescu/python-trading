@@ -1,7 +1,7 @@
 import pytest
 import unittest
-from Trading.Candlechart.candle import Candle
-from Trading.Candlechart.candle import CandleClassifier
+from Trading.candlechart.candle import Candle
+from Trading.candlechart.candle import CandleClassifier
 
 class TestCandleClassifier(unittest.TestCase):
 

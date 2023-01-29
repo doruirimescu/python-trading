@@ -1,6 +1,6 @@
 from Trading.Live.Logger.logger import DataLogger
 from Trading.instrument.instrument import instrument
-from Trading.Candlechart.candleCsvWriter import CandleCsvWriter
+from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 from Trading.Live.Client.client import XTBLoggingClient
 from dotenv import load_dotenv
 import os
