@@ -9,7 +9,7 @@ class CandleChart:
 
         for candle in candles:
             print(candle)
-            self.addCandle(candle)
+            self.add_candle(candle)
 
     def __init__(self, open:list, high:list, low:list, close:list, date:list):
         self.__initialize()
@@ -18,7 +18,7 @@ class CandleChart:
             date_time_obj = datetime.strptime(date[i], '%Y-%m-%d')
             print(date_time_obj.date())
             c = candle.Candle(open[i], high[i], low[i], close[i], date_time_obj.date())
-            self.addCandle(c)
+            self.add_candle(c)
 
     def __initialize(self):
         self.candles_ = list()
@@ -32,16 +32,16 @@ class CandleChart:
         self.color = list()
         self.weekday = list()
 
-    def addCandle(self, candle):
+    def add_candle(self, candle):
         self.candles_.append(candle)
         self.open.append(candle.open_)
         self.high.append(candle.high_)
         self.low.append(candle.low_)
         self.close.append(candle.close_)
         self.date.append(candle.date_)
-        self.type_with_confidence_.append(candle.getTypeWithConfidence())
-        self.color.append(candle.getColor())
-        self.weekday.append(candle.getWeekday())
+        self.type_with_confidence_.append(candle.get_type_with_confidence())
+        self.color.append(candle.get_color())
+        self.weekday.append(candle.get_weekday())
 
     def plot(self):
         arrow_list=[]
@@ -74,9 +74,9 @@ class CandleChart:
 # inverted_hammer = candle.Candle(0.3,1,0,0.1, datetime.date(2020,1,15))
 
 # candlechart = CandleChart()
-# candlechart.addCandle(hammer)
-# candlechart.addCandle(shaven_head)
-# candlechart.addCandle(inverted_hammer)
+# candlechart.add_candle(hammer)
+# candlechart.add_candle(shaven_head)
+# candlechart.add_candle(inverted_hammer)
 # candlechart.plot()
 
 import plotly.graph_objects as go

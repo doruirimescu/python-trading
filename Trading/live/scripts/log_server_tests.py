@@ -8,15 +8,15 @@ from dotenv import load_dotenv
 import os
 
 
-def getTimeNowStr():
+def get_time_now_str():
     return str(datetime.now())
 
 
-def writeRow(path, row):
+def write_row(path, row):
     with open(path, 'a', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=';',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(row)
+        spamwriter.write_row(row)
 
 
 if __name__ == '__main__':
@@ -28,11 +28,11 @@ if __name__ == '__main__':
     client = client(username, password, mode)
     st = ServerTester(client)
 
-    filename = "log/Server_test_results" + getTimeNowStr()+'.csv'
-    writeRow(filename, ['Date', 'Status'])
+    filename = "log/Server_test_results" + get_time_now_str()+'.csv'
+    write_row(filename, ['Date', 'Status'])
     while True:
         response = st.test()
         print(response.error)
-        writeRow(filename, [getTimeNowStr(), response.error])
+        write_row(filename, [get_time_now_str(), response.error])
         time.sleep(1)
     file_object.close()

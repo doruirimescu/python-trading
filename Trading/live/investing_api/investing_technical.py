@@ -1,8 +1,5 @@
-from Trading.instrument.instrument import instrument
 import requests
 from bs4 import BeautifulSoup as bs
-from enum import Enum
-from datetime import datetime
 from Trading.live.investing_api.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
@@ -19,12 +16,12 @@ class technical_analyzer:
         self.symbols = SYMBOLS_URL
 
     def analyse(self, instrument):
-        soup = self.__getSoup(instrument.get_symbol_investing(), instrument.timeframe)
+        soup = self.__get_soup(instrument.get_symbol_investing(), instrument.timeframe)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
             return(TechnicalAnalysis(response_text))
 
-    def __getSoup(self, symbol, period):
+    def __get_soup(self, symbol, period):
         symbol = symbol.upper()
         headers = {
             "User-Agent": "Mozilla/5.0",

@@ -79,7 +79,7 @@ class Trade:
 trades_dict = dict()
 
 
-def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: float):
+def perform_trade(client, volume_eur: int, symbol: str, take_profit_percentage: float):
     global trades_dict
 
     date_now_cet = get_date_now_cet()
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     symbol = 'CRTO.US_9'
 
     while True:
-        performTrade(client, 100, symbol, 0.1)
+        perform_trade(client, 100, symbol, 0.1)
         time.sleep(1)
 
     # for symbol in SYMBOLS:

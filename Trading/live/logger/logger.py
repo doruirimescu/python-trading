@@ -37,8 +37,8 @@ class DataLogger:
             date = hist['date'][i]
 
             candle = Candle(open, high, low, close, date)
-            candle.setTechnicalAnalysis("")
-            candle.setPatternAnalysis(PatternAnalysis())
+            candle.set_technical_analysis("")
+            candle.set_pattern_analysis(PatternAnalysis())
             self.candle_dictionary[date] = candle
 
         self._updatePatterns()
@@ -81,9 +81,9 @@ class DataLogger:
 
             # 3. Update candlestick tech
             technical_analysis = self._getTechnicalAnalysis()
-            new_candle.setTechnicalAnalysis(technical_analysis.name)
+            new_candle.set_technical_analysis(technical_analysis.name)
             self.candle_dictionary[date] = new_candle
-            print("New candle technical analysis: " + new_candle.getTechnicalAnalysis())
+            print("New candle technical analysis: " + new_candle.get_technical_analysis())
 
             # 4. Update candle pattern
             self._updatePatterns()
@@ -93,7 +93,7 @@ class DataLogger:
             oldest_candle = self.candle_dictionary.pop(oldest_key)
 
             # 5. Print oldest candle to file
-            self._csv_writer.writeCandle(oldest_candle)
+            self._csv_writer.write_candle(oldest_candle)
 
     def _updatePatterns(self):
         # # Get last candlestick patterns and match to candles
@@ -103,15 +103,15 @@ class DataLogger:
             return
         for pattern in candle_patterns:
             if pattern.date in self.candle_dictionary:
-                current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
+                current_pattern = self.candle_dictionary[pattern.date].get_pattern_analysis()
                 print("Current_pattern")
                 current_pattern.print()
                 if pattern.is_more_reliable_than(current_pattern):
-                    self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
+                    self.candle_dictionary[pattern.date].set_pattern_analysis(pattern)
                     print("Replacing old pattern with new candle pattern: " + pattern.pattern)
             else:
                 print("Added new candle pattern")
-                self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
+                self.candle_dictionary[pattern.date].set_pattern_analysis(pattern)
 
     def __enter__(self):
         return self
@@ -119,5 +119,5 @@ class DataLogger:
     def __exit__(self, exc_type, exc_value, traceback):
         # Write remaining candles to file!
         for key in self.candle_dictionary:
-            self._csv_writer.writeCandle(self.candle_dictionary[key])
+            self._csv_writer.write_candle(self.candle_dictionary[key])
         print("Stopped logging")

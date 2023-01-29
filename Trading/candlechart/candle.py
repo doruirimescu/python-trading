@@ -1,8 +1,7 @@
 from enum import Enum
-import datetime
 import calendar
-
 from Trading.live.investing_api.investing_candlestick import PatternAnalysis
+
 
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern"""
@@ -65,7 +64,7 @@ class CandleClassifier:
 
         self.body_ = abs(self.open_ - self.close_) / (abs(self.high_ - self.low_))
 
-        self.c_ = candle.getColor() == Color.GREEN
+        self.c_ = candle.get_color() == Color.GREEN
 
         self.wt_ = (
             self.high_ - (self.c_ * self.close_ + (1 - self.c_) * self.open_)
@@ -77,13 +76,13 @@ class CandleClassifier:
         self.confidence_limit_ = confidence_limit
         self.type_with_confidence_ = self.__classify()
 
-    def getWickBottom(self):
+    def get_wick_bottom(self):
         return self.wb_
 
-    def getWickTop(self):
+    def get_wick_top(self):
         return self.wt_
 
-    def getType(self):
+    def get_type(self):
         return self.type_with_confidence_
 
     def __classify(self):
@@ -142,7 +141,7 @@ class Candle:
         self.date_ = date
 
         classifier = CandleClassifier(self)
-        self.type_with_confidence_ = classifier.getType()
+        self.type_with_confidence_ = classifier.get_type()
 
     def validate(self, open, close, high, low):
         if open < 0.0:
@@ -156,28 +155,28 @@ class Candle:
         elif low > high:
             raise Exception("Low is higher than high")
 
-    def getColor(self):
+    def get_color(self):
         return self.color_
 
-    def getTypeWithConfidence(self):
+    def get_type_with_confidence(self):
         return self.type_with_confidence_
 
-    def getWeekday(self):
+    def get_weekday(self):
         return calendar.day_name[self.date_.weekday()]
 
-    def setTechnicalAnalysis(self, analysis):
+    def set_technical_analysis(self, analysis):
         self.technical_analysis_ = analysis
 
-    def getTechnicalAnalysis(self):
+    def get_technical_analysis(self):
         return self.technical_analysis_
 
-    def setPatternAnalysis(self, analysis):
+    def set_pattern_analysis(self, analysis):
         self.candlestick_analysis_ = analysis
 
-    def getPatternAnalysis(self):
+    def get_pattern_analysis(self):
         return self.candlestick_analysis_
 
-    def getData(self):
+    def get_data(self):
         return (
             self.open_,
             self.high_,
