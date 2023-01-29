@@ -1,12 +1,12 @@
-from Trading.Live.Client.client import XTBTradingClient
-from Trading.Live.Trader.trader import Trader
+from Trading.live.Client.client import XTBTradingClient
+from Trading.live.Trader.trader import Trader
 from Trading.instrument.instrument import instrument
-from Trading.Live.InvestingAPI.investing_technical import technical_analyzer
+from Trading.live.InvestingAPI.investing_technical import technical_analyzer
 from dotenv import load_dotenv
 import time
 import os
 import argparse
-from Trading.Live.Logger.ticker import Ticker
+from Trading.live.Logger.ticker import Ticker
 import logging
 
 

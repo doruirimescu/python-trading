@@ -1,6 +1,6 @@
 import pytest
 import unittest
-from Trading.Live.Logger.server_tester import *
+from Trading.live.Logger.server_tester import *
 from unittest.mock import MagicMock
 
 class MockClient:

@@ -2,7 +2,7 @@ from enum import Enum
 import datetime
 import calendar
 
-from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalysis
+from Trading.live.InvestingAPI.investing_candlestick import PatternAnalysis
 
 class CandleType(Enum):
     """According to https://en.wikipedia.org/wiki/Candlestick_pattern"""

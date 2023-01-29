@@ -1,7 +1,7 @@
-from Trading.Live.Logger.logger import DataLogger
+from Trading.live.Logger.logger import DataLogger
 from Trading.instrument.instrument import instrument
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
-from Trading.Live.Client.client import XTBLoggingClient
+from Trading.live.Client.client import XTBLoggingClient
 from dotenv import load_dotenv
 import os
 import argparse

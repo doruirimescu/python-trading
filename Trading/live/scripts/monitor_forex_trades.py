@@ -1,10 +1,10 @@
-from Trading.Live.Client.client import XTBTradingClient
+from Trading.live.Client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 
 from dotenv import load_dotenv
 from datetime import datetime
 import os
-from Trading.Live.Logger.ticker import Ticker
+from Trading.live.Logger.ticker import Ticker
 import logging
 
 

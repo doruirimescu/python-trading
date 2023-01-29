@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 from enum import Enum
 from datetime import datetime, timedelta
-from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
+from Trading.live.InvestingAPI.symbols_url import SYMBOLS_URL
 
 
 class PatternReliability(Enum):
