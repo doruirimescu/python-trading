@@ -44,7 +44,7 @@ class DataLogger:
         self._updatePatterns()
 
     def _getLastNCandleHistory(self, instrument, N):
-        return self._client.getLastNCandleHistory(instrument, N)
+        return self._client.get_last_n_candles_history(instrument, N)
 
     def _getPatternAnalysis(self):
         i = PatternAnalyzer()
@@ -106,7 +106,7 @@ class DataLogger:
                 current_pattern = self.candle_dictionary[pattern.date].getPatternAnalysis()
                 print("Current_pattern")
                 current_pattern.print()
-                if pattern.isMoreReliableThan(current_pattern):
+                if pattern.is_more_reliable_than(current_pattern):
                     self.candle_dictionary[pattern.date].setPatternAnalysis(pattern)
                     print("Replacing old pattern with new candle pattern: " + pattern.pattern)
             else:

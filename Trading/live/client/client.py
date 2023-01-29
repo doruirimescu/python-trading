@@ -24,13 +24,13 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getLastNCandleHistory(self, instrument: instrument, N: int):
-        if (not self._isServerUp):
+    def get_last_n_candles_history(self, instrument: instrument, N: int):
+        if (not self._is_server_up):
             return None
 
         self._client.login()
         hist = self._client.get_lastn_candle_history(
-            instrument.getSymbolXTB(), TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
+            instrument.get_symbol_xtb(), TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
         self._client.logout()
 
         open = list()
@@ -49,7 +49,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getAllSymbols(self):
+    def get_all_symbols(self):
         self._client.login()
         symbols = self._client.get_all_symbols()
         self._client.logout()
@@ -57,7 +57,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getProfitCalculation(self, symbol, open_price, close_price, volume, cmd):
+    def get_profit_calculation(self, symbol, open_price, close_price, volume, cmd):
         # cmd = 0 for buy, 1 for sell
         self._client.login()
         response = self._client.get_profit_calculation(symbol, cmd, volume, open_price, close_price)
@@ -66,7 +66,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getTradingHoursTodayCET(self, symbol):
+    def get_trading_hours_today_cet(self, symbol):
         now = datetime.now()
         weekday = now.weekday() + 1
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -91,8 +91,8 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def isMarketOpen(self, symbol: str) -> bool:
-        from_t, to_t = self.getTradingHoursTodayCET(symbol)
+    def is_market_open(self, symbol: str) -> bool:
+        from_t, to_t = self.get_trading_hours_today_cet(symbol)
         if from_t is None or to_t is None:
             return False
         time_now_cet = get_datetime_now_cet()
@@ -102,8 +102,8 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def isMarketClosingInNSeconds(self, symbol: str, n_seconds: int) -> bool:
-        from_t, to_t = self.getTradingHoursTodayCET(symbol)
+    def is_market_closing_in_n_seconds(self, symbol: str, n_seconds: int) -> bool:
+        from_t, to_t = self.get_trading_hours_today_cet(symbol)
         datetime_now = get_datetime_now_cet()
         dt_to_closing = to_t - datetime_now
         if dt_to_closing.total_seconds() < n_seconds:
@@ -112,7 +112,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getCurrentPrice(self, symbol):
+    def get_current_price(self, symbol):
         now = datetime.now()
         ts = now.timestamp()
         self._client.login()
@@ -122,13 +122,13 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def _isServerUp(self):
+    def _is_server_up(self):
         test = self._server_tester.test()
         return test.is_server_up
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getSymbol(self, symbol):
+    def get_symbol(self, symbol):
         self._client.login()
         response = self._client.get_symbol(symbol)
         self._client.logout()
@@ -136,7 +136,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getOpenTradeProfit(self, trans_id):
+    def get_open_trade_profit(self, trans_id):
         self._client.login()
         response = self._client.get_trade_profit(trans_id)
         self._client.logout()
@@ -144,7 +144,7 @@ class XTBLoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getClosedTradeProfit(self, position):
+    def get_closed_trade_profit(self, position):
         self._client.login()
         response = self._client.get_trades_history(0, 0)
         self._client.logout()
@@ -181,18 +181,11 @@ class XTBTradingClient(XTBLoggingClient):
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def closeTrade(self, trade_id):
+    def close_trade(self, trade_id):
         """Closes a trade by trade id
         """
         self._client.login()
         response = self._client.close_trade_fix(trade_id['order'])
-        self._client.logout()
-
-    @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def close_by_trade(self, trade):
-        self._client.login()
-        response = self._client.close_trade(trade)
         self._client.logout()
 
     @send_email_if_exception_occurs()
@@ -204,7 +197,7 @@ class XTBTradingClient(XTBLoggingClient):
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getOpenTrades(self):
+    def get_open_trades(self):
         self._client.login()
         response = self._client.get_trades()
         self._client.logout()
@@ -212,7 +205,7 @@ class XTBTradingClient(XTBLoggingClient):
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getTotalForexOpenTradesProfitAndSwap(self):
+    def get_total_forex_open_trades_profit_and_swap(self):
         self._client.login()
         open_trades = self._client.get_trades()
 
@@ -236,7 +229,7 @@ class XTBTradingClient(XTBLoggingClient):
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getSwapsOfForexOpenTrades(self):
+    def get_swaps_of_forex_open_trades(self):
         self._client.login()
         open_trades = self._client.get_trades()
         symbol_list = list()
@@ -254,7 +247,7 @@ class XTBTradingClient(XTBLoggingClient):
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def getTopTenBiggestSwaps(self):
+    def get_top_ten_biggest_swaps(self):
         self._client.login()
         all_symbols = self._client.get_all_symbols()
 

@@ -24,18 +24,18 @@ if __name__ == '__main__':
     client = XTBTradingClient(username, password, mode, False)
 
     # Get profit and swap of current trades
-    # total_profit, total_swap = client.getTotalForexOpenTradesProfitAndSwap()
+    # total_profit, total_swap = client.get_total_forex_open_trades_profit_and_swap()
     # print("Total profit", total_profit)
     # print("Total swap", total_swap)
 
-    biggest_swaps = client.getTopTenBiggestSwaps()
+    biggest_swaps = client.get_top_ten_biggest_swaps()
     print(biggest_swaps)
     # subject = "Top ten biggest swaps as of " + str(datetime.now())
     # body = str(biggest_swaps)
     # recipients = ["dorustefan.irimescu@gmail.com"]
     # send_email(subject, body, recipients)
 
-    # open_trade_swaps = client.getSwapsOfForexOpenTrades()
+    # open_trade_swaps = client.get_swaps_of_forex_open_trades()
     # print(open_trade_swaps)
 
     # for symbol, swap in open_trade_swaps:

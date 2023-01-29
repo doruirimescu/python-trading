@@ -87,7 +87,7 @@ def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: f
         print(f"Already traded today {date_now_cet}, go to sleep")
         return
 
-    if not client.isMarketOpen(symbol):
+    if not client.is_market_open(symbol):
         print(f"Market is closed for {symbol}, go to sleep")
         return
 
@@ -95,7 +95,7 @@ def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: f
     trades_dict[date_now_cet] = todays_trade
 
     # Calculate volume
-    open_price = client.getCurrentPrice(symbol)[1]
+    open_price = client.get_current_price(symbol)[1]
     volume = int(volume_eur/open_price)
 
     print(f"Calculate volume {volume} for symbol {symbol}")
@@ -108,7 +108,7 @@ def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: f
     todays_trade.volume = volume
     print(f"Opened trade with id: {open_trade_id}")
 
-    open_trades = client.getOpenTrades()
+    open_trades = client.get_open_trades()
     for trade in open_trades:
         if trade['symbol'] == symbol:
             todays_trade.transaction_id = trade['position'] - 1
@@ -117,16 +117,16 @@ def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: f
     # Prepare to close trade
     IS_TRADE_CLOSED = False
     while not IS_TRADE_CLOSED:
-        close_price = client.getCurrentPrice(symbol)[0]
+        close_price = client.get_current_price(symbol)[0]
         potential_profit_percentage = 1.0 - close_price/open_price
         should_take_profit = potential_profit_percentage > take_profit_percentage
-        is_market_closing_soon = client.isMarketClosingInNSeconds(symbol, 90)
+        is_market_closing_soon = client.is_market_closing_in_n_seconds(symbol, 90)
 
         if  should_take_profit or is_market_closing_soon:
             client.sell(symbol, volume)
             IS_TRADE_CLOSED = True
             todays_trade.close_price = close_price
-            profit = client.getClosedTradeProfit(todays_trade.transaction_id)
+            profit = client.get_closed_trade_profit(todays_trade.transaction_id)
             print("Profit today:", profit)
             todays_trade.profit = profit
         time.sleep(1)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     # for symbol in SYMBOLS:
     #     try:
-    #         history = client.getLastNCandleHistory(instrument(symbol, interval), n)
+    #         history = client.get_last_n_candles_history(instrument(symbol, interval), n)
     #     except Exception as e:
     #         continue
     #     open_high_close = list(zip(history['open'], history['high'], history['close']))
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     #         else:
     #             cp = close_price
     #         volume = int(1000/open_price)
-    #         total += client.getProfitCalculation(symbol, open_price, cp, volume, 0)
+    #         total += client.get_profit_calculation(symbol, open_price, cp, volume, 0)
     #         print(symbol, str(round(total, 2)), str(volume), str(round(volume * open_price, 2)))
     #     message = f"Symbol {symbol}, profit after 100 days at approx 1000 eur volumes : {str(total)}\n"
 
@@ -180,13 +180,13 @@ if __name__ == '__main__':
 
 
 
-    # symbols = client.getAllSymbols()
+    # symbols = client.get_all_symbols()
     # # Should remove _4
     # symbols = list(filter(lambda t: t[-2:] != "_4", symbols))
     # print(symbols)
     # for symbol in symbols:
     #     try:
-    #         history = client.getLastNCandleHistory(instrument(symbol, interval), n)
+    #         history = client.get_last_n_candles_history(instrument(symbol, interval), n)
     #     except Exception as e:
     #         continue
 

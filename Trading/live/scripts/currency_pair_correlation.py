@@ -23,11 +23,11 @@ if __name__ == '__main__':
     client = XTBLoggingClient(username, password, mode, False)
 
     n = 100
-    eur_chf = client.getLastNCandleHistory(instrument('EURCHF', '1D'), n)['open']
-    eur_huf = client.getLastNCandleHistory(instrument('EURHUF', '1D'), n)['open']
-    chf_huf = client.getLastNCandleHistory(instrument('CHFHUF', '1D'), n)['open']
-    usd_huf = client.getLastNCandleHistory(instrument('USDHUF', '1D'), n)['open']
-    eur_usd = client.getLastNCandleHistory(instrument('EURUSD', '1D'), n)['open']
+    eur_chf = client.get_last_n_candles_history(instrument('EURCHF', '1D'), n)['open']
+    eur_huf = client.get_last_n_candles_history(instrument('EURHUF', '1D'), n)['open']
+    chf_huf = client.get_last_n_candles_history(instrument('CHFHUF', '1D'), n)['open']
+    usd_huf = client.get_last_n_candles_history(instrument('USDHUF', '1D'), n)['open']
+    eur_usd = client.get_last_n_candles_history(instrument('EURUSD', '1D'), n)['open']
 
 
     data = {"EURUSD" : eur_usd, "USDHUF": usd_huf}

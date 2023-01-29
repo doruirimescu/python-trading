@@ -19,7 +19,7 @@ class technical_analyzer:
         self.symbols = SYMBOLS_URL
 
     def analyse(self, instrument):
-        soup = self.__getSoup(instrument.getSymbolInvesting(), instrument.timeframe)
+        soup = self.__getSoup(instrument.get_symbol_investing(), instrument.timeframe)
         for i in soup.select("#techStudiesInnerWrap .summary"):
             response_text = i.select("span")[0].text
             return(TechnicalAnalysis(response_text))

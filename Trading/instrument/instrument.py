@@ -10,9 +10,9 @@ class instrument:
     symbol: str
     timeframe: str
 
-    def getSymbolXTB(self):
+    def get_symbol_xtb(self):
         # return SYMBOL_TO_X[self.symbol][SYMBOL_XTB_INDEX]
         return self.symbol
 
-    def getSymbolInvesting(self):
+    def get_symbol_investing(self):
         return SYMBOL_TO_X[self.symbol][SYMBOL_INVESTING_INDEX]

@@ -44,25 +44,25 @@ class trader:
             self.LOGGER.info("No action shall be taken")
         elif action == Action.BUY:
             if self.current_trade is not None and self.current_trade_type == Action.SELL:
-                self.closeTrade()
+                self.close_trade()
             elif self.current_trade is None:
                 self.LOGGER.info("client will buy. Should decide volume according to optimal risk")
                 self.current_trade = self._client.buy(self._instrument, 0.01)
                 self.current_trade_type = Action.BUY
         elif action == Action.SELL:
             if self.current_trade is not None and self.current_trade_type == Action.BUY:
-                self.closeTrade()
+                self.close_trade()
             elif self.current_trade is None:
                 self.LOGGER.info("client will sell. Should decide volume according to optimal risk")
                 self.current_trade = self._client.sell(self._instrument, 0.01)
                 self.current_trade_type = Action.SELL
         elif action == Action.STOP and self.current_trade is not None:
-            self.closeTrade()
+            self.close_trade()
 
-    def closeTrade(self):
+    def close_trade(self):
         self.LOGGER.info("client will close the current trade")
         try:
-            self._client.closeTrade(self.current_trade)
+            self._client.close_trade(self.current_trade)
         except Exception as e:
             self.LOGGER.info(str(e))
         self.current_trade = None

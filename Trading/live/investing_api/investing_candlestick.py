@@ -29,7 +29,7 @@ class PatternAnalysis:
         print(self.date)
         print("------------------------------")
 
-    def isMoreReliableThan(self, other):
+    def is_more_reliable_than(self, other):
         if other.reliability is None:
             return True
         elif (self.reliability is PatternReliability.HIGH and other.reliability is not PatternReliability.HIGH):
@@ -46,11 +46,11 @@ class PatternAnalyzer:
         # symbols maps a symbol to a tuple (address, pairID) - find the pairID by inspecting the network traffic response
         self.symbols = SYMBOLS_URL
 
-    def getAvailableSymbols(self):
+    def get_available_symbols(self):
         response = [i for i, j in self.symbols.items()]
         return response
 
-    def _getTimeFormatter(self, timeframe):
+    def _get_time_formatter(self, timeframe):
         if timeframe == '1m':
             return "%b %d, %Y %I:%M%p"
         elif timeframe == '5m':
@@ -72,13 +72,13 @@ class PatternAnalyzer:
 
     def analyse(self, instrument):
 
-        soup = self._getSoup(instrument.getSymbolInvesting())
+        soup = self._get_soup(instrument.get_symbol_investing())
 
         row_id = 0
         table = soup.find("tr", id="row" + str(row_id))
         responses = list()
         while table is not None:
-            response = self._parseTable(table)
+            response = self._parse_table(table)
 
             if (response is not None) and (response.timeframe == instrument.timeframe):
                 response.print()
@@ -87,7 +87,7 @@ class PatternAnalyzer:
             table = soup.find("tr", id="row" + str(row_id))
         return responses
 
-    def _getSoup(self, symbol):
+    def _get_soup(self, symbol):
         symbol = symbol.upper()
         headers = {
             "User-Agent": "Mozilla/5.0",
@@ -102,7 +102,7 @@ class PatternAnalyzer:
             return soup
         return None
 
-    def _parseTable(self, table):
+    def _parse_table(self, table):
         pattern = str()
         timeframe = str()
         reliability = str()
@@ -115,7 +115,7 @@ class PatternAnalyzer:
                 pattern = child.contents[0]
             elif counter == 5:
                 timeframe = child.contents[0]
-                timeframe = self._sanitizeTimeframe(timeframe)
+                timeframe = self._sanitize_timeframe(timeframe)
             elif counter == 7:
                 reliability = PatternReliability(child["title"])
             elif counter == 9:
@@ -129,12 +129,12 @@ class PatternAnalyzer:
             return None
         else:
             INVESTING_TIME_CORRECTION = 7
-            date = datetime.strptime(date, self._getTimeFormatter(timeframe))
+            date = datetime.strptime(date, self._get_time_formatter(timeframe))
             date = date + timedelta(hours=INVESTING_TIME_CORRECTION)
 
         return PatternAnalysis(pattern, reliability, timeframe, candles_ago, date)
 
-    def _sanitizeTimeframe(self, timeframe):
+    def _sanitize_timeframe(self, timeframe):
         if timeframe == "1":
             return "1m"
         elif timeframe == "5":

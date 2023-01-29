@@ -26,7 +26,7 @@ if __name__ == '__main__':
     monitor_forex_trade_swaps_once = os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE")
     client = XTBTradingClient(username, password, mode, False)
 
-    open_trade_swaps = client.getSwapsOfForexOpenTrades()
+    open_trade_swaps = client.get_swaps_of_forex_open_trades()
     MAIN_LOGGER.info("Open trade swaps: " + str(open_trade_swaps))
 
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
@@ -37,7 +37,7 @@ if __name__ == '__main__':
                 body = f"Symbol: {symbol} Swap: {str(swap)} Date:{str(datetime.now())}"
                 send_email(subject, body)
 
-        total_profit, total_swap, text_message = client.getTotalForexOpenTradesProfitAndSwap()
+        total_profit, total_swap, text_message = client.get_total_forex_open_trades_profit_and_swap()
         subject = "Daily swap report " + str(datetime.now())
         body = text_message + f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}"
         send_email(subject, body)
