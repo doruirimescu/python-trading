@@ -1,7 +1,7 @@
 import pytest
 import unittest
-from Trading.algo.Indicators.indicator_value_to_action import IndicatorAction
-from Trading.algo.Indicators.indicator_actions_to_analysis import IndicatorActionsToAnalysis
+from Trading.algo.indicators.indicator_value_to_action import IndicatorAction
+from Trading.algo.indicators.indicator_actions_to_analysis import IndicatorActionsToAnalysis
 from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis as TA
 class TestIndicatorActionsToAnalysis(unittest.TestCase):
     def BSN(self, buy, sell, neutral):

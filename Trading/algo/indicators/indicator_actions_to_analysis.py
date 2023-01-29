@@ -1,4 +1,4 @@
-from Trading.algo.Indicators.indicator_value_to_action import IndicatorAction
+from Trading.algo.indicators.indicator_value_to_action import IndicatorAction
 from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from enum import Enum
 
