@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.time import getDateNowCet
+from Trading.utils.time import get_date_now_cet
 from exception_with_retry import ExceptionWithRetry, exception_with_retry
 from Trading.utils.send_email import send_email_if_exception_occurs
 
@@ -82,7 +82,7 @@ trades_dict = dict()
 def performTrade(client, volume_eur: int, symbol: str, take_profit_percentage: float):
     global trades_dict
 
-    date_now_cet = getDateNowCet()
+    date_now_cet = get_date_now_cet()
     if date_now_cet in trades_dict:
         print(f"Already traded today {date_now_cet}, go to sleep")
         return
