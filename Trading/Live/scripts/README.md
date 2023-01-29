@@ -12,6 +12,7 @@ XTB_PASSWORD="password"
 XTB_MODE="demo-or-real"
 EMAIL_SENDER="sender@gmail.com"
 EMAIL_PASSWORD="app_pwd"
+EMAIL_RECIPIENTS=["recipient@example.com"]
 ```
 
 ## Trading live
