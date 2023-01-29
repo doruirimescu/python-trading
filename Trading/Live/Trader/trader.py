@@ -1,5 +1,5 @@
 from Trading.Algo.Strategy.strategy import *
-from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
+from exception_with_retry import ExceptionWithRetry
 from Trading.Live.Client.client import TradingClient
 from Trading.Instrument.instrument import Instrument
 from Trading.Live.InvestingAPI.investing_technical import *
@@ -21,6 +21,7 @@ class Trader:
         self._technical_analyzer = technical_analyzer
         self.previous_analysis = None
         self.current_trade = None
+        self.current_trade_type = None
         self.LOGGER = logging.getLogger('Trader')
         self.LOGGER.info("Create trader")
 
@@ -41,13 +42,28 @@ class Trader:
 
         if action == Action.NO:
             self.LOGGER.info("No action shall be taken")
-        elif action == Action.BUY and self.current_trade is None:
-            self.LOGGER.info("Client will buy. Should decide volume according to optimal risk")
-            self.current_trade = self._client.buy(self._instrument, 0.01)
-        elif action == Action.SELL and self.current_trade is None:
-            self.LOGGER.info("Client will sell. Should decide volume according to optimal risk")
-            self.current_trade = self._client.sell(self._instrument, 0.01)
+        elif action == Action.BUY:
+            if self.current_trade is not None and self.current_trade_type == Action.SELL:
+                self.closeTrade()
+            elif self.current_trade is None:
+                self.LOGGER.info("Client will buy. Should decide volume according to optimal risk")
+                self.current_trade = self._client.buy(self._instrument, 0.01)
+                self.current_trade_type = Action.BUY
+        elif action == Action.SELL:
+            if self.current_trade is not None and self.current_trade_type == Action.BUY:
+                self.closeTrade()
+            elif self.current_trade is None:
+                self.LOGGER.info("Client will sell. Should decide volume according to optimal risk")
+                self.current_trade = self._client.sell(self._instrument, 0.01)
+                self.current_trade_type = Action.SELL
         elif action == Action.STOP and self.current_trade is not None:
-            self.LOGGER.info("Client will stop the current trade")
+            self.closeTrade()
+
+    def closeTrade(self):
+        self.LOGGER.info("Client will close the current trade")
+        try:
             self._client.closeTrade(self.current_trade)
-            self.current_trade = None
+        except Exception as e:
+            self.LOGGER.info(str(e))
+        self.current_trade = None
+        self.current_trade_type = None

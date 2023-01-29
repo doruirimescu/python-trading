@@ -1,6 +1,6 @@
 from Trading.Live.Client.client import XTBTradingClient
 from Trading.Utils.time import getDateNowCet
-from Trading.Live.ExceptionWithRetry import exceptionwithretry
+from exception_with_retry import ExceptionWithRetry
 
 from dotenv import load_dotenv
 import os

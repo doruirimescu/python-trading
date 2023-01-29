@@ -4,7 +4,7 @@ from Trading.Live.Client.client import LoggingClient
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalyzer
 from Trading.Live.InvestingAPI.investing_candlestick import PatternAnalysis
 
-from Trading.Live.ExceptionWithRetry.exceptionwithretry import ExceptionWithRetry
+from exception_with_retry import ExceptionWithRetry
 
 from Trading.Live.InvestingAPI.investing_technical import *
 

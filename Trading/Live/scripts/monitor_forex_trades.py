@@ -28,7 +28,8 @@ if __name__ == '__main__':
     # print("Total profit", total_profit)
     # print("Total swap", total_swap)
 
-    # biggest_swaps = client.getTopTenBiggestSwaps()
+    biggest_swaps = client.getTopTenBiggestSwaps()
+    print(biggest_swaps)
     # subject = "Top ten biggest swaps as of " + str(datetime.now())
     # body = str(biggest_swaps)
     # recipients = ["dorustefan.irimescu@gmail.com"]

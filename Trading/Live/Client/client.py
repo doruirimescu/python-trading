@@ -13,6 +13,8 @@ from Trading.Live.Logger.server_tester import *
 from datetime import timedelta
 import pytz
 
+from collections import namedtuple
+
 class LoggingClient(ABC):
     @abstractmethod
     def __init__(self, uname=0, pwd=0, mode=0):
@@ -40,6 +42,8 @@ class TradingClient(ABC):
     def closeTrade(self, trade_id):
         pass
 
+
+TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
 
 class XTBLoggingClient(LoggingClient):
     def __init__(self, uname, pwd, mode="demo", logging=False):
@@ -102,8 +106,8 @@ class XTBLoggingClient(LoggingClient):
 
                 to_date = to_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
                 from_date = from_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
-                return (from_date, to_date)
-        return (None, None)
+                return TradingTimes(from_date, to_date)
+        return TradingTimes(None, None)
 
     def isMarketOpen(self, symbol: str) -> bool:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
