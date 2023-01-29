@@ -23,7 +23,7 @@ def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: Technic
     Returns:
         Action: Action to take.
     """
-    LOGGER = logging.getLogger('Strategy')
+    LOGGER = logging.getLogger('strategy')
     # Create abbreviations for ease of use
     SS = TechnicalAnalysis.STRONG_SELL
     S = TechnicalAnalysis.SELL
