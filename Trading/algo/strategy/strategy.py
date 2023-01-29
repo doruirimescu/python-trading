@@ -2,7 +2,7 @@ from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from dataclasses import dataclass
 import logging
 
-__all__ = ["Action", "decideAction"]
+__all__ = ["Action", "decide_action"]
 
 
 @dataclass
@@ -13,7 +13,7 @@ class Action:
     STOP = "stop"    # to close a trade
 
 
-def decideAction(previous_analysis: TechnicalAnalysis, current_analysis: TechnicalAnalysis):
+def decide_action(previous_analysis: TechnicalAnalysis, current_analysis: TechnicalAnalysis):
     """Given a previous and current analysis, decide what action to take.
 
     Args:

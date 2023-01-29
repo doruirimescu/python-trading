@@ -1,12 +1,12 @@
 from Trading.algo.strategy.strategy import *
 from exception_with_retry import ExceptionWithRetry
-from Trading.live.client.client import TradingClient
-from Trading.instrument.instrument import instrument
+from Trading.live.client.client import XTBTradingClient
+from Trading.instrument.instrument import Instrument
 from Trading.live.investing_api.investing_technical import *
 import logging
 
 
-class trader:
+class Trader:
     '''
         trader uses a client and a technical analyzer in order to decide what to do.
         It processes one trade at a time.
@@ -14,7 +14,7 @@ class trader:
         It also stops the current trade.
     '''
 
-    def __init__(self, instrument: instrument, client: TradingClient, technical_analyzer):
+    def __init__(self, instrument: instrument, client: XTBTradingClient, technical_analyzer):
 
         self._instrument = instrument
         self._client = client
@@ -36,7 +36,7 @@ class trader:
             self.LOGGER.info("Initialized previous_analysis")
             return
         current_analysis = self._getTechnicalAnalysis()
-        action = decideAction(self.previous_analysis, current_analysis)
+        action = decide_action(self.previous_analysis, current_analysis)
         self.previous_analysis = current_analysis
         print(action)
 

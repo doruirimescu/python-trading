@@ -2,10 +2,12 @@ import csv
 import os.path
 from datetime import datetime
 from Trading.candlechart.candle import CandleClassifier
-from Trading.instrument.instrument import instrument
+from Trading.instrument.instrument import Instrument
 import os
+
+
 class CandleCsvWriter:
-    def __init__(self, instrument, path = '/home/doru/personal/trading/data/'):
+    def __init__(self, instrument, path='/home/doru/personal/trading/data/'):
         self.path = path + instrument.symbol+"-"+instrument.timeframe
         self.log_open_date = datetime.now()
         self.log_close_date = self.log_open_date

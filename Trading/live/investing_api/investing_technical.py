@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup as bs
 from Trading.live.investing_api.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
-__all__ = ['technical_analyzer']
+__all__ = ['TechnicalAnalyzer']
 
 
-class technical_analyzer:
+class TechnicalAnalyzer:
     """Investing.com technical analyzer which generates TechnicalAnalysis responses
     """
 
@@ -45,5 +45,5 @@ class technical_analyzer:
 
 
 # ta = technical_analyzer()
-# analysis = ta.analyse(instrument("BITCOIN", "1h"))
+# analysis = ta.analyse(Instrument("BITCOIN", "1h"))
 # print(analysis)

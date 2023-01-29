@@ -1,5 +1,5 @@
 from Trading.live.logger.logger import DataLogger
-from Trading.instrument.instrument import instrument
+from Trading.instrument.instrument import Instrument
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 from Trading.live.client.client import XTBLoggingClient
 from dotenv import load_dotenv
@@ -27,7 +27,7 @@ def getInstrument():
     parser.add_argument('-s', dest='symbol', type=str, required=True)
     parser.add_argument('-t', dest='timeframe', type=str, required=True)
     args = parser.parse_args()
-    return instrument(args.symbol, args.timeframe)
+    return Instrument(args.symbol, args.timeframe)
 
 
 if __name__ == '__main__':

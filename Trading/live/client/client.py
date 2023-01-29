@@ -3,7 +3,7 @@ from exception_with_retry import exception_with_retry
 from Trading.utils.time import get_datetime_now_cet
 from Trading.utils.send_email import send_email_if_exception_occurs
 
-from Trading.instrument.instrument import instrument
+from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
 
 from XTBApi.api import client as XTBClient

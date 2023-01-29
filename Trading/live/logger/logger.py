@@ -9,7 +9,7 @@ from exception_with_retry import ExceptionWithRetry
 from Trading.live.investing_api.investing_technical import *
 
 from Trading.live.logger.ticker import Ticker
-from Trading.instrument.instrument import instrument
+from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import *
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 
@@ -53,7 +53,7 @@ class DataLogger:
         return analysis
 
     def _getTechnicalAnalysis(self):
-        inv_tech = technical_analyzer()
+        inv_tech = TechnicalAnalyzer()
         ewr = ExceptionWithRetry(inv_tech.analyse, 10, 1.0)
         analysis = ewr.run([self._instrument])
         return analysis

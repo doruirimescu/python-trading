@@ -3,7 +3,7 @@ from Trading.instrument.symbol_investing_to_x import SYMBOL_XTB_INDEX, SYMBOL_IN
 
 
 @dataclass
-class instrument:
+class Instrument:
     '''
         Symbol expressed as xtb
     '''
