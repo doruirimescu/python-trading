@@ -1,7 +1,7 @@
 from exception_with_retry import exception_with_retry
 
 from Trading.Live.Client.client import XTBTradingClient
-from Trading.Live.Email.send_email import send_email
+from Trading.Utils.send_email import send_email
 
 from dotenv import load_dotenv
 from datetime import datetime
