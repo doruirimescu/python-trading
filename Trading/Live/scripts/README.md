@@ -3,16 +3,23 @@ Here are the main scripts that enable you to live trade, ping the trading server
 ## You will need the following `.env` files:
 
 
-If you have not already, create a .env file
+If you have not already, create a .env file in this folder,
 with the following variables defined:
 
 ```.env
-XTB_USERNAME="your-xtb-account-number-ex 14239204"
-XTB_PASSWORD="password"
+# XTB configurations
+XTB_USERNAME="12345678"
+XTB_PASSWORD="xtbpwd"
 XTB_MODE="demo-or-real"
-EMAIL_SENDER="sender@gmail.com"
-EMAIL_PASSWORD="app_pwd"
+
+# Email configurations
+EMAIL_SENDER="sender@example.com"
+EMAIL_PASSWORD="gmail-app-password"
 EMAIL_RECIPIENTS=["recipient@example.com"]
+
+# Program configurations
+MONITOR_FOREX_TRADE_SWAPS_ONCE="True"
+
 ```
 
 ## Trading live
