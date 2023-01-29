@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-
+from exception_with_retry import exception_with_retry
 from Trading.Utils.time import getDatetimeNowCet
 
 from Trading.Instrument.instrument import Instrument
 from Trading.Instrument.timeframes import TIMEFRAME_TO_MINUTES
 
 from XTBApi.api import Client as XTBClient
-from XTBApi.api import Transaction
 from Trading.Live.Logger.server_tester import *
 
 from datetime import timedelta
@@ -50,6 +49,7 @@ class XTBLoggingClient(LoggingClient):
         self._client = XTBClient(uname, pwd, mode, logging)
         self._server_tester = ServerTester(self._client)
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getLastNCandleHistory(self, instrument: Instrument, N: int):
         if (not self._isServerUp):
             return None
@@ -73,12 +73,14 @@ class XTBLoggingClient(LoggingClient):
             date.append(datetime.fromtimestamp(ohlct['timestamp']))
         return {'open': open, 'high': high, 'low': low, 'close': close, 'date': date}
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getAllSymbols(self):
         self._client.login()
         symbols = self._client.get_all_symbols()
         self._client.logout()
         return [s['symbol'] for s in symbols]
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getProfitCalculation(self, symbol, open_price, close_price, volume, cmd):
         # cmd = 0 for buy, 1 for sell
         self._client.login()
@@ -86,6 +88,7 @@ class XTBLoggingClient(LoggingClient):
         self._client.logout()
         return float(response['profit'])
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getTradingHoursTodayCET(self, symbol):
         now = datetime.now()
         weekday = now.weekday() + 1
@@ -109,6 +112,7 @@ class XTBLoggingClient(LoggingClient):
                 return TradingTimes(from_date, to_date)
         return TradingTimes(None, None)
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def isMarketOpen(self, symbol: str) -> bool:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
         if from_t is None or to_t is None:
@@ -118,6 +122,7 @@ class XTBLoggingClient(LoggingClient):
             return True
         return False
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def isMarketClosingInNSeconds(self, symbol: str, n_seconds: int) -> bool:
         from_t, to_t = self.getTradingHoursTodayCET(symbol)
         datetime_now = getDatetimeNowCet()
@@ -126,6 +131,7 @@ class XTBLoggingClient(LoggingClient):
             return True
         return False
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getCurrentPrice(self, symbol):
         now = datetime.now()
         ts = now.timestamp()
@@ -134,22 +140,26 @@ class XTBLoggingClient(LoggingClient):
         self._client.logout()
         return (prices['quotations'][0]['bid'], prices['quotations'][0]['ask'])
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def _isServerUp(self):
         test = self._server_tester.test()
         return test.is_server_up
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getSymbol(self, symbol):
         self._client.login()
         response = self._client.get_symbol(symbol)
         self._client.logout()
         return response
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getOpenTradeProfit(self, trans_id):
         self._client.login()
         response = self._client.get_trade_profit(trans_id)
         self._client.logout()
         return response
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getClosedTradeProfit(self, position):
         self._client.login()
         response = self._client.get_trades_history(0, 0)
@@ -165,6 +175,7 @@ class XTBTradingClient(XTBLoggingClient):
         self._client = XTBClient(uname, pwd, mode, logging)
         self._server_tester = ServerTester(self._client)
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def buy(self, symbol, volume):
         """Opens a buy trade on the XTB trading platform. Returns the id of the trade id
         """
@@ -173,6 +184,7 @@ class XTBTradingClient(XTBLoggingClient):
         self._client.logout()
         return response
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def sell(self, symbol, volume):
         """Opens a sell trade on the XTB trading platform. Returns the trade id
         """
@@ -181,6 +193,7 @@ class XTBTradingClient(XTBLoggingClient):
         self._client.logout()
         return response
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def closeTrade(self, trade_id):
         """Closes a trade by trade id
         """
@@ -188,22 +201,26 @@ class XTBTradingClient(XTBLoggingClient):
         response = self._client.close_trade_fix(trade_id['order'])
         self._client.logout()
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def close_by_trade(self, trade):
         self._client.login()
         response = self._client.close_trade(trade)
         self._client.logout()
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def close_trade_fix(self, order):
         self._client.login()
         response = self._client.close_trade_fix(order)
         self._client.logout()
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getOpenTrades(self):
         self._client.login()
         response = self._client.get_trades()
         self._client.logout()
         return response
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getTotalForexOpenTradesProfitAndSwap(self):
         self._client.login()
         open_trades = self._client.get_trades()
@@ -226,6 +243,7 @@ class XTBTradingClient(XTBLoggingClient):
         total_profit = round(total_profit, 5)
         return (total_profit, total_swap, text_message)
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getSwapsOfForexOpenTrades(self):
         self._client.login()
         open_trades = self._client.get_trades()
@@ -242,6 +260,7 @@ class XTBTradingClient(XTBLoggingClient):
                 symbol_list.append((symbol, swap,))
         return symbol_list
 
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
     def getTopTenBiggestSwaps(self):
         self._client.login()
         all_symbols = self._client.get_all_symbols()
