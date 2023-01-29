@@ -1,5 +1,5 @@
-from Trading.Algo.Indicators.indicator_value_to_action import IndicatorAction
-from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
+from Trading.algo.Indicators.indicator_value_to_action import IndicatorAction
+from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from enum import Enum
 
 class IndicatorActionsToAnalysis:

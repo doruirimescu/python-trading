@@ -1,4 +1,4 @@
-from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
+from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 from dataclasses import dataclass
 import logging
 

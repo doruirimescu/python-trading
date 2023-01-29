@@ -5,7 +5,7 @@ from enum import Enum
 from datetime import datetime
 from Trading.Live.InvestingAPI.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
-from Trading.Algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
+from Trading.algo.TechnicalAnalyzer.technical_analysis import TechnicalAnalysis
 __all__ = ['TechnicalAnalyzer']
 
 
