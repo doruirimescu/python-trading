@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.live.Trader.trader import Trader
+from Trading.live.trader.trader import trader
 from Trading.instrument.instrument import instrument
 from Trading.live.investing_api.investing_technical import technical_analyzer
 from dotenv import load_dotenv
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    TRADER_LOGGER = logging.getLogger('Trader')
+    TRADER_LOGGER = logging.getLogger('trader')
     TRADER_LOGGER.setLevel(logging.DEBUG)
     TRADER_LOGGER.propagate = True
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     instrument = getInstrument()
     technical_analyzer = technical_analyzer()
-    trader = Trader(client=client, instrument=instrument, technical_analyzer=technical_analyzer)
+    trader = trader(client=client, instrument=instrument, technical_analyzer=technical_analyzer)
 
     ticker = Ticker(instrument.timeframe)
 

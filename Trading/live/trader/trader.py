@@ -6,9 +6,9 @@ from Trading.live.investing_api.investing_technical import *
 import logging
 
 
-class Trader:
+class trader:
     '''
-        Trader uses a client and a technical analyzer in order to decide what to do.
+        trader uses a client and a technical analyzer in order to decide what to do.
         It processes one trade at a time.
         It places a trade according to the decision.
         It also stops the current trade.
@@ -22,7 +22,7 @@ class Trader:
         self.previous_analysis = None
         self.current_trade = None
         self.current_trade_type = None
-        self.LOGGER = logging.getLogger('Trader')
+        self.LOGGER = logging.getLogger('trader')
         self.LOGGER.info("Create trader")
 
     def _getTechnicalAnalysis(self):
