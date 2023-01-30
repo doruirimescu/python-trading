@@ -11,55 +11,7 @@ from typing import Dict
 from dotenv import load_dotenv
 import os
 import logging
-import pandas as pd
-import numpy as np
 import time
-import json
-
-
-SYMBOLS = [
-'CINE.UK_9',
-'PBYI.US_9',
-'CEVA.US_9',
-'3NGS.UK',
-'SHLD.US_9',
-'ENTA.US_9',
-'TLS.US',
-'ALTR.US_9',
-'ICUI.US',
-'TCMD.US_9',
-'NVEI.US',
-'CSTL.US_9',
-'HLNE.US_9',
-'XAN.US',
-'VAL.US_9',
-'CDLX.US_9',
-'DSEY.US',
-'CAMP.US_9',
-'FOSL.US_9',
-'TRST.US',
-'CPS.US_9',
-'ACRS.US',
-'SRRK.US_9',
-'ARCT.US',
-'IGMS.US',
-'APPF.US',
-'TECH.US_9',
-'VOR.US',
-'INTU.UK_9',
-'LIVN.US_9',
-'PSNL.US_9',
-'STOK.US',
-'GLSI.US',
-'SPT.US',
-'EXAI.US',
-'CRTO.US_9',
-'GDEN.US',
-'SGRY.US',
-'GANX.US',
-'LASR.US_9',
-'RGNX.US_9',
-'WVE.US']
 
 
 def enter_trade(client: XTBTradingClient, contract_value: int,
@@ -81,7 +33,7 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
                                 True, todays_trade.open_price,
                                 current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
 
-        if should_close_trade:
+        if True or should_close_trade:
             close_trade(client, todays_trade)
             todays_trade.close_price = current_price
             IS_TRADE_CLOSED = True
@@ -127,7 +79,7 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
         total_successful_days_percentage (float, optional): _description_. Defaults to 0.49.
     """
     symbols = client.get_all_symbols()
-    json_dict = read_json_from_file_named_with_today_date()
+    json_dict = read_json_from_file_named_with_today_date("profitable_symbols/")
     for symbol in symbols:
         try:
             history = client.get_last_n_candles_history(Instrument(symbol, interval), last_n_days)
@@ -150,7 +102,33 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
             print("Success", symbol, total/n)
         else:
             print("Failure.")
-    write_json_to_file_named_with_today_date(json_dict)
+    write_json_to_file_named_with_today_date(json_dict, "profitable_symbols/")
+
+
+def calculate_average_tp(open_high_close, from_index, to_index):
+    return sum([(high_price / open_price - 1) for open_price, high_price, close_price in open_high_close]) / (to_index - from_index + 1)
+
+
+def round_to_print(decimal_number: float):
+    return str(round(decimal_number, 2))
+
+
+def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_n_days: int,
+                                take_profit_percentage: float = 0.1,
+                                contract_value: int = 1000,
+                                symbol: str = "EURUSD"):
+    total = 0
+    for (open_price, high_price, close_price) in open_high_close[last_n_days:2*last_n_days-1]:
+        if high_price/open_price - 1.0 > take_profit_percentage:
+            cp = open_price * (1.0 + take_profit_percentage)
+        else:
+            cp = close_price
+        volume = int(contract_value/open_price)
+        total += client.get_profit_calculation(symbol, open_price, cp, volume, 0)
+
+    profit = round_to_print(total)
+    contract_value = round_to_print(volume * open_price)
+    print(f"Symbol: {symbol} Profit: {profit} Volume: {str(volume)}, Contract value: {contract_value}")
 
 
 if __name__ == '__main__':
@@ -173,46 +151,33 @@ if __name__ == '__main__':
     interval = '1D'
     symbol = 'CRTO.US_9'
 
+
+    LAST_N_DAYS = 30
+    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 2 * LAST_N_DAYS)
+    open_high_close = list(zip(history['open'], history['high'], history['close']))
+    avg_tp = calculate_average_tp(open_high_close, 0, LAST_N_DAYS - 1)
+    print(f"AVG TP: {avg_tp}")
+    calculate_potential_profits(client, open_high_close, LAST_N_DAYS, avg_tp, 1000, symbol)
+
     trades_dict: Dict[date, Trade] = dict()
+    while True:
+        should_trade = True
+        date_now_cet = get_date_now_cet()
+        if date_now_cet in trades_dict:
+            print(f"Already traded today {date_now_cet}, go to sleep")
+            should_trade = False
+        if not client.is_market_open(symbol):
+            print(f"Market is closed for {symbol}, go to sleep")
+            should_trade = False
 
-    # while True:
-    #     should_trade = True
-    #     date_now_cet = get_date_now_cet()
-    #     if date_now_cet in trades_dict:
-    #         print(f"Already traded today {date_now_cet}, go to sleep")
-    #         should_trade = False
-    #     if not client.is_market_open(symbol):
-    #         print(f"Market is closed for {symbol}, go to sleep")
-    #         should_trade = False
+        if should_trade:
+            enter_trade(client, 100, symbol, 0.1)
 
-    #     if should_trade:
-    #         enter_trade(client, 100, symbol, 0.1)
+        time.sleep(1)
 
-    #     time.sleep(1)
+    # find_profitable_instruments(client, 100, 0.05, 0.49)
 
-    find_profitable_instruments(client, 100, 0.05, 0.49)
 
-    # for symbol in SYMBOLS:
-    #     try:
-    #         history = client.get_last_n_candles_history(Instrument(symbol, interval), n)
-    #     except Exception as e:
-    #         continue
-    #     open_high_close = list(zip(history['open'], history['high'], history['close']))
-    #     total = 0
-    #     for (open_price, high_price, close_price) in open_high_close:
-    #         if high_price/open_price - 1.0 > p:
-    #             cp = open_price * (1.0 + p)
-    #         else:
-    #             cp = close_price
-    #         volume = int(1000/open_price)
-    #         total += client.get_profit_calculation(symbol, open_price, cp, volume, 0)
-    #         print(symbol, str(round(total, 2)), str(volume), str(round(volume * open_price, 2)))
-    #     message = f"Symbol {symbol}, profit after 100 days at approx 1000 eur volumes : {str(total)}\n"
-
-    #     f = open("backtest_results.txt", "a")
-    #     f.write(message)
-    #     f.close()
-    #     print("Symbol " + symbol, "Profit after 100 days at {volume} units: " + str(total))
 
 
 
