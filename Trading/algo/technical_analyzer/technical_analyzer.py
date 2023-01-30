@@ -14,7 +14,9 @@ class TechnicalAnalyzer(ABC):
 class DailyBuyTechnicalAnalyzer(TechnicalAnalyzer):
     """Buy and wait for take profit, then close. Once per day.
     """
-    # TODO: lookup the instrument in a table, check if to buy or sell, and change class to DailyTechnicalAnalyzer
+    #TODO: take last_100_days_take_profit_percentage, last_10_days_take_profit_percentage
+    #TODO:  last_10_days_take_profit_percentage < 0.05, do not trade.
+    #TODO: weighted mean between last_100 and last_10 with weight on 2:1
     def __init__(self, take_profit_percentage: float):
         # Should take the last 100 days candles of the instrument and check if to sell or buy
         self._take_profit_percentage = take_profit_percentage

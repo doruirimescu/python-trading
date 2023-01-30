@@ -1,6 +1,7 @@
 from datetime import date
 from enum import Enum
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from typing import Optional
 
 
@@ -8,6 +9,7 @@ class TradeType(Enum):
     BUY = "BUY"
     SHORT = "SHORT"
 
+@dataclass_json
 @dataclass
 class Trade:
     """Dataclass representing a trade
