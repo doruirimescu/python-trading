@@ -55,10 +55,10 @@ def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
     print(f"Opened trade with id: {open_trade_id}")
 
     open_trades = client.get_open_trades()
-    for trade in open_trades:
-        if trade['symbol'] == symbol:
-            trade.transaction_id = trade['position'] - 1
-            print("Transaction id: ", trade.transaction_id)
+    for open_trade in open_trades:
+        if open_trade['symbol'] == symbol:
+            trade.position_id = open_trade['position'] - 1
+            print("Transaction id: ", trade.position_id)
 
 
 def close_trade(client: XTBTradingClient, trade: Trade, ):
@@ -139,7 +139,6 @@ def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_
 
 
 if __name__ == '__main__':
-
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT)
 
@@ -156,7 +155,7 @@ if __name__ == '__main__':
     n = 100
     p = 0.1
     interval = '1D'
-    symbol = 'CRTO.US_9'
+    symbol = 'CRTO.US_4'
 
 
     # LAST_N_DAYS = 30
@@ -181,30 +180,19 @@ if __name__ == '__main__':
     weighted_tp_str = round_to_print(weighted_tp)
     print(f"AVG TP 100: {avg_tp_100_str} and AVG TP 10: {avg_tp_10_str} and WEIGHTED_TP: {weighted_tp_str}")
 
-    has_traded = False
-    while not has_traded:
-        should_trade = True
-        date_now_cet = get_date_now_cet()
-        if date_now_cet in trades_dict:
-            print(f"Already traded today {date_now_cet}, go to sleep")
-            should_trade = False
-        if not client.is_market_open(symbol):
-            print(f"Market is closed for {symbol}, go to sleep")
-            should_trade = False
-        if weighted_tp < 0.05:
-            print(f"Weighted tp {weighted_tp} < 0.05, go to sleep")
-            should_trade = False
 
-        if should_trade:
-            enter_trade(client, 1000, symbol, weighted_tp)
-            has_traded = True
+    date_now_cet = get_date_now_cet()
 
-        time.sleep(1)
+    if not client.is_market_open(symbol):
+        print(f"Market is closed for {symbol}, go to sleep")
+        while not client.is_market_open(symbol):
+            time.sleep(1)
+
+    if weighted_tp < 0.05:
+        print(f"Weighted tp {weighted_tp_str} < 0.05, will not trade today")
+
+    else:
+        enter_trade(client, 1000, symbol, weighted_tp)
+        has_traded = True
 
     # find_profitable_instruments(client, 100, 0.05, 0.49)
-
-
-
-
-
-#TODO: dump jsons of last 1000 days for all instruments
