@@ -18,10 +18,10 @@ import json
 
 
 SYMBOLS = [
-# 'CINE.UK_9',
-# 'PBYI.US_9',
-# 'CEVA.US_9',
-# '3NGS.UK',
+'CINE.UK_9',
+'PBYI.US_9',
+'CEVA.US_9',
+'3NGS.UK',
 'SHLD.US_9',
 'ENTA.US_9',
 'TLS.US',
@@ -144,6 +144,7 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
         if total/n > total_successful_days_percentage:
             if json_dict is None:
                 json_dict = dict()
+            if not json_dict.get(str(symbol)):
                 json_dict[str(symbol)] = dict()
             json_dict[str(symbol)][str(last_n_days)] = {'take_profit_percentage': take_profit_percentage, 'total_successful_days': total}
             print("Success", symbol, total/n)
@@ -189,7 +190,7 @@ if __name__ == '__main__':
 
     #     time.sleep(1)
 
-    find_profitable_instruments(client, 100, 0.1, 0.49)
+    find_profitable_instruments(client, 100, 0.05, 0.49)
 
     # for symbol in SYMBOLS:
     #     try:
