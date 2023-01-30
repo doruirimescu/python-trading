@@ -13,6 +13,8 @@ import os
 import logging
 import time
 
+trades_dict = dict()
+
 
 def enter_trade(client: XTBTradingClient, contract_value: int,
                 symbol: str, take_profit_percentage: float):
@@ -33,7 +35,7 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
                                 True, todays_trade.open_price,
                                 current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
 
-        if True or should_close_trade:
+        if should_close_trade:
             close_trade(client, todays_trade)
             todays_trade.close_price = current_price
             IS_TRADE_CLOSED = True
@@ -109,6 +111,11 @@ def calculate_average_tp(open_high_close, from_index, to_index):
     return sum([(high_price / open_price - 1) for open_price, high_price, close_price in open_high_close]) / (to_index - from_index + 1)
 
 
+def calculate_average_tp_full(open_high_close):
+    accumulated_p = sum([(high_price / open_price - 1) for open_price, high_price, close_price in open_high_close])
+    return accumulated_p / len(open_high_close)
+
+
 def round_to_print(decimal_number: float):
     return str(round(decimal_number, 2))
 
@@ -152,15 +159,30 @@ if __name__ == '__main__':
     symbol = 'CRTO.US_9'
 
 
-    LAST_N_DAYS = 30
-    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 2 * LAST_N_DAYS)
-    open_high_close = list(zip(history['open'], history['high'], history['close']))
-    avg_tp = calculate_average_tp(open_high_close, 0, LAST_N_DAYS - 1)
-    print(f"AVG TP: {avg_tp}")
-    calculate_potential_profits(client, open_high_close, LAST_N_DAYS, avg_tp, 1000, symbol)
+    # LAST_N_DAYS = 30
+    # history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 2 * LAST_N_DAYS)
+    # open_high_close = list(zip(history['open'], history['high'], history['close']))
+    # avg_tp = calculate_average_tp(open_high_close, 0, LAST_N_DAYS - 1)
+    # print(f"AVG TP: {avg_tp}")
+    # calculate_potential_profits(client, open_high_close, LAST_N_DAYS, avg_tp, 1000, symbol)
 
-    trades_dict: Dict[date, Trade] = dict()
-    while True:
+
+    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
+    open_high_close = list(zip(history['open'], history['high'], history['close']))
+    avg_tp_100 = calculate_average_tp_full(open_high_close)
+
+    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 10)
+    open_high_close = list(zip(history['open'], history['high'], history['close']))
+    avg_tp_10 = calculate_average_tp_full(open_high_close)
+    weighted_tp = (avg_tp_100 + 2.0 * avg_tp_10) / 3.0
+
+    avg_tp_100_str = round_to_print(avg_tp_100)
+    avg_tp_10_str = round_to_print(avg_tp_10)
+    weighted_tp_str = round_to_print(weighted_tp)
+    print(f"AVG TP 100: {avg_tp_100_str} and AVG TP 10: {avg_tp_10_str} and WEIGHTED_TP: {weighted_tp_str}")
+
+    has_traded = False
+    while not has_traded:
         should_trade = True
         date_now_cet = get_date_now_cet()
         if date_now_cet in trades_dict:
@@ -169,9 +191,13 @@ if __name__ == '__main__':
         if not client.is_market_open(symbol):
             print(f"Market is closed for {symbol}, go to sleep")
             should_trade = False
+        if weighted_tp < 0.05:
+            print(f"Weighted tp {weighted_tp} < 0.05, go to sleep")
+            should_trade = False
 
         if should_trade:
-            enter_trade(client, 100, symbol, 0.1)
+            enter_trade(client, 1000, symbol, weighted_tp)
+            has_traded = True
 
         time.sleep(1)
 
