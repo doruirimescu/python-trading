@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.time import get_date_now_cet
+from Trading.utils.time import get_date_now_cet, get_datetime_now_cet
 from Trading.algo.technical_analyzer.technical_analyzer import DailyBuyTechnicalAnalyzer
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     n = 100
     p = 0.1
     interval = '1D'
-    symbol = 'CRTO.US_4'
+    symbol = 'CRTO.US_9'
 
 
     # LAST_N_DAYS = 30
@@ -185,7 +185,9 @@ if __name__ == '__main__':
 
     if not client.is_market_open(symbol):
         print(f"Market is closed for {symbol}, go to sleep")
-        while not client.is_market_open(symbol):
+        is_market_open = False
+        while not is_market_open:
+            is_market_open = client.is_market_open(symbol)
             time.sleep(1)
 
     if weighted_tp < 0.05:
@@ -193,6 +195,5 @@ if __name__ == '__main__':
 
     else:
         enter_trade(client, 1000, symbol, weighted_tp)
-        has_traded = True
 
     # find_profitable_instruments(client, 100, 0.05, 0.49)
