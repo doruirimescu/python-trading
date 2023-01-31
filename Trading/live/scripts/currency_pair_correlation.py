@@ -1,11 +1,8 @@
 from Trading.live.client.client import XTBLoggingClient
 from Trading.instrument.instrument import Instrument
-
-from dotenv import load_dotenv
-import os
+from Trading.config.config import USERNAME, PASSWORD, MODE
 import logging
 import pandas as pd
-import numpy as np
 
 if __name__ == '__main__':
 
@@ -16,11 +13,7 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    load_dotenv()
-    username = os.getenv("XTB_USERNAME")
-    password = os.getenv("XTB_PASSWORD")
-    mode = os.getenv("XTB_MODE")
-    client = XTBLoggingClient(username, password, mode, False)
+    client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
 
     n = 300
     usd_huf = client.get_last_n_candles_history(Instrument('USDHUF', '1D'), n)
