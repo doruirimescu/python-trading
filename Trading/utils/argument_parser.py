@@ -1,4 +1,8 @@
-def getInstrument():
+import argparse
+from Trading.instrument.instrument import Instrument
+
+
+def get_instrument():
     """Creates an instrument object from the command line arguments.
 
     Returns:

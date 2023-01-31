@@ -1,10 +1,10 @@
 from Trading.live.logger.logger import DataLogger
-from Trading.instrument.instrument import Instrument
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 from Trading.live.client.client import XTBLoggingClient
+from Trading.utils.argument_parser import get_instrument
+
 from dotenv import load_dotenv
 import os
-import argparse
 
 """This script is used to log the candles and technical analysis of an instrument.
 The username is read from a file called username.txt. The password needs to be given by the user when
@@ -17,24 +17,12 @@ Currently this script works only with investing.com symbols.
 """
 
 
-def getInstrument():
-    """Creates an instrument object from the command line arguments.
-
-    Returns:
-        instrument: instrument for which the logging is performed.
-    """
-    parser = argparse.ArgumentParser(description='Enter currency and timeframe.')
-    parser.add_argument('-s', dest='symbol', type=str, required=True)
-    parser.add_argument('-t', dest='timeframe', type=str, required=True)
-    args = parser.parse_args()
-    return Instrument(args.symbol, args.timeframe)
-
 
 if __name__ == '__main__':
     load_dotenv()
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
-    instrument = getInstrument()
+    instrument = get_instrument()
     csvwriter = CandleCsvWriter(instrument, "data/")
     xtb_client = XTBLoggingClient(username, password)
 

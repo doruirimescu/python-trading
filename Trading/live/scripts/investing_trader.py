@@ -10,7 +10,7 @@ from Trading.live.logger.ticker import Ticker
 import logging
 
 
-def getInstrument():
+def get_instrument():
     """Creates an instrument object from the command line arguments.
 
     Returns:
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     mode = 'demo'
     client = XTBTradingClient(username, password, mode, False)
 
-    instrument = getInstrument()
+    instrument = get_instrument()
     technical_analyzer = InvestingTechnicalAnalyzer()
     trader = InvestingTrader(client=client, instrument=instrument, technical_analyzer=technical_analyzer)
 
