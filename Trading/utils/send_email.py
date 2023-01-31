@@ -34,5 +34,6 @@ def send_email_if_exception_occurs(subject: str = "Exception occurred"):
                 body = f"Exception {e} occurred when executing function: {func.__name__} \
                         \n{traceback.format_exc()}"
                 send_email(subject, body)
+                raise e
         return wrapper
     return decorator

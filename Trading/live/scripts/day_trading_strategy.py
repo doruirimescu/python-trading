@@ -9,9 +9,9 @@ from Trading.instrument.instrument import Instrument
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date)
 from Trading.utils.argument_parser import CustomParser
+
+from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import round_to_two_decimals, calculate_mean_take_profit, calculate_weighted_mean_take_profit
-from dotenv import load_dotenv
-import os
 import logging
 import time
 
@@ -146,7 +146,7 @@ def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_
     print(f"Symbol: {symbol} Profit: {profit} Volume: {str(volume)}, Contract value: {contract_value}")
 
 
-IS_SAFE_TRADING = True
+IS_SAFE_TRADING = False
 
 if __name__ == '__main__':
     start_time = get_datetime_now_cet()
@@ -157,18 +157,13 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    load_dotenv()
-    username = os.getenv("XTB_USERNAME")
-    password = os.getenv("XTB_PASSWORD")
-    mode = os.getenv("XTB_MODE")
-    client = XTBTradingClient(username, password, mode, False)
+    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     cp = CustomParser()
     cp.add_instrument()
     cp.add_contract_value()
 
     symbol, interval, contract_value = cp.parse_args()
-
     history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
     open_high_100 = list(zip(history['open'], history['high']))
     weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)

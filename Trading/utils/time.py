@@ -1,10 +1,11 @@
+from Trading.config.config import TIMEZONE
 import pytz
 import datetime
 import math
 
 
 def get_datetime_now_cet() -> datetime.datetime:
-    return datetime.datetime.now(pytz.timezone('Europe/Berlin'))
+    return datetime.datetime.now(pytz.timezone(TIMEZONE))
 
 
 def get_date_now_cet() -> datetime.date:

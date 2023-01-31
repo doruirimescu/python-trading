@@ -2,9 +2,11 @@ from datetime import datetime
 from exception_with_retry import exception_with_retry
 from Trading.utils.time import get_datetime_now_cet
 from Trading.utils.send_email import send_email_if_exception_occurs
+from Trading.config.config import TIMEZONE
 
 from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
+
 
 from XTBApi.api import Client as XTBClient
 from Trading.live.logger.server_tester import *
@@ -12,14 +14,13 @@ from Trading.live.logger.server_tester import *
 from datetime import timedelta
 import pytz
 from typing import Optional, Tuple
-
 from collections import namedtuple
+
 
 
 # TODO: adjust sleep_time and retries to take into account composite functions
 TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
 Volume = namedtuple("volume", ['open_price', 'units'])
-
 
 class LoggingClient:
     def __init__(self, client, server_tester):
@@ -91,8 +92,8 @@ class LoggingClient:
                 from_date = today + from_td
                 to_date = today + to_td
 
-                to_date = to_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
-                from_date = from_date.replace(tzinfo=pytz.timezone('Europe/Berlin'))
+                to_date = to_date.replace(tzinfo=pytz.timezone(TIMEZONE))
+                from_date = from_date.replace(tzinfo=pytz.timezone(TIMEZONE))
                 return TradingTimes(from_date, to_date)
         return TradingTimes(None, None)
 

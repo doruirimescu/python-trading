@@ -2,7 +2,7 @@ from exception_with_retry import exception_with_retry
 
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
-
+from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
 from dotenv import load_dotenv
 from datetime import datetime
 import os
@@ -23,8 +23,7 @@ if __name__ == '__main__':
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
     mode = os.getenv("XTB_MODE")
-    monitor_forex_trade_swaps_once = os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE")
-    client = XTBTradingClient(username, password, mode, False)
+    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     open_trade_swaps = client.get_swaps_of_forex_open_trades()
     MAIN_LOGGER.info("Open trade swaps: " + str(open_trade_swaps))
@@ -43,7 +42,7 @@ if __name__ == '__main__':
         send_email(subject, body)
         MAIN_LOGGER.info(body)
 
-    if monitor_forex_trade_swaps_once == "True":
+    if MONITOR_FOREX_TRADE_SWAPS_ONCE == "True":
         monitor_once()
     else:
         while True:
