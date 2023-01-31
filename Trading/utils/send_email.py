@@ -36,18 +36,3 @@ def send_email_if_exception_occurs(subject: str = "Exception occurred"):
                 send_email(subject, body)
         return wrapper
     return decorator
-
-# from exception_with_retry import exception_with_retry
-# @send_email_if_exception_occurs()
-# @exception_with_retry(n_retry=1, sleep_time_s=1)
-# def myMethod(n: int):
-#     print(f"Got  {str(n)}")
-#     if n < 0:
-#         raise Exception("Some exception stuff")
-#     else:
-#         return 1
-
-# myMethod(-1)
-# subject = "Email Subject"
-# body = "This is the body of the text message"
-# send_email(subject, body)
