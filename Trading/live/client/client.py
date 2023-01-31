@@ -11,6 +11,7 @@ from Trading.live.logger.server_tester import *
 
 from datetime import timedelta
 import pytz
+from typing import Optional, Tuple
 
 from collections import namedtuple
 
@@ -72,7 +73,7 @@ class LoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def get_trading_hours_today_cet(self, symbol):
+    def get_trading_hours_today_cet(self, symbol) -> Tuple[Optional[datetime], Optional[datetime]]:
         now = datetime.now()
         weekday = now.weekday() + 1
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -97,11 +98,9 @@ class LoggingClient:
 
     def is_market_open(self, symbol: str) -> bool:
         from_t, to_t = self.get_trading_hours_today_cet(symbol)
-
         if from_t is None or to_t is None:
             return False
         time_now_cet = get_datetime_now_cet()
-        print(from_t, to_t, time_now_cet, self.get_server_time())
         if time_now_cet > from_t and time_now_cet < to_t:
             return True
         return False
