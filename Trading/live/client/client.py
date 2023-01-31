@@ -74,7 +74,7 @@ class LoggingClient:
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
     def get_trading_hours_today_cet(self, symbol) -> Tuple[Optional[datetime], Optional[datetime]]:
-        now = datetime.now()
+        now = get_datetime_now_cet()
         weekday = now.weekday() + 1
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         self._client.login()
