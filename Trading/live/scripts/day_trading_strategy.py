@@ -5,6 +5,7 @@ from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
 from Trading.instrument.instrument import Instrument
 from Trading.utils.write_to_file import write_json_to_file_named_with_today_date, read_json_from_file_named_with_today_date
+from Trading.utils.argument_parser import CustomParser
 
 from dotenv import load_dotenv
 import os
@@ -61,8 +62,24 @@ def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
 
 
 def close_trade(client: XTBTradingClient, trade: Trade, ):
+    print(f"Closing {trade.position_id} at time {str(get_date_now_cet())}")
     # Close trade
-    client.sell(symbol, trade.volume)
+    try:
+        client.sell(symbol, trade.volume)
+    except Exception as e:
+        print("Could not close/sell")
+        print(e)
+        try:
+            client.close_trade(trade.position_id)
+        except Exception as e:
+            print("Could not close {trade.position_id}")
+            print(e)
+            try:
+                client.close_trade(trade.position_id + 1)
+            except Exception as e:
+                print("Could not close {trade.position_id}")
+                print(e)
+
 
     # Store close trade data
     profit = client.get_closed_trade_profit(trade.position_id)
@@ -151,10 +168,14 @@ if __name__ == '__main__':
     mode = os.getenv("XTB_MODE")
     client = XTBTradingClient(username, password, mode, False)
 
+    cp = CustomParser()
+    cp.add_instrument()
+    cp.add_contract_value()
+
+    symbol, interval, contract_value = cp.parse_args()
+
     n = 100
     p = 0.1
-    interval = '1D'
-    symbol = '3NGS.UK'
 
 
     # LAST_N_DAYS = 30
@@ -184,7 +205,6 @@ if __name__ == '__main__':
         is_market_open = False
         while not is_market_open:
             is_market_open = client.is_market_open(symbol)
-            print(is_market_open)
             time.sleep(1)
     else:
         print(f"Market is open for {symbol}")
@@ -192,8 +212,10 @@ if __name__ == '__main__':
         print(f"Weighted tp {weighted_tp_str} < 0.05, will not trade today")
 
     else:
-        todays_trade = enter_trade(client, 1000, symbol, weighted_tp)
+        todays_trade = enter_trade(client, contract_value, symbol, weighted_tp)
         as_dict = todays_trade.get_dict()
         write_json_to_file_named_with_today_date(as_dict, "trades/")
 
     # find_profitable_instruments(client, 100, 0.05, 0.49)
+
+#TODO: how to close stock, forex, etf ?
