@@ -9,7 +9,7 @@ from Trading.instrument.instrument import Instrument
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date)
 from Trading.utils.argument_parser import CustomParser
-
+from Trading.utils.calculations import round_to_two_decimals, calculate_mean_take_profit, calculate_weighted_mean_take_profit
 from dotenv import load_dotenv
 import os
 import logging
@@ -126,15 +126,6 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
     write_json_to_file_named_with_today_date(json_dict, "profitable_symbols/")
 
 
-def calculate_average_tp_full(open_high):
-    accumulated_p = sum([(high_price / open_price - 1) for open_price, high_price in open_high])
-    return accumulated_p / len(open_high)
-
-
-def round_to_two_decimals(decimal_number: float):
-    return round(decimal_number, 2)
-
-
 def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_n_days: int,
                                 take_profit_percentage: float = 0.1,
                                 contract_value: int = 1000,
@@ -152,21 +143,6 @@ def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_
     contract_value = round_to_two_decimals(volume * open_price)
     print(f"Symbol: {symbol} Profit: {profit} Volume: {str(volume)}, Contract value: {contract_value}")
 
-
-def calculate_take_profit(client: XTBTradingClient, symbol: str) -> float:
-    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
-    open_high_100 = list(zip(history['open'], history['high']))
-    avg_tp_100 = calculate_average_tp_full(open_high_100)
-
-    open_high_10 = open_high_100[90:]
-    avg_tp_10 = calculate_average_tp_full(open_high_10)
-    weighted_tp = (avg_tp_100 + 2.0 * avg_tp_10) / 3.0
-
-    avg_tp_100 = round_to_two_decimals(avg_tp_100)
-    avg_tp_10 = round_to_two_decimals(avg_tp_10)
-    weighted_tp = round_to_two_decimals(weighted_tp)
-    MAIN_LOGGER.info(f"AVG TP 100: {avg_tp_100} and AVG TP 10: {avg_tp_10} and WEIGHTED_TP: {weighted_tp}")
-    return weighted_tp
 
 if __name__ == '__main__':
     start_time = get_datetime_now_cet()
@@ -188,7 +164,11 @@ if __name__ == '__main__':
     cp.add_contract_value()
 
     symbol, interval, contract_value = cp.parse_args()
-    weighted_tp = calculate_take_profit(client, symbol)
+
+    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
+    open_high_100 = list(zip(history['open'], history['high']))
+    weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)
+
 
     is_market_open = client.is_market_open(symbol)
     MAIN_LOGGER.info(f"Execution time: is_market_open {str(get_datetime_now_cet() - start_time)}")
