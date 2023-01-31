@@ -1,4 +1,4 @@
-pip3 install -r requirements.txt
+pip install -r Trading/requirements.txt
 
 # For xtb api
 git clone git@github.com:doruirimescu/XTBApi.git
