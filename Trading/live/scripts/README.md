@@ -3,7 +3,7 @@ Here are the main scripts that enable you to live trade, ping the trading server
 ## You will need the following `.env` files:
 
 
-If you have not already, create a .env file in this folder,
+If you have not already, create a .env file in the [config](https://github.com/doruirimescu/python-trading/tree/master/Trading/config) folder,
 with the following variables defined:
 
 ```.env
