@@ -156,9 +156,22 @@ class LoggingClient:
                 return trade['profit']
         return None
 
-    def calculate_volume(self, symbol: str, cash_amount: int) -> Volume:
-        open_price = self.get_current_price(symbol)[1]
-        volume = int(cash_amount/open_price)
+    @send_email_if_exception_occurs()
+    def calculate_volume_bid(self, symbol: str, cash_amount: int) -> Volume:
+        """Calculates the transaction volume for given cash amount.
+           Cash amount should be expressed in the correct currency,
+           calculated by currency = get_symbol(symbol)['currency']
+        """
+        data = self.get_symbol(symbol)
+        open_price = data['ask']
+        contract_size = data['contractSize']
+        currency = data['currency']
+        if data['categoryName'] == 'FX':
+            print(f"Calculating forex volume, with prices in {currency}")
+            volume = round(cash_amount / contract_size, 2)
+        else:
+            print(f"Calculating stock volume, with prices in {currency}")
+            volume = int(cash_amount/open_price)
         print(f"Calculated volume {volume} for symbol {symbol}")
         return Volume(open_price, volume)
 
@@ -199,7 +212,7 @@ class TradingClient(LoggingClient):
         """Closes a trade by trade id
         """
         self._client.login()
-        response = self._client.close_trade_fix(trade_id['order'])
+        response = self._client.close_trade_fix(trade_id)
         self._client.logout()
 
     @send_email_if_exception_occurs()
