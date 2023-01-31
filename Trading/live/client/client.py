@@ -20,10 +20,10 @@ TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
 Volume = namedtuple("volume", ['open_price', 'units'])
 
 
-class XTBLoggingClient:
-    def __init__(self, uname, pwd, mode="demo", logging=False):
-        self._client = XTBClient(uname, pwd, mode, logging)
-        self._server_tester = ServerTester(self._client)
+class LoggingClient:
+    def __init__(self, client, server_tester):
+        self._client = client
+        self._server_tester = server_tester
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=2, sleep_time_s=1)
@@ -169,10 +169,10 @@ class XTBLoggingClient:
         self._client.logout()
         return response
 
-class XTBTradingClient(XTBLoggingClient):
-    def __init__(self, uname, pwd, mode="demo", should_log=False):
-        self._client = XTBClient(uname, pwd, mode, should_log)
-        self._server_tester = ServerTester(self._client)
+
+class TradingClient(LoggingClient):
+    def __init__(self, client, server_tester):
+        super().__init__(client, server_tester)
 
     @send_email_if_exception_occurs()
     # @exception_with_retry(n_retry=10, sleep_time_s=6)
@@ -281,3 +281,17 @@ class XTBTradingClient(XTBLoggingClient):
                                 sym, sl, ss))
         self._client.logout()
         return sorted_list
+
+
+class XTBLoggingClient(LoggingClient):
+    def __init__(self, uname, pwd, mode="demo", logging=False):
+        client = XTBClient(uname, pwd, mode, logging)
+        server_tester = ServerTester(client)
+        super().__init__(client, server_tester)
+
+
+class XTBTradingClient(TradingClient):
+    def __init__(self, uname, pwd, mode="demo", should_log=False):
+        client = XTBClient(uname, pwd, mode, should_log)
+        server_tester = ServerTester(client)
+        super().__init__(client, server_tester)
