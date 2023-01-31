@@ -17,6 +17,8 @@ def get_instrument():
 
 
 class CustomParser:
+    """Custom argument parser which allows you to generate arguments in a reusable manner
+    """
     def __init__(self, description ="") -> None:
         self.__description = description
         self.__parser: Optional[argparse.ArgumentParser] = None
