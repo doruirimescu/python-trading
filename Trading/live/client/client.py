@@ -97,9 +97,11 @@ class XTBLoggingClient:
 
     def is_market_open(self, symbol: str) -> bool:
         from_t, to_t = self.get_trading_hours_today_cet(symbol)
+
         if from_t is None or to_t is None:
             return False
         time_now_cet = get_datetime_now_cet()
+        print(from_t, to_t, time_now_cet, self.get_server_time())
         if time_now_cet > from_t and time_now_cet < to_t:
             return True
         return False
@@ -161,6 +163,11 @@ class XTBLoggingClient:
         print(f"Calculated volume {volume} for symbol {symbol}")
         return Volume(open_price, volume)
 
+    def get_server_time(self):
+        self._client.login()
+        response = self._client.get_server_time()
+        self._client.logout()
+        return response
 
 class XTBTradingClient(XTBLoggingClient):
     def __init__(self, uname, pwd, mode="demo", should_log=False):
@@ -168,7 +175,7 @@ class XTBTradingClient(XTBLoggingClient):
         self._server_tester = ServerTester(self._client)
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    # @exception_with_retry(n_retry=10, sleep_time_s=6)
     def buy(self, symbol, volume):
         """Opens a buy trade on the XTB trading platform. Returns the id of the trade id
         """
@@ -178,7 +185,7 @@ class XTBTradingClient(XTBLoggingClient):
         return response
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    # @exception_with_retry(n_retry=10, sleep_time_s=6)
     def sell(self, symbol, volume):
         """Opens a sell trade on the XTB trading platform. Returns the trade id
         """
@@ -188,7 +195,7 @@ class XTBTradingClient(XTBLoggingClient):
         return response
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    # @exception_with_retry(n_retry=10, sleep_time_s=6)
     def close_trade(self, trade_id):
         """Closes a trade by trade id
         """
@@ -197,7 +204,7 @@ class XTBTradingClient(XTBLoggingClient):
         self._client.logout()
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    # @exception_with_retry(n_retry=10, sleep_time_s=6)
     def close_trade_fix(self, order):
         self._client.login()
         response = self._client.close_trade_fix(order)

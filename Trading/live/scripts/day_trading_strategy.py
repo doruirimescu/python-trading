@@ -5,22 +5,17 @@ from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
 from Trading.instrument.instrument import Instrument
 from Trading.utils.write_to_file import write_json_to_file_named_with_today_date, read_json_from_file_named_with_today_date
-from datetime import date
-from typing import Dict
 
 from dotenv import load_dotenv
 import os
 import logging
 import time
 
-trades_dict = dict()
-
 
 def enter_trade(client: XTBTradingClient, contract_value: int,
-                symbol: str, take_profit_percentage: float):
+                symbol: str, take_profit_percentage: float) -> Trade:
     date_now_cet = get_date_now_cet()
     todays_trade = Trade(date_=date_now_cet, type_=TradeType.BUY, contract_value=contract_value)
-    trades_dict[date_now_cet] = todays_trade
     day_trading_analyzer = DailyBuyTechnicalAnalyzer(take_profit_percentage)
 
     if day_trading_analyzer.analyse(has_already_traded_instrument_today=False) == TechnicalAnalysis.STRONG_BUY:
@@ -40,11 +35,15 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
             todays_trade.close_price = current_price
             IS_TRADE_CLOSED = True
         time.sleep(1)
+    return todays_trade
 
 
 def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
     # Calculate volume
     open_price, volume = client.calculate_volume(symbol, contract_value)
+
+    if volume < 1:
+        raise Exception("Contract value: {contract_value} but Volume {volume} < 0")
 
     # Place trade
     open_trade_id = client.buy(symbol, volume)
@@ -155,7 +154,7 @@ if __name__ == '__main__':
     n = 100
     p = 0.1
     interval = '1D'
-    symbol = 'CRTO.US_9'
+    symbol = '3NGS.UK'
 
 
     # LAST_N_DAYS = 30
@@ -180,20 +179,21 @@ if __name__ == '__main__':
     weighted_tp_str = round_to_print(weighted_tp)
     print(f"AVG TP 100: {avg_tp_100_str} and AVG TP 10: {avg_tp_10_str} and WEIGHTED_TP: {weighted_tp_str}")
 
-
-    date_now_cet = get_date_now_cet()
-
     if not client.is_market_open(symbol):
         print(f"Market is closed for {symbol}, go to sleep")
         is_market_open = False
         while not is_market_open:
             is_market_open = client.is_market_open(symbol)
+            print(is_market_open)
             time.sleep(1)
-
+    else:
+        print(f"Market is open for {symbol}")
     if weighted_tp < 0.05:
         print(f"Weighted tp {weighted_tp_str} < 0.05, will not trade today")
 
     else:
-        enter_trade(client, 1000, symbol, weighted_tp)
+        todays_trade = enter_trade(client, 1000, symbol, weighted_tp)
+        as_dict = todays_trade.get_dict()
+        write_json_to_file_named_with_today_date(as_dict, "trades/")
 
     # find_profitable_instruments(client, 100, 0.05, 0.49)

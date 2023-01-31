@@ -20,7 +20,12 @@ def read_json_from_file_named_with_today_date(file_path: str):
     try:
         f = open(json_path, 'r+')
     except Exception as e:
+        f.close()
         return None
-    json_data = json.load(f)
+    try:
+        json_data = json.load(f)
+    except Exception as e:
+        f.close()
+        return None
     f.close()
     return json_data

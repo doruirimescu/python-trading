@@ -24,6 +24,6 @@ class Trade:
     position_id: Optional[str] = None
 
     def get_dict(self):
-        return {'date': self.date_, 'type': str(self.type_), 'contract_value': self.contract_value,
+        return {'date': str(self.date_), 'type': str(self.type_), 'contract_value': self.contract_value,
                 'volume': self.volume, 'open_price': self.open_price, 'close_price': self.close_price,
                 'profit': self.profit, 'position_id': self.position_id}

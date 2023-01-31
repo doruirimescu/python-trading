@@ -22,16 +22,41 @@ if __name__ == '__main__':
     mode = os.getenv("XTB_MODE")
     client = XTBLoggingClient(username, password, mode, False)
 
-    n = 100
-    eur_chf = client.get_last_n_candles_history(Instrument('EURCHF', '1D'), n)['open']
-    eur_huf = client.get_last_n_candles_history(Instrument('EURHUF', '1D'), n)['open']
-    chf_huf = client.get_last_n_candles_history(Instrument('CHFHUF', '1D'), n)['open']
-    usd_huf = client.get_last_n_candles_history(Instrument('USDHUF', '1D'), n)['open']
-    eur_usd = client.get_last_n_candles_history(Instrument('EURUSD', '1D'), n)['open']
+    n = 300
+    usd_huf = client.get_last_n_candles_history(Instrument('USDHUF', '1D'), n)
+    eur_usd = client.get_last_n_candles_history(Instrument('EURUSD', '1D'), n)
+
+    usd_huf_oh = list(zip(usd_huf['open'], usd_huf['high']))
+    eur_usd_oh = list(zip(eur_usd['open'], eur_usd['high']))
 
 
-    data = {"EURUSD" : eur_usd, "USDHUF": usd_huf}
+    usd_huf_open_price = usd_huf_oh[0][0]
+    print("USD HUF OP", usd_huf_open_price)
+    eur_usd_open_price = eur_usd_oh[0][0]
+    print("EUR USD OP", eur_usd_open_price)
+
+    min_total_profit = 1000
+    max_total_profit = -1000
+
+    for ((usd_huf_o, usd_huf_h), (eur_usd_o, eur_usd_h)) in zip(usd_huf_oh, eur_usd_oh):
+        usdhuf_p = round(client.get_profit_calculation("USDHUF", usd_huf_open_price, usd_huf_h, 0.01, 1), 2)
+        eurusd_p = round(client.get_profit_calculation("EURUSD", eur_usd_open_price, eur_usd_h, 0.01, 1), 2)
+        total_profit = round(usdhuf_p + eurusd_p, 2)
+        if total_profit > max_total_profit:
+            max_total_profit = total_profit
+        if total_profit < min_total_profit:
+            min_total_profit = total_profit
+
+        print(usdhuf_p, eurusd_p, total_profit)
+
+
+    print(f"Min profit {min_total_profit}, Max profit {max_total_profit}")
+
+    data = {"EURUSD" : eur_usd['open'], "USDHUF": usd_huf['open']}
     df = pd.DataFrame(data)
     correlation = df["EURUSD"].corr(df["USDHUF"])
-
     print(f"The correlation between EURUSD and USDHUF is {correlation}")
+
+# volumes usdhuf, eurusd: 0.01, 0.01: Min profit -250.82, Max profit 416.43
+# volumes usdhuf, eurusd: 0.01, 0.02: Min profit -315.63, Max profit 194.01
+# for 300 days volumes usdhuf, eurusd: 0.01, 0.01: Min profit -1085, Max profit -53.56
