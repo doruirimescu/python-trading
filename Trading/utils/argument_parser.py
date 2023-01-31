@@ -17,49 +17,49 @@ def get_instrument():
 
 
 class CustomParser:
-    def __init__(self) -> None:
-        self.description = "Enter"
-        self.parser: Optional[argparse.ArgumentParser] = None
-        self.config: List[Tuple[str, str, type]] = list()
-        self.expressions: List[str] = list()
+    def __init__(self, description ="") -> None:
+        self.__description = description
+        self.__parser: Optional[argparse.ArgumentParser] = None
+        self.__config: List[Tuple[str, str, type]] = list()
+        self.__expressions: List[str] = list()
 
     def add_instrument(self):
-        self.description += "currency, timeframe"
-        self.config.append(('-s', 'symbol', str))
-        self.config.append(('-t', 'timeframe', str))
-        self.expressions.append('symbol')
-        self.expressions.append('timeframe')
+        self.__description += "currency, timeframe"
+        self.__config.append(('-s', 'symbol', str))
+        self.__config.append(('-t', 'timeframe', str))
+        self.__expressions.append('symbol')
+        self.__expressions.append('timeframe')
 
     def add_contract_value(self):
-        self.description += ",contract_value"
-        self.config.append(('-cv', 'contract_value', int))
-        self.expressions.append('contract_value')
+        self.__description += ",contract_value"
+        self.__config.append(('-cv', 'contract_value', int))
+        self.__expressions.append('contract_value')
 
     def add_xtb_mode(self):
-        self.description += ", xtb_mode"
-        self.config.append(('-xtbm', 'xtb_mode', str))
-        self.expressions.append('xtb_mode')
+        self.__description += ", xtb_mode"
+        self.__config.append(('-xtbm', 'xtb_mode', str))
+        self.__expressions.append('xtb_mode')
 
     def add_xtb_username(self):
-        self.description += ", xtb_username"
-        self.config.append(('-xtbu', 'xtb_username', str))
-        self.expressions.append('xtb_username')
+        self.__description += ", xtb_username"
+        self.__config.append(('-xtbu', 'xtb_username', str))
+        self.__expressions.append('xtb_username')
 
     def add_xtb_password(self):
-        self.description += ", xtb_password"
-        self.config.append(('-xtbp', 'xtb_password', str))
-        self.expressions.append('xtb_password')
+        self.__description += ", xtb_password"
+        self.__config.append(('-xtbp', 'xtb_password', str))
+        self.__expressions.append('xtb_password')
 
     def build(self):
-        self.parser = argparse.ArgumentParser(description=self.description)
-        for f, d, t in self.config:
-            self.parser.add_argument(f, dest=d, type=t, required=True)
+        self.__parser = argparse.ArgumentParser(description=self.__description)
+        for f, d, t in self.__config:
+            self.__parser.add_argument(f, dest=d, type=t, required=True)
 
     def parse_args(self) -> List:
         self.build()
-        args = self.parser.parse_args()
+        args = self.__parser.parse_args()
         values = list()
-        for expr in self.expressions:
+        for expr in self.__expressions:
             value = eval('args.' + expr)
             values.append(value)
         return values
