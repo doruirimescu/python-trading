@@ -75,12 +75,12 @@ def close_trade(client: XTBTradingClient, trade: Trade, ):
         try:
             client.close_trade(trade.position_id)
         except Exception as e:
-            print("Could not close {trade.position_id}")
+            print(f"Could not close {trade.position_id}")
             print(e)
             try:
                 client.close_trade(trade.position_id + 1)
             except Exception as e:
-                print("Could not close {trade.position_id}")
+                print(f"Could not close {trade.position_id}")
                 print(e)
 
 
