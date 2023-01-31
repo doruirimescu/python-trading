@@ -19,6 +19,7 @@ EMAIL_RECIPIENTS=["recipient@example.com"]
 
 # Program configurations
 MONITOR_FOREX_TRADE_SWAPS_ONCE="True"
+DATA_STORAGE_PATH="data/"
 
 ```
 
@@ -36,3 +37,13 @@ TBD
 
 ## Monitoring swaps on open forex trades
 `python3 monitor_forex_trade_swaps.py` will send an e-mail with the daily swap report of your current active trades, and it will anounce by email if the following night one or more of the swaps will become negative. Use it with crontab, to schedule it for example every morning at 7 AM.
+
+## Day trading strategy
+Uses command line arguments. Call like:
+
+`python3 day_trading_strategy.py -s 3NGS.UK -t 1D -cv 1000`
+
+Where: 
+* `s` is symbol 
+* `t` is timeframe 
+* `cv` is contract value (in the currency of your account)
