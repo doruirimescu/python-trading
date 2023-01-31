@@ -23,6 +23,7 @@ jobs:
         pwd
         ls
         pip install -r Trading/requirements.txt
+        ./install_requirements.sh
     - name: Test with pytest
       run: |
         python3 -m pytest
