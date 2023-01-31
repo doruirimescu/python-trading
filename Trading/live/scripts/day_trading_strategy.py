@@ -23,7 +23,7 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
     day_trading_analyzer = DailyBuyTechnicalAnalyzer(take_profit_percentage)
 
     if day_trading_analyzer.analyse(has_already_traded_instrument_today=False) == TechnicalAnalysis.STRONG_BUY:
-        open_trade(client, todays_trade, contract_value)
+        open_trade_id = open_trade(client, todays_trade, contract_value)
 
     # Prepare to close trade
     IS_TRADE_CLOSED = False
@@ -34,8 +34,8 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
                                 True, todays_trade.open_price,
                                 current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
 
-        if should_close_trade:
-            close_trade(client, todays_trade)
+        if  should_close_trade:
+            close_trade(client, todays_trade, open_trade_id)
             todays_trade.close_price = current_price
             IS_TRADE_CLOSED = True
         time.sleep(1)
@@ -44,13 +44,13 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
 
 def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
     # Calculate volume
-    open_price, volume = client.calculate_volume(symbol, contract_value)
+    open_price, volume = client.calculate_volume_bid(symbol, contract_value)
 
-    if volume < 1:
-        raise Exception("Contract value: {contract_value} but Volume {volume} < 0")
+    if volume <= 0:
+        raise Exception("Contract value is too small")
 
     # Place trade
-    open_trade_id = client.buy(symbol, volume)
+    open_trade_id = client.buy(symbol, volume)['order']
 
     # Store open data
     trade.open_price = open_price
@@ -59,33 +59,35 @@ def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
 
     open_trades = client.get_open_trades()
     for open_trade in open_trades:
-        if open_trade['symbol'] == symbol:
+        if open_trade['symbol'] == symbol and open_trade['order2'] == open_trade_id:
             trade.position_id = open_trade['position'] - 1
             print("Transaction id: ", trade.position_id)
+    return open_trade_id
 
 
-def close_trade(client: XTBTradingClient, trade: Trade, ):
+def close_trade(client: XTBTradingClient, trade: Trade, open_trade_id: str):
     print(f"Closing {trade.position_id} at time {str(get_date_now_cet())}")
     # Close trade
+    has_failed = False
+    # To close forex
     try:
-        client.sell(symbol, trade.volume)
+        client.close_trade(open_trade_id)
     except Exception as e:
-        print("Could not close/sell")
+        print(f"Could not close {open_trade_id}")
+        has_failed = True
         print(e)
+    if has_failed:
+        # To close stock
         try:
-            client.close_trade(trade.position_id)
+            client.sell(symbol, trade.volume)
         except Exception as e:
-            print(f"Could not close {trade.position_id}")
+            print("Could not close/sell")
             print(e)
-            try:
-                client.close_trade(trade.position_id + 1)
-            except Exception as e:
-                print(f"Could not close {trade.position_id}")
-                print(e)
-
 
     # Store close trade data
     profit = client.get_closed_trade_profit(trade.position_id)
+    if profit is None:
+        profit = client.get_closed_trade_profit(trade.position_id + 1)
     print("Profit today:", profit)
     trade.profit = profit
 
@@ -128,7 +130,7 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
 
 def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_n_days: int,
                                 take_profit_percentage: float = 0.1,
-                                contract_value: int = 1000,
+                                cash_amount: int = 1000,
                                 symbol: str = "EURUSD"):
     total = 0
     for (open_price, high_price, close_price) in open_high_close[last_n_days:2*last_n_days-1]:
@@ -136,13 +138,15 @@ def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_
             cp = open_price * (1.0 + take_profit_percentage)
         else:
             cp = close_price
-        volume = int(contract_value/open_price)
+        volume = int(cash_amount/open_price)
         total += client.get_profit_calculation(symbol, open_price, cp, volume, 0)
 
     profit = round_to_two_decimals(total)
     contract_value = round_to_two_decimals(volume * open_price)
     print(f"Symbol: {symbol} Profit: {profit} Volume: {str(volume)}, Contract value: {contract_value}")
 
+
+IS_SAFE_TRADING = True
 
 if __name__ == '__main__':
     start_time = get_datetime_now_cet()
@@ -169,7 +173,8 @@ if __name__ == '__main__':
     open_high_100 = list(zip(history['open'], history['high']))
     weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)
 
-
+    open_price, volume = client.calculate_volume_bid(symbol, contract_value)
+    print(f"VOLUME: {volume}")
     is_market_open = client.is_market_open(symbol)
     MAIN_LOGGER.info(f"Execution time: is_market_open {str(get_datetime_now_cet() - start_time)}")
     if is_market_open:
@@ -183,7 +188,7 @@ if __name__ == '__main__':
         time.sleep(dt)
         MAIN_LOGGER.info(f"Woke up from sleep")
 
-    if weighted_tp < 0.05:
+    if IS_SAFE_TRADING and weighted_tp < 0.05:
         MAIN_LOGGER.info(f"Weighted tp {weighted_tp} < 0.05, will not trade today")
 
     else:
