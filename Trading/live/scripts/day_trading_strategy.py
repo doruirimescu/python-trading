@@ -25,7 +25,7 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
     day_trading_analyzer = DailyBuyTechnicalAnalyzer(take_profit_percentage)
 
     if day_trading_analyzer.analyse(has_already_traded_instrument_today=False) == TechnicalAnalysis.STRONG_BUY:
-        open_trade_id = open_trade(client, todays_trade, contract_value)
+        order2_id = open_trade(client, todays_trade, contract_value)
 
     # Prepare to close trade
     IS_TRADE_CLOSED = False
@@ -37,14 +37,14 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
                                 current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
 
         if  should_close_trade:
-            close_trade(client, todays_trade, open_trade_id)
+            close_trade(client, todays_trade, order2_id)
             todays_trade.close_price = current_price
             IS_TRADE_CLOSED = True
         time.sleep(1)
     return todays_trade
 
 
-def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
+def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int) -> int:
     # Calculate volume
     open_price, volume = client.calculate_volume_bid(symbol, contract_value)
 
@@ -57,41 +57,31 @@ def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
     # Store open data
     trade.open_price = open_price
     trade.volume = volume
-    print(f"Opened trade with id: {open_trade_id}")
+    print(f"Opened trade with order 2 id: {open_trade_id}")
 
     open_trades = client.get_open_trades()
+
     for open_trade in open_trades:
         if open_trade['symbol'] == symbol and open_trade['order2'] == open_trade_id:
             trade.position_id = open_trade['position'] - 1
             print("Transaction id: ", trade.position_id)
             print("Order2 ", open_trade['order2'])
             print("Order ", open_trade['order'])
-    return open_trade_id
+    return int(open_trade_id)
 
 
-def close_trade(client: XTBTradingClient, trade: Trade, open_trade_id: str):
-    print(f"Closing {trade.position_id} at time {str(get_date_now_cet())}")
-    # Close trade
-    has_failed = False
-    # To close forex
-    # try:
-    #     client.close_trade(open_trade_id)
-    # except Exception as e:
-    #     print(f"Could not close {open_trade_id}")
-    #     has_failed = True
-    #     print(e)
-    if has_failed:
-        # To close stock
-        try:
-            client.sell(symbol, trade.volume)
-        except Exception as e:
-            print("Could not close/sell")
-            print(e)
+def close_trade(client: XTBTradingClient, trade: Trade, open_trade_id: int):
+    print(f"Closing {trade.position_id} at time {str(get_datetime_now_cet())}")
+    try:
+        # Only works for stocks
+        client.sell(symbol, trade.volume)
+        time.sleep(5)
+    except Exception as e:
+        print("Could not close/sell")
+        print(e)
 
-    # Store close trade data. Forex, etf, stocks are all different !
+    # Store close trade data. Only works for stocks
     profit = client.get_closed_trade_profit(trade.position_id)
-    if profit is None:
-        profit = client.get_closed_trade_profit(trade.position_id + 1)
     print("Profit today:", profit)
     trade.profit = profit
 
@@ -160,6 +150,16 @@ def calculate_potential_profits(get_profit_calculation: Callable[[str, float, fl
     write_json_to_file_named_with_today_date(json_dict, "profit_calculations/")
 
 
+def sleep_until_market_opens(client: XTBTradingClient, LOGGER: logging.Logger) -> None:
+    is_market_open = client.is_market_open(symbol)
+    if not is_market_open:
+        LOGGER.info(f"Market is closed for {symbol} will have to sleep")
+
+    while not is_market_open:
+        is_market_open = client.is_market_open(symbol)
+        time.sleep(1)
+    LOGGER.info(f"Woke up from sleep")
+
 IS_SAFE_TRADING = False
 
 if __name__ == '__main__':
@@ -182,37 +182,32 @@ if __name__ == '__main__':
     open_high_100 = list(zip(history['open'], history['high']))
     weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)
 
-    profitable_symbols = read_json_file("profitable_symbols/2023-01-29").keys()
-    print(profitable_symbols)
-    N_DAYS = 5
-    for symbol in profitable_symbols:
-        history = client.get_last_n_candles_history(Instrument(symbol, '1D'), N_DAYS)
-        ohc = list(zip(history['open'], history['high'], history['close']))
-        calculate_potential_profits(client.get_profit_calculation, ohc, 0.1, contract_value, symbol, N_DAYS)
-
     open_price, volume = client.calculate_volume_bid(symbol, contract_value)
-    print(f"VOLUME: {volume}")
-    is_market_open = client.is_market_open(symbol)
-    MAIN_LOGGER.info(f"Execution time: is_market_open {str(get_datetime_now_cet() - start_time)}")
-    if is_market_open:
-        MAIN_LOGGER.info(f"Market is open for {symbol}")
-    else:
-        MAIN_LOGGER.info(f"Market is closed for {symbol}, go to sleep")
-        from_t, to_t = client.get_trading_hours_today_cet(symbol)
-        dt = get_seconds_to_next_date(from_t)
+    MAIN_LOGGER.info(f"VOLUME: {volume}")
+    from_t, to_t = client.get_trading_hours_today_cet(symbol)
+    time_now = get_datetime_now_cet()
 
-        MAIN_LOGGER.info(f"Will have to sleep {dt} seconds")
-        time.sleep(dt)
-        MAIN_LOGGER.info(f"Woke up from sleep")
+    sleep_until_market_opens(client, MAIN_LOGGER)
 
     if IS_SAFE_TRADING and weighted_tp < 0.05:
         MAIN_LOGGER.info(f"Weighted tp {weighted_tp} < 0.05, will not trade today")
-
     else:
         todays_trade = enter_trade(client, contract_value, symbol, weighted_tp)
         as_dict = todays_trade.get_dict()
         write_json_to_file_named_with_today_date(as_dict, "trades/")
 
+
+
+    #! Profitable symbols
+    # profitable_symbols = read_json_file("profitable_symbols/2023-01-29").keys()
+    # print(profitable_symbols)
+    # N_DAYS = 100
+    # for symbol in profitable_symbols:
+    #     history = client.get_last_n_candles_history(Instrument(symbol, '1D'), N_DAYS)
+    #     ohc = list(zip(history['open'], history['high'], history['close']))
+    #     calculate_potential_profits(client.get_profit_calculation, ohc, 0.1, contract_value, symbol, N_DAYS)
+
+    #! Profitable instruments
     # find_profitable_instruments(client, 100, 0.05, 0.49)
 
 #TODO: how to close stock, forex, etf ?
