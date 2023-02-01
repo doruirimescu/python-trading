@@ -37,8 +37,10 @@ if __name__ == '__main__':
                 send_email(subject, body)
 
         total_profit, total_swap, text_message = client.get_total_forex_open_trades_profit_and_swap()
+        biggest_swaps = client.get_top_ten_biggest_swaps()
         subject = "Daily swap report " + str(datetime.now())
         body = text_message + f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}"
+        body += f"\nBiggest swaps:{biggest_swaps}"
         send_email(subject, body)
         MAIN_LOGGER.info(body)
 
