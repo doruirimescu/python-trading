@@ -1,0 +1,268 @@
+{
+    "3NGS.UK": {
+        "profit": -199.15,
+        "volume": 1,
+        "contract_value": 542.66,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CINE.UK_9": {
+        "profit": 1574.43,
+        "volume": 27777,
+        "contract_value": 999.97,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CVNA.US_9": {
+        "profit": 174.9,
+        "volume": 90,
+        "contract_value": 996.3,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "PBYI.US_9": {
+        "profit": 153.12,
+        "volume": 243,
+        "contract_value": 996.3,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "SAGA.UK_9": {
+        "profit": -162.97,
+        "volume": 527,
+        "contract_value": 999.72,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CEVA.US_9": {
+        "profit": 1616.29,
+        "volume": 34,
+        "contract_value": 983.28,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "SHLD.US_9": {
+        "profit": 2098.47,
+        "volume": 4347,
+        "contract_value": 999.81,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "ENTA.US_9": {
+        "profit": 982.78,
+        "volume": 21,
+        "contract_value": 993.51,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "ALTR.US_9": {
+        "profit": 991.57,
+        "volume": 21,
+        "contract_value": 985.74,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "ICUI.US": {
+        "profit": 714.69,
+        "volume": 5,
+        "contract_value": 899.45,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "TCMD.US_9": {
+        "profit": 1396.73,
+        "volume": 80,
+        "contract_value": 999.2,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "NVEI.US": {
+        "profit": 1508.58,
+        "volume": 33,
+        "contract_value": 982.41,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CSTL.US_9": {
+        "profit": 1223.74,
+        "volume": 38,
+        "contract_value": 982.3,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "HLNE.US_9": {
+        "profit": 653.23,
+        "volume": 13,
+        "contract_value": 980.59,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "XAN.US": {
+        "profit": -85.5,
+        "volume": 110,
+        "contract_value": 992.2,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CDLX.US_9": {
+        "profit": 1027.74,
+        "volume": 145,
+        "contract_value": 999.05,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "DSEY.US": {
+        "profit": 1502.6,
+        "volume": 189,
+        "contract_value": 997.92,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CAMP.US_9": {
+        "profit": 359.74,
+        "volume": 223,
+        "contract_value": 996.81,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "FOSL.US_9": {
+        "profit": 358.25,
+        "volume": 186,
+        "contract_value": 995.1,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "TRST.US": {
+        "profit": 198.95,
+        "volume": 29,
+        "contract_value": 983.1,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CPS.US_9": {
+        "profit": 1164.14,
+        "volume": 66,
+        "contract_value": 992.64,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "ACRS.US": {
+        "profit": 1152.38,
+        "volume": 59,
+        "contract_value": 988.25,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "SRRK.US_9": {
+        "profit": 624.46,
+        "volume": 87,
+        "contract_value": 990.06,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "IGMS.US": {
+        "profit": 1980.52,
+        "volume": 48,
+        "contract_value": 998.4,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "APPF.US": {
+        "profit": 683.48,
+        "volume": 9,
+        "contract_value": 940.23,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "VOR.US": {
+        "profit": 235.13,
+        "volume": 212,
+        "contract_value": 996.4,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "INTU.UK_9": {
+        "profit": -1998.81,
+        "volume": 47619,
+        "contract_value": 1000.0,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "LIVN.US_9": {
+        "profit": 578.33,
+        "volume": 18,
+        "contract_value": 954.0,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "PSNL.US_9": {
+        "profit": 576.56,
+        "volume": 450,
+        "contract_value": 999.0,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "STOK.US": {
+        "profit": 642.02,
+        "volume": 107,
+        "contract_value": 991.89,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "GLSI.US": {
+        "profit": 154.11,
+        "volume": 51,
+        "contract_value": 991.95,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "EXAI.US": {
+        "profit": 1606.38,
+        "volume": 169,
+        "contract_value": 995.41,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "CRTO.US_9": {
+        "profit": 1531.32,
+        "volume": 33,
+        "contract_value": 985.38,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "GDEN.US": {
+        "profit": 1055.39,
+        "volume": 26,
+        "contract_value": 965.9,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "SGRY.US": {
+        "profit": 1340.93,
+        "volume": 31,
+        "contract_value": 987.04,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "GANX.US": {
+        "profit": 225.19,
+        "volume": 255,
+        "contract_value": 999.6,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "LASR.US_9": {
+        "profit": 1553.69,
+        "volume": 83,
+        "contract_value": 988.53,
+        "take_profit": 0.1,
+        "n_days": 5
+    },
+    "WVE.US": {
+        "profit": 444.07,
+        "volume": 216,
+        "contract_value": 997.92,
+        "take_profit": 0.1,
+        "n_days": 5
+    }
+}

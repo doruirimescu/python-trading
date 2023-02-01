@@ -1,7 +1,17 @@
 from Trading.utils.time import get_date_now_cet
+from Trading.config.config import DATA_STORAGE_PATH
 import os
 import json
 
+
+def read_json_file(file_name: str) -> dict:
+    json_path = DATA_STORAGE_PATH + file_name + ".json"
+    try:
+        with open(json_path, 'r+') as f:
+            json_data = json.load(f)
+            return json_data
+    except Exception as e:
+        return None
 
 def write_json_to_file_named_with_today_date(json_dict, file_path: str):
     data_path = os.getenv("DATA_STORAGE_PATH", "data/")
@@ -14,18 +24,11 @@ def write_json_to_file_named_with_today_date(json_dict, file_path: str):
 
 
 def read_json_from_file_named_with_today_date(file_path: str):
-    data_path = os.getenv("DATA_STORAGE_PATH", "data/")
     date_today = get_date_now_cet()
-    json_path = data_path + file_path + str(date_today) + ".json"
+    json_path = DATA_STORAGE_PATH + file_path + str(date_today) + ".json"
     try:
-        f = open(json_path, 'r+')
+        with open(json_path, 'r+') as f:
+            json_data = json.load(f)
+            return json_data
     except Exception as e:
-        f.close()
         return None
-    try:
-        json_data = json.load(f)
-    except Exception as e:
-        f.close()
-        return None
-    f.close()
-    return json_data

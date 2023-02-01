@@ -7,11 +7,13 @@ from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
 from Trading.instrument.instrument import Instrument
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
-                                        read_json_from_file_named_with_today_date)
+                                        read_json_from_file_named_with_today_date,
+                                        read_json_file)
 from Trading.utils.argument_parser import CustomParser
 
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import round_to_two_decimals, calculate_mean_take_profit, calculate_weighted_mean_take_profit
+from typing import List, Tuple, Callable
 import logging
 import time
 
@@ -62,6 +64,8 @@ def open_trade(client: XTBTradingClient, trade: Trade, contract_value: int):
         if open_trade['symbol'] == symbol and open_trade['order2'] == open_trade_id:
             trade.position_id = open_trade['position'] - 1
             print("Transaction id: ", trade.position_id)
+            print("Order2 ", open_trade['order2'])
+            print("Order ", open_trade['order'])
     return open_trade_id
 
 
@@ -70,12 +74,12 @@ def close_trade(client: XTBTradingClient, trade: Trade, open_trade_id: str):
     # Close trade
     has_failed = False
     # To close forex
-    try:
-        client.close_trade(open_trade_id)
-    except Exception as e:
-        print(f"Could not close {open_trade_id}")
-        has_failed = True
-        print(e)
+    # try:
+    #     client.close_trade(open_trade_id)
+    # except Exception as e:
+    #     print(f"Could not close {open_trade_id}")
+    #     has_failed = True
+    #     print(e)
     if has_failed:
         # To close stock
         try:
@@ -84,7 +88,7 @@ def close_trade(client: XTBTradingClient, trade: Trade, open_trade_id: str):
             print("Could not close/sell")
             print(e)
 
-    # Store close trade data
+    # Store close trade data. Forex, etf, stocks are all different !
     profit = client.get_closed_trade_profit(trade.position_id)
     if profit is None:
         profit = client.get_closed_trade_profit(trade.position_id + 1)
@@ -128,22 +132,32 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
     write_json_to_file_named_with_today_date(json_dict, "profitable_symbols/")
 
 
-def calculate_potential_profits(client: XTBTradingClient, open_high_close, last_n_days: int,
+def calculate_potential_profits(get_profit_calculation: Callable[[str, float, float, float, int], float],
+                                open_high_close: List[Tuple[float, float, float]],
                                 take_profit_percentage: float = 0.1,
                                 cash_amount: int = 1000,
-                                symbol: str = "EURUSD"):
+                                symbol: str = "EURUSD",
+                                n_days: int = 100):
     total = 0
-    for (open_price, high_price, close_price) in open_high_close[last_n_days:2*last_n_days-1]:
+    for (open_price, high_price, close_price) in open_high_close:
         if high_price/open_price - 1.0 > take_profit_percentage:
             cp = open_price * (1.0 + take_profit_percentage)
         else:
             cp = close_price
         volume = int(cash_amount/open_price)
-        total += client.get_profit_calculation(symbol, open_price, cp, volume, 0)
+        total += get_profit_calculation(symbol, open_price, cp, volume, 0)
 
     profit = round_to_two_decimals(total)
     contract_value = round_to_two_decimals(volume * open_price)
     print(f"Symbol: {symbol} Profit: {profit} Volume: {str(volume)}, Contract value: {contract_value}")
+
+    json_dict = read_json_from_file_named_with_today_date("profit_calculations/")
+    if json_dict is None:
+        json_dict = dict()
+    json_dict[symbol] = {'profit': profit, 'volume': volume,
+                         'contract_value': contract_value, 'take_profit': take_profit_percentage,
+                         'n_days': n_days}
+    write_json_to_file_named_with_today_date(json_dict, "profit_calculations/")
 
 
 IS_SAFE_TRADING = False
@@ -167,6 +181,14 @@ if __name__ == '__main__':
     history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
     open_high_100 = list(zip(history['open'], history['high']))
     weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)
+
+    profitable_symbols = read_json_file("profitable_symbols/2023-01-29").keys()
+    print(profitable_symbols)
+    N_DAYS = 5
+    for symbol in profitable_symbols:
+        history = client.get_last_n_candles_history(Instrument(symbol, '1D'), N_DAYS)
+        ohc = list(zip(history['open'], history['high'], history['close']))
+        calculate_potential_profits(client.get_profit_calculation, ohc, 0.1, contract_value, symbol, N_DAYS)
 
     open_price, volume = client.calculate_volume_bid(symbol, contract_value)
     print(f"VOLUME: {volume}")
