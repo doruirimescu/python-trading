@@ -91,9 +91,6 @@ class LoggingClient:
 
                 from_date = today + from_td
                 to_date = today + to_td
-
-                to_date = to_date.replace(tzinfo=pytz.timezone(TIMEZONE))
-                from_date = from_date.replace(tzinfo=pytz.timezone(TIMEZONE))
                 return TradingTimes(from_date, to_date)
         return TradingTimes(None, None)
 

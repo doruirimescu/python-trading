@@ -23,4 +23,4 @@ def get_seconds_to_next_date(next_date: datetime.datetime):
     if today > next_date:
         next_date = datetime.timedelta(days=1) + next_date
     dt = next_date - today
-    return math.ceil(dt.total_seconds())
+    return dt.total_seconds()
