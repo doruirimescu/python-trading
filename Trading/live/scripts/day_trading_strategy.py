@@ -16,6 +16,7 @@ from Trading.utils.calculations import round_to_two_decimals, calculate_mean_tak
 from typing import List, Tuple, Callable
 import logging
 import time
+import sys
 
 
 def enter_trade(client: XTBTradingClient, contract_value: int,
@@ -170,6 +171,12 @@ if __name__ == '__main__':
     MAIN_LOGGER = logging.getLogger('Main logger')
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
+
+    if "real" == MODE:
+        print("Trading with a live client. Do you wish to continue ? y/n")
+        should_continue = input().strip()
+        if should_continue.lower() != "y":
+            sys.exit(0)
 
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
