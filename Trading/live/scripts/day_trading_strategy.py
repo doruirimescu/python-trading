@@ -161,7 +161,7 @@ def sleep_until_market_opens(client: XTBTradingClient, LOGGER: logging.Logger) -
         time.sleep(1)
     LOGGER.info(f"Woke up from sleep")
 
-IS_SAFE_TRADING = False
+IS_SAFE_TRADING = True
 
 if __name__ == '__main__':
     start_time = get_datetime_now_cet()
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    if "real" == MODE:
+    if IS_SAFE_TRADING and "real" == MODE:
         print("Trading with a live client. Do you wish to continue ? y/n")
         should_continue = input().strip()
         if should_continue.lower() != "y":
