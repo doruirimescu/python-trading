@@ -21,8 +21,8 @@ from time import sleep
 TIMEFRAME_TO_MONITOR = '1M'
 N_TIMEFRAMES = 12
 
-PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950)]
-PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78)]
+PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3)]
+PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370)]
 
 if __name__ == '__main__':
 
