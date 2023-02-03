@@ -1,12 +1,16 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.time import (get_date_now_cet,
-                                get_datetime_now_cet,
-                                get_seconds_to_next_date)
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
-
-from Trading.config.config import USERNAME, PASSWORD, MODE
+from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
 import logging
 import sys
+
+ALL_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/all_symbols.json'
+STC_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/stocks.json'
+CMD_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/commodities.json'
+FX_SYMBOLS_PATH  = DATA_STORAGE_PATH + 'symbols/forex.json'
+CRT_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/crypto.json'
+ETF_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/etf.json'
+IND_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/index.json'
 
 
 def store_symbols_from_client():
@@ -27,41 +31,39 @@ def store_symbols_from_client():
         data_dict[symbol] = info
         print(f"Processing symbol {s}")
 
-    write_to_json_file('data/symbols/all_symbols.json', data_dict)
+    write_to_json_file(ALL_SYMBOLS_PATH, data_dict)
+
+
+def filter_from_file(category: str, path_to_write: str):
+    all_symbols_dict = read_json_file(ALL_SYMBOLS_PATH)
+    filtered = {k: v for k, v in all_symbols_dict.items() if v['categoryName'] == category}
+    write_to_json_file(path_to_write, filtered)
 
 
 def store_stocks():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'STC'}
-    write_to_json_file('data/stocks.json', filtered)
+    filter_from_file('STC', STC_SYMBOLS_PATH)
+
 
 def store_commodities():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'CMD'}
-    write_to_json_file('data/symbols/commodities.json', filtered)
+    filter_from_file('CMD', CMD_SYMBOLS_PATH)
+
 
 def store_forex():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'FX'}
-    write_to_json_file('data/symbols/forex.json', filtered)
+    filter_from_file('FX', FX_SYMBOLS_PATH)
+
 
 def store_crypto():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'CRT'}
-    write_to_json_file('data/symbols/crypto.json', filtered)
+    filter_from_file('CRT', CRT_SYMBOLS_PATH)
+
 
 def store_etf():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'ETF'}
-    write_to_json_file('data/symbols/etf.json', filtered)
+    filter_from_file('ETF', ETF_SYMBOLS_PATH)
+
 
 def store_indices():
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
-    filtered = {k:v for k,v in all_symbols_dict.items() if v['categoryName'] == 'IND'}
-    write_to_json_file('data/symbols/index.json', filtered)
+    filter_from_file('IND', IND_SYMBOLS_PATH)
 
 if __name__ == '__main__':
-    start_time = get_datetime_now_cet()
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT)
 
