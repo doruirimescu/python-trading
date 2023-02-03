@@ -22,13 +22,14 @@ from collections import namedtuple
 TradingTimes = namedtuple("trading_times", ['from_t', 'to_t'])
 Volume = namedtuple("volume", ['open_price', 'units'])
 
+
 class LoggingClient:
     def __init__(self, client, server_tester):
         self._client = client
         self._server_tester = server_tester
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=2, sleep_time_s=1)
+    @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_last_n_candles_history(self, instrument: Instrument, N: int):
         if (not self._is_server_up):
             return None
@@ -127,8 +128,7 @@ class LoggingClient:
         test = self._server_tester.test()
         return test.is_server_up
 
-    @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    # This can fail sometimes ex USDRUB
     def get_symbol(self, symbol):
         self._client.login()
         response = self._client.get_symbol(symbol)
