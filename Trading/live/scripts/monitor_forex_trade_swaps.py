@@ -27,9 +27,6 @@ if __name__ == '__main__':
     mode = os.getenv("XTB_MODE")
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
-    open_trade_swaps = client.get_swaps_of_forex_open_trades()
-    MAIN_LOGGER.info("Open trade swaps: " + str(open_trade_swaps))
-
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
         subject = "Daily swap report " + str(datetime.now())
