@@ -67,6 +67,7 @@ if __name__ == '__main__':
             r = is_symbol_price_below_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
                 report += r
+                r += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
@@ -75,6 +76,7 @@ if __name__ == '__main__':
             r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
                 report += r
+                r += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
