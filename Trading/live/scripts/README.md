@@ -19,7 +19,7 @@ EMAIL_RECIPIENTS=["recipient@example.com"]
 
 # Program configurations
 MONITOR_FOREX_TRADE_SWAPS_ONCE="True"
-DATA_STORAGE_PATH="data/"
+DATA_STORAGE_PATH="/home/user/other_paths/trading/Trading/live/scripts/data/"
 
 ```
 
