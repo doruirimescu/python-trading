@@ -4,10 +4,15 @@ import os
 import json
 
 
+def write_to_json_file(file_name: str, data_dict: dict) -> None:
+    f = open(file_name, 'w')
+    json_object = json.dumps(data_dict, indent=4)
+    f.write(json_object)
+    f.close()
+
 def read_json_file(file_name: str) -> dict:
-    json_path = DATA_STORAGE_PATH + file_name + ".json"
     try:
-        with open(json_path, 'r+') as f:
+        with open(file_name, 'r+') as f:
             json_data = json.load(f)
             return json_data
     except Exception as e:
