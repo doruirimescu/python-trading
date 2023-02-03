@@ -1,21 +1,12 @@
-from enum import Enum
-from Trading.live.client.client import LoggingClient
+from Trading.live.client.client import LoggingClient, TradingClient
+from Trading.instrument.instrument import Instrument
+from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
 from datetime import datetime
-
-class AlertCommand(Enum):
-    GET_SWAP_OF_SYMBOL = 0
-    GET_TOTAL_SWAP_OF_OPEN_TRADES_FOREX = 1
-    GET_TOP_N_BIGGEST_SWAPS = 2
-    IS_SYMBOL_PRICE_BELOW_VALUE = 3
-    IS_SYMBOL_PRICE_ABOVE_VALUE = 4
-    IS_SYMBOL_SWAP_BELOW_VALUE = 5
-    IS_SYMBOL_PRICE_BELOW_LAST_N_INTERVALS_LOW = 6
-    IS_SYMBOL_PRICE_ABOVE_LAST_N_INTERVALS_LOW = 7
+from typing import Optional
 
 
 # We should create one main daily report, which aggregates all the alerts
-
-def get_total_swap_of_open_forex_trades_report(client: LoggingClient):
+def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> str:
     open_trade_swaps = client.get_swaps_of_forex_open_trades()
     report = ""
     for symbol, swap in open_trade_swaps:
@@ -32,3 +23,53 @@ def get_total_swap_of_open_forex_trades_report(client: LoggingClient):
         report += "Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}\n".format(
                             sym, sl, ss)
     return report
+
+
+def is_symbol_price_below_value(client: LoggingClient,
+                                symbol: str,
+                                value: float) -> Optional[str]:
+    info = client.get_symbol(symbol)
+    price = float(info['ask'])
+    if price < value:
+        return f"Price of {symbol} has gone below {value}"
+    return None
+
+
+def is_symbol_price_above_value(client: LoggingClient,
+                                symbol: str,
+                                value: float) -> Optional[str]:
+    info = client.get_symbol(symbol)
+    price = float(info['bid'])
+    if price > value:
+        return f"Price of {symbol} has gone above {value}"
+    return None
+
+
+def is_symbol_price_below_last_n_intervals_low(client: LoggingClient,
+                                               instrument: Instrument,
+                                               n: int) -> Optional[str]:
+    info = client.get_symbol(instrument.symbol)
+    price = float(info['ask'])
+    history = client.get_last_n_candles_history(instrument, n)['low'][:-1]
+    minimum = min(history)
+    if price < minimum:
+        return (
+            f"{instrument.symbol} price {price} has gone "
+            f"below the past {n} {TIMEFRAMES_TO_NAME[instrument.timeframe]} timeframe low {minimum}"
+        )
+    return None
+
+
+def is_symbol_price_above_last_n_intervals_low(client: LoggingClient,
+                                               instrument: Instrument,
+                                               n: int) -> Optional[str]:
+    info = client.get_symbol(instrument.symbol)
+    price = float(info['bid'])
+    history = client.get_last_n_candles_history(instrument, n)['high'][:-1]
+    maximum = max(history)
+    if price > maximum:
+        return (
+            f"{instrument.symbol} price {price} has gone "
+            f"above the past {n} {TIMEFRAMES_TO_NAME[instrument.timeframe]} timeframe high {maximum}"
+        )
+    return None
