@@ -40,7 +40,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     all_symbols_dict = read_json_file(DATA_STORAGE_PATH + 'symbols/all_symbols.json')
-
+    failing_symbols = list()
     report = ""
     for symbol, price in PRICES_BELOW_ALERTS:
         try:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
-            pass
+            failing_symbols.append(symbol)
 
     for symbol, price in PRICES_ABOVE_ALERTS:
         try:
@@ -60,7 +60,7 @@ if __name__ == '__main__':
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
-            pass
+            failing_symbols.append(symbol)
 
     for symbol in all_symbols_dict:
         try:
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
-            pass
+            failing_symbols.append(symbol)
         try:
             r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
@@ -78,9 +78,11 @@ if __name__ == '__main__':
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
-            pass
+            failing_symbols.append(symbol)
 
 
 time_now = str(get_date_now_cet())
 subject = "Daily market monitor report " + time_now
+report += "\n"
+report += str(failing_symbols)
 send_email(subject, report)
