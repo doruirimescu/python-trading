@@ -6,4 +6,4 @@ This framework is made to work with an [XTB client](https://github.com/doruirime
 
 First step after cloning: `./install_requirements.sh`
 
-Second step: read [this](https://github.com/doruirimescu/python-trading/tree/master/Trading/Live/scripts)
+Second step: read [this](https://github.com/doruirimescu/python-trading/tree/master/Trading/live/scripts#readme)
