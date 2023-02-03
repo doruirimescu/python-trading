@@ -3,6 +3,8 @@ from exception_with_retry import exception_with_retry
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
+from Trading.live.alert.alert import get_total_swap_of_open_forex_trades_report
+
 from dotenv import load_dotenv
 from datetime import datetime
 import os
@@ -30,17 +32,8 @@ if __name__ == '__main__':
 
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
-        for symbol, swap in open_trade_swaps:
-            if swap < 0.0:
-                subject = "Swap has gone negative for " + symbol
-                body = f"Symbol: {symbol} Swap: {str(swap)} Date:{str(datetime.now())}"
-                send_email(subject, body)
-
-        total_profit, total_swap, text_message = client.get_total_forex_open_trades_profit_and_swap()
-        biggest_swaps = client.get_top_ten_biggest_swaps()
         subject = "Daily swap report " + str(datetime.now())
-        body = text_message + f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}"
-        body += f"\nBiggest swaps:{biggest_swaps}"
+        body = get_total_swap_of_open_forex_trades_report(client)
         send_email(subject, body)
         MAIN_LOGGER.info(body)
 

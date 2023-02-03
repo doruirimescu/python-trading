@@ -73,7 +73,7 @@ class LoggingClient:
         return float(response['profit'])
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    @exception_with_retry(n_retry=10, sleep_time_s=1)
     def get_trading_hours_today_cet(self, symbol) -> Tuple[Optional[datetime], Optional[datetime]]:
         now = get_datetime_now_cet()
         weekday = now.weekday() + 1
@@ -179,6 +179,28 @@ class LoggingClient:
         self._client.logout()
         return response
 
+    @send_email_if_exception_occurs()
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    def get_top_ten_biggest_swaps(self):
+        self._client.login()
+        all_symbols = self._client.get_all_symbols()
+
+        symbol_list = list()
+        for symbol in all_symbols:
+            if symbol['categoryName'] == 'FX':
+                sym = symbol['symbol']
+                sl = symbol['swapLong']
+                ss = symbol['swapShort']
+                symbol_list.append((sym, sl, ss,))
+        import operator
+        sorted_list = sorted(symbol_list, key=operator.itemgetter(2, 1), reverse=True)
+
+        # for sym, sl, ss in sorted_list[0:10]:
+        #     print("Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}".format(
+        #                         sym, sl, ss))
+        self._client.logout()
+        return sorted_list
+
 
 class TradingClient(LoggingClient):
     def __init__(self, client, server_tester):
@@ -269,28 +291,6 @@ class TradingClient(LoggingClient):
                     swap = symbol_info['swapShort']
                 symbol_list.append((symbol, swap,))
         return symbol_list
-
-    @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def get_top_ten_biggest_swaps(self):
-        self._client.login()
-        all_symbols = self._client.get_all_symbols()
-
-        symbol_list = list()
-        for symbol in all_symbols:
-            if symbol['categoryName'] == 'FX':
-                sym = symbol['symbol']
-                sl = symbol['swapLong']
-                ss = symbol['swapShort']
-                symbol_list.append((sym, sl, ss,))
-        import operator
-        sorted_list = sorted(symbol_list, key=operator.itemgetter(2, 1), reverse=True)
-
-        for sym, sl, ss in sorted_list[0:10]:
-            print("Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}".format(
-                                sym, sl, ss))
-        self._client.logout()
-        return sorted_list
 
 
 class XTBLoggingClient(LoggingClient):
