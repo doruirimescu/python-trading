@@ -49,7 +49,7 @@ if __name__ == '__main__':
                 report += r
                 MAIN_LOGGER.info(r)
         except Exception as e:
-            MAIN_LOGGER.info(e)
+            MAIN_LOGGER.info(str(e) + " " + symbol)
             pass
 
     for symbol, price in PRICES_ABOVE_ALERTS:
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 report += r
                 MAIN_LOGGER.info(r)
         except Exception as e:
-            MAIN_LOGGER.info(e)
+            MAIN_LOGGER.info(str(e) + " " + symbol)
             pass
 
     for symbol in all_symbols_dict:
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 report += r
                 MAIN_LOGGER.info(r)
         except Exception as e:
-            MAIN_LOGGER.info(e)
+            MAIN_LOGGER.info(str(e) + " " + symbol)
             pass
         try:
             r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                 report += r
                 MAIN_LOGGER.info(r)
         except Exception as e:
-            MAIN_LOGGER.info(e)
+            MAIN_LOGGER.info(str(e) + " " + symbol)
             pass
 
 
