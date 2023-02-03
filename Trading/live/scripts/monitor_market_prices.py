@@ -2,7 +2,7 @@ from exception_with_retry import exception_with_retry
 
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
-from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
+from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
 from Trading.live.alert.alert import (get_total_swap_of_open_forex_trades_report,
                                      is_symbol_price_below_value,
                                      is_symbol_price_above_value,
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     mode = os.getenv("XTB_MODE")
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
-    all_symbols_dict = read_json_file('data/symbols/all_symbols.json')
+    all_symbols_dict = read_json_file(DATA_STORAGE_PATH + 'symbols/all_symbols.json')
 
     report = ""
     for symbol, price in PRICES_BELOW_ALERTS:
