@@ -1,3 +1,5 @@
 __all__ = ['TIMEFRAMES', 'TIMEFRAME_TO_MINUTES']
 TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '5h', '1D', '1W', '1M']
 TIMEFRAME_TO_MINUTES = dict(zip(TIMEFRAMES, [1, 5, 15, 30, 60, 300, 1440, 10080, 43200]))
+TIMEFRAMES_TO_NAME = dict(zip(TIMEFRAMES, ['1-min', '5-min', '15-min', '30-min', '1-hour',
+                                            '5-hour', '1-day', '1-week', '1-month']))
