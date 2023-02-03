@@ -3,7 +3,7 @@ from exception_with_retry import exception_with_retry
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
-from Trading.live.alert.alert import get_total_swap_of_open_forex_trades_report
+from Trading.live.alert.alert import get_total_swap_of_open_forex_trades_report, is_symbol_price_below_value, is_symbol_price_below_last_n_intervals_low
 
 from dotenv import load_dotenv
 from datetime import datetime
