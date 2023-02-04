@@ -11,6 +11,7 @@ from Trading.live.alert.alert import (get_total_swap_of_open_forex_trades_report
 from Trading.utils.write_to_file import read_json_file
 from Trading.utils.time import get_date_now_cet
 from Trading.instrument.instrument import Instrument
+from Trading.live.scripts.data.symbols.failing_symbols import FAILING_SYMBOLS
 
 from dotenv import load_dotenv
 from datetime import datetime
@@ -63,6 +64,8 @@ if __name__ == '__main__':
             failing_symbols.append(symbol)
 
     for symbol in all_symbols_dict:
+        if symbol in FAILING_SYMBOLS:
+            continue
         try:
             r = is_symbol_price_below_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
