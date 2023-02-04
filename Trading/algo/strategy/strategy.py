@@ -1,6 +1,9 @@
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from dataclasses import dataclass
 import logging
+from Trading.algo.indicators.indicator import EMAIndicator
+from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
+import pandas as pd
 
 __all__ = ["Action", "decide_action"]
 
@@ -98,4 +101,59 @@ class DailyBuyStrategy:
                 return Action.SELL
             if is_market_closing_soon:
                 return Action.SELL
+        return Action.NO
+
+
+class EmaStrategy:
+    def __init__(self, take_profit_percentage) -> None:
+        self.take_profit_percentage = take_profit_percentage
+
+    def analyse(self,
+                df: pd.DataFrame,
+                current_price: float,
+                is_short_trade_open: bool = False,
+                is_long_trade_open: bool = False,
+                trade_open_price: float = None) -> TechnicalAnalysis:
+
+        ema30 = EMAIndicator(30)
+        em_30 = ema30.calculate_ema(df)
+        ema50 = EMAIndicator(50)
+        em_50 = ema50.calculate_ema(df)
+        ema100 = EMAIndicator(100)
+        em_100 = ema100.calculate_ema(df)
+        trend = ema100.get_trend()
+
+        if trend == TrendAnalysis.UP:
+            if not is_long_trade_open and current_price <= em_30:
+                return Action.BUY
+
+            elif is_long_trade_open:
+                potential_profit = current_price - trade_open_price
+
+                if 1 - (trade_open_price + potential_profit)/trade_open_price > self.take_profit_percentage:
+                    # Take profit
+                    return Action.SELL
+
+                elif current_price <= em_100:
+                    # Stop loss
+                    return Action.SELL
+
+        if trend == TrendAnalysis.SIDE:
+            if is_long_trade_open:
+                return Action.SELL
+            if is_short_trade_open:
+                return Action.BUY
+
+        elif trend == TrendAnalysis.DOWN:
+            if not is_short_trade_open and current_price >= em_30:
+                # place trade
+                return Action.SELL
+            elif is_short_trade_open:
+                potential_profit = trade_open_price - current_price
+
+                if 1 - (trade_open_price + potential_profit)/trade_open_price > self.take_profit_percentage:
+                    return Action.BUY
+
+                elif current_price >= em_100:
+                    return Action.BUY
         return Action.NO
