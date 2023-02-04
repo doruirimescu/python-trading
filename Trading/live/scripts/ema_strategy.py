@@ -51,22 +51,28 @@ if __name__ == '__main__':
         current_price_open = df.iloc[-1]['open']
 
         if (not IS_LONG_TRADE_OPEN) and (not IS_SHORT_TRADE_OPEN):
-            analysis = ema_strategy.analyse(df, current_price_open)
+            analysis = ema_strategy.analyse(df, current_price_low)
             if analysis == Action.BUY:
+                print("Enter long trade", current_price_low)
                 IS_LONG_TRADE_OPEN = True
-                trade_open_price = current_price_open
-            if analysis == Action.SELL:
-                IS_SHORT_TRADE_OPEN = True
-                trade_open_price = current_price_open
+                trade_open_price = current_price_low
+            else:
+                analysis = ema_strategy.analyse(df, current_price_high)
+                if analysis == Action.SELL:
+                    print("Enter short trade", current_price_high)
+                    IS_SHORT_TRADE_OPEN = True
+                    trade_open_price = current_price_high
 
         if IS_LONG_TRADE_OPEN:
             analysis = ema_strategy.analyse(df, current_price_high, False, True, trade_open_price)
             if analysis == Action.SELL:
-                total_profit += (current_price_high - trade_open_price)
+                print("Close long trade", current_price_high)
+                total_profit += (current_price_high - trade_open_price) - SPREAD
                 IS_LONG_TRADE_OPEN = False
         if IS_SHORT_TRADE_OPEN:
+            print("Close short trade", current_price_low)
             analysis = ema_strategy.analyse(df, current_price_low, True, False, trade_open_price)
-            total_profit += (trade_open_price - current_price_low)
+            total_profit += (trade_open_price - current_price_low) - SPREAD
             IS_SHORT_TRADE_OPEN = False
 
     print("TOTAL PROFIT:", total_profit)
