@@ -2,7 +2,7 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.utils.time import (get_date_now_cet,
                                 get_datetime_now_cet,
                                 get_seconds_to_next_date)
-from Trading.algo.technical_analyzer.technical_analyzer import DailyBuyTechnicalAnalyzer
+from Trading.algo.strategy.strategy import DailyBuyStrategy, Action
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
 from Trading.instrument.instrument import Instrument
@@ -23,9 +23,9 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
                 symbol: str, take_profit_percentage: float) -> Trade:
     date_now_cet = get_date_now_cet()
     todays_trade = Trade(date_=date_now_cet, type_=TradeType.BUY, contract_value=contract_value)
-    day_trading_analyzer = DailyBuyTechnicalAnalyzer(take_profit_percentage)
+    daily_buy_strategy = DailyBuyStrategy(take_profit_percentage)
 
-    if day_trading_analyzer.analyse(has_already_traded_instrument_today=False) == TechnicalAnalysis.STRONG_BUY:
+    if daily_buy_strategy.analyse(has_already_traded_instrument_today=False) == Action.BUY:
         order2_id = open_trade(client, todays_trade, contract_value)
 
     # Prepare to close trade
@@ -33,9 +33,9 @@ def enter_trade(client: XTBTradingClient, contract_value: int,
     while not IS_TRADE_CLOSED:
         current_price = client.get_current_price(symbol)[0]
         is_market_closing_soon = client.is_market_closing_in_n_seconds(symbol, 90)
-        should_close_trade = day_trading_analyzer.analyse(
+        should_close_trade = daily_buy_strategy.analyse(
                                 True, todays_trade.open_price,
-                                current_price, is_market_closing_soon) == TechnicalAnalysis.STRONG_SELL
+                                current_price, is_market_closing_soon) == Action.SELL
 
         if  should_close_trade:
             close_trade(client, todays_trade, order2_id)
