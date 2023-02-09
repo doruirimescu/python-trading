@@ -4,9 +4,9 @@ import logging
 from Trading.algo.indicators.indicator import EMAIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
 import pandas as pd
+from typing import Optional
 
 __all__ = ["Action", "decide_action"]
-
 
 @dataclass
 class Action:
@@ -124,13 +124,13 @@ class EmaStrategy:
         trend = ema100.get_trend()
 
         if trend == TrendAnalysis.UP:
-            if not is_long_trade_open and current_price <= em_30:
+            if not is_long_trade_open and current_price <= em_30 and current_price >= em_50:
                 return Action.BUY
 
             elif is_long_trade_open:
                 potential_profit = current_price - trade_open_price
 
-                if 1 - (trade_open_price + potential_profit)/trade_open_price > self.take_profit_percentage:
+                if (trade_open_price + potential_profit)/trade_open_price - 1 > self.take_profit_percentage:
                     # Take profit
                     return Action.SELL
 
@@ -145,7 +145,7 @@ class EmaStrategy:
                 return Action.BUY
 
         elif trend == TrendAnalysis.DOWN:
-            if not is_short_trade_open and current_price >= em_30:
+            if not is_short_trade_open and current_price >= em_30 and current_price <= em_50:
                 # place trade
                 return Action.SELL
             elif is_short_trade_open:
@@ -157,3 +157,110 @@ class EmaStrategy:
                 elif current_price >= em_100:
                     return Action.BUY
         return Action.NO
+
+
+class EmaBuyStrategy:
+    def __init__(self,
+                 take_profit_percentage: float,
+                 ema_fast_indicator: EMAIndicator = EMAIndicator(30),
+                 ema_mid_indicator: EMAIndicator = EMAIndicator(50),
+                 ema_slow_indicator: EMAIndicator = EMAIndicator(100)) -> None:
+        self.take_profit_percentage: float = take_profit_percentage
+        self.is_trade_open: bool = False
+        self.trade_open_price: Optional[float] = None
+        self.ema_fast_indicator = ema_fast_indicator
+        self.ema_mid_indicator = ema_mid_indicator
+        self.ema_slow_indicator = ema_slow_indicator
+
+    def analyse(self,
+                df: pd.DataFrame,
+                current_price: float) -> TechnicalAnalysis:
+
+        ema_fast_value = self.ema_fast_indicator.calculate_ema(df)
+        ema_mid_value = self.ema_mid_indicator.calculate_ema(df)
+        ema_slow_value = self.ema_slow_indicator.calculate_ema(df)
+        trend = self.ema_slow_indicator.get_trend()
+
+        if self._is_trend_condition(trend):
+            if not self.is_trade_open and self._is_price_within_channel(current_price, ema_fast_value, ema_mid_value):
+                self.is_trade_open = True
+                self.trade_open_price = current_price
+                return self._place_trade()
+
+            elif self.is_trade_open:
+                potential_profit = self._calculate_potential_profit(current_price)
+
+                if self._is_take_profit_condition(potential_profit):
+                    # Take profit
+                    self.is_trade_open = False
+                    self.trade_open_price = None
+                    return Action.STOP
+
+                elif self._is_stop_loss_condition(current_price, ema_slow_value):
+                    # Stop loss
+                    self.is_trade_open = False
+                    self.trade_open_price = None
+                    return Action.STOP
+
+        elif self.is_trade_open:
+            self.is_trade_open = False
+            self.trade_open_price = None
+            return Action.STOP
+
+        return Action.NO
+
+    def _place_trade(self):
+        return Action.BUY
+
+    def _is_trend_condition(self, trend: TrendAnalysis) -> bool:
+        return trend == TrendAnalysis.UP
+
+    def _is_take_profit_condition(self, potential_profit: float) -> bool:
+        if self.trade_open_price:
+            return potential_profit / self.trade_open_price > self.take_profit_percentage
+        else:
+            return False
+
+    def _is_stop_loss_condition(self, current_price: float, ema_slow_value: float) -> bool:
+        return current_price <= ema_slow_value
+
+    def _is_price_within_channel(self,
+                                 current_price: float,
+                                 ema_fast_value: float,
+                                 ema_mid_value: float) -> bool:
+        return current_price <= ema_fast_value and current_price >= ema_mid_value
+
+    def _calculate_potential_profit(self, current_price: float) -> float:
+        if self.trade_open_price:
+            return current_price - self.trade_open_price
+        else:
+            return 0.0
+
+
+class EmaSellStrategy(EmaBuyStrategy):
+    def _place_trade(self):
+        return Action.SELL
+
+    def _is_trend_condition(self, trend: TrendAnalysis) -> bool:
+        return trend == TrendAnalysis.DOWN
+
+    def _is_take_profit_condition(self, potential_profit: float) -> bool:
+        if self.trade_open_price:
+            return potential_profit / self.trade_open_price > self.take_profit_percentage
+        else:
+            return False
+
+    def _is_stop_loss_condition(self, current_price: float, ema_slow_value: float) -> bool:
+        return current_price >= ema_slow_value
+
+    def _is_price_within_channel(self,
+                                  current_price: float,
+                                  ema_fast_value: float,
+                                  ema_mid_value: float) -> bool:
+        return current_price >= ema_fast_value and current_price <= ema_mid_value
+
+    def _calculate_potential_profit(self, current_price: float) -> float:
+        if self.trade_open_price:
+            return self.trade_open_price - current_price
+        else:
+            return 0.0
