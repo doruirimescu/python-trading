@@ -1,25 +1,33 @@
 import pandas as pd
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
+from typing import Tuple
 
 
 class BollingerBandsIndicator:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, window: int = 20, num_std: int = 2) -> None:
+        self.window = window
+        self.num_std = num_std
+        self.data = None
 
-def bollinger_bands(df: pd.DataFrame,
-                    window: int = 20,
-                    num_std: int = 2,
-                    open_close: str = 'close'):
-    rolling_mean = df[open_close].rolling(window=window).mean()
-    rolling_std = df[open_close].rolling(window=window).std()
-    upper_band = rolling_mean + (rolling_std * num_std)
-    lower_band = rolling_mean - (rolling_std * num_std)
-    df['rolling_mean'] = rolling_mean
-    df['upper_band'] = upper_band
-    df['lower_band'] = lower_band
+    def calculate_bb(self, df: pd.DataFrame, ohlc='close') -> Tuple[float, float]:
+        rolling_mean = df[ohlc].rolling(window=self.window).mean()
+        rolling_std = df[ohlc].rolling(window=self.window).std()
+        upper_band = rolling_mean + (rolling_std * self.num_std)
+        lower_band = rolling_mean - (rolling_std * self.num_std)
+        df['rolling_mean'] = rolling_mean
+        df['upper_band'] = upper_band
+        df['lower_band'] = lower_band
+        self.data = df
+        return lower_band.iloc[-1], upper_band.iloc[-1]
+
+    def plot(self, ax):
+        ax.plot(self.data.rolling_mean, label=f'Rolling mean{self.window}', color='blue')
+        ax.plot(self.data.upper_band, label=f'Upper band', color='red')
+        ax.plot(self.data.lower_band, label=f'Lower band', color='green')
+        ax.legend()
 
 
-def moving_average(df, window=20, open_close = 'close'):
+def moving_average(df, window=20, open_close='close'):
     df['moving_avg'] = df[open_close].rolling(window=window).mean()
 
 
@@ -29,7 +37,7 @@ class EMAIndicator:
         self.data = None
         self.ema = None
 
-    def calculate_ema(self, data: pd.DataFrame, ohlc = 'open'):
+    def calculate_ema(self, data: pd.DataFrame, ohlc='open'):
         self.data = data
         self.ema = self.data[ohlc].ewm(span=self.window, adjust=False).mean()
         return self.ema.iloc[-1]
