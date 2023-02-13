@@ -38,7 +38,7 @@ class EMAIndicator:
         ax.plot(self.ema, label=f'EMA{self.window}', color=color)
         ax.legend()
 
-    def get_trend(self, n: int = 11): #11-1320 (10,12,13,15 bad)
+    def get_trend(self, n: int = 30):
         total_up = 0
         total_down = 0
         #Check low trend
