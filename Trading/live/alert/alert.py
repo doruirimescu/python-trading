@@ -1,6 +1,7 @@
 from Trading.live.client.client import LoggingClient, TradingClient
 from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
+from Trading.utils.calculations import round_to_two_decimals
 from datetime import datetime
 from typing import Optional
 
@@ -16,7 +17,7 @@ def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> str:
 
     total_profit, total_swap, text_message = client.get_total_forex_open_trades_profit_and_swap()
     report += text_message
-    report += f"\nTotal profit: {str(total_profit)} Total swap: {str(total_swap)}\n"
+    report += f"\nTotal profit: {str(total_profit)} Total swap: {str(round_to_two_decimals(total_swap))}\n"
     biggest_swaps = client.get_top_ten_biggest_swaps()
     report += f"\nBiggest 10 swaps:\n"
     for sym, sl, ss in biggest_swaps[0:10]:
