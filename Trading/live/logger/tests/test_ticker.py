@@ -292,16 +292,16 @@ class TestTicker(unittest.TestCase):
         #Assert
         self.assertFalse(result)
 
-    def test_tick_5hour_true(self):
+    def test_tick_4hour_true(self):
         #Arrange
         year = 2020
         month = 1
         day = 1
-        hour = 15
+        hour = 16
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('5h')
+        t = Ticker('4h')
         #Act
         result = t.tick(d)
         #Assert
@@ -315,7 +315,7 @@ class TestTicker(unittest.TestCase):
         #Assert
         self.assertTrue(result)
 
-    def test_tick_5hour_false(self):
+    def test_tick_4hour_false(self):
         #Arrange
         year = 2020
         month = 1
@@ -324,7 +324,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('5h')
+        t = Ticker('4h')
         #Act
         result = t.tick(d)
         #Assert

@@ -4,6 +4,7 @@ from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument.instrument import Instrument
 from Trading.algo.indicators.indicator import bollinger_bands, moving_average, EMAIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
+from Trading.algo.strategy.strategy import Action
 
 from Trading.algo.strategy.strategy import EmaStrategy
 
@@ -35,83 +36,43 @@ if __name__ == '__main__':
     print(type(history))
     main_data = pd.DataFrame(history)
 
+    TP = 0.01
+    SPREAD = 0.3
+    ema_strategy = EmaStrategy(TP)
+
     IS_LONG_TRADE_OPEN = False
     IS_SHORT_TRADE_OPEN = False
     trade_open_price = 0
     total_profit = 0
     for i in range(100, N_CANDLES):
         df = main_data.iloc[0: i]
-
-        ema30 = EMAIndicator(30)
-        em_30 = ema30.calculate_ema(df[:-1])
-
-        ema50 = EMAIndicator(50)
-        em_50 = ema50.calculate_ema(df[:-1])
-
-        ema100 = EMAIndicator(100)
-        em_100 = ema100.calculate_ema(df[:-1])
-        trend = ema100.get_trend()
-
         current_price_high = df.iloc[-1]['high']
         current_price_low = df.iloc[-1]['low']
+        current_price_open = df.iloc[-1]['open']
 
-        TP = 1.01
-        SPREAD = 0.3
-        if trend == TrendAnalysis.UP:
-            if IS_LONG_TRADE_OPEN is False and current_price_low <= em_30:
+        if (not IS_LONG_TRADE_OPEN) and (not IS_SHORT_TRADE_OPEN):
+            analysis = ema_strategy.analyse(df, current_price_low)
+            if analysis == Action.BUY:
+                print("Enter long trade", current_price_low)
                 IS_LONG_TRADE_OPEN = True
                 trade_open_price = current_price_low
-                print("ENTER LONG TRADE")
+            else:
+                analysis = ema_strategy.analyse(df, current_price_high)
+                if analysis == Action.SELL:
+                    print("Enter short trade", current_price_high)
+                    IS_SHORT_TRADE_OPEN = True
+                    trade_open_price = current_price_high
 
-            if IS_LONG_TRADE_OPEN:
-                potential_profit = current_price_high - trade_open_price - SPREAD
-                print("Potential long profit", potential_profit)
-
-                if (trade_open_price + potential_profit)/trade_open_price > TP:
-                    #take profit
-                    IS_LONG_TRADE_OPEN = False
-                    total_profit += potential_profit
-                    print("WIN LONG TRADE", potential_profit)
-                    potential_profit = 0
-
-                elif current_price_high <= em_100:
-                    #stop loss
-                    IS_LONG_TRADE_OPEN = False
-                    total_profit += potential_profit
-                    print("LOSE LONG TRADE", potential_profit)
-                    potential_profit = 0
-
-        if trend == TrendAnalysis.SIDE:
-            if IS_LONG_TRADE_OPEN or IS_SHORT_TRADE_OPEN:
-                print("CLOSE SIDE TRADE", potential_profit)
-                total_profit += potential_profit
-                potential_profit = 0
-                IS_SHORT_TRADE_OPEN = False
+        if IS_LONG_TRADE_OPEN:
+            analysis = ema_strategy.analyse(df, current_price_high, False, True, trade_open_price)
+            if analysis == Action.SELL:
+                print("Close long trade", current_price_high)
+                total_profit += (current_price_high - trade_open_price) - SPREAD
                 IS_LONG_TRADE_OPEN = False
-
-        elif trend == TrendAnalysis.DOWN:
-            if IS_SHORT_TRADE_OPEN is False and current_price_high >= em_30:
-                #place trade
-                IS_SHORT_TRADE_OPEN = True
-                trade_open_price = current_price_high
-                print("ENTER SHORT TRADE")
-
-            if IS_SHORT_TRADE_OPEN:
-                potential_profit = trade_open_price - current_price_low - SPREAD
-                print("Potential short profit", potential_profit)
-
-                if (trade_open_price + potential_profit)/trade_open_price > TP:
-                    #take profit
-                    IS_SHORT_TRADE_OPEN = False
-                    total_profit += potential_profit
-                    print("WIN SHORT TRADE", potential_profit)
-                    potential_profit = 0
-
-                elif current_price_high >= em_100:
-                    #stop loss
-                    IS_SHORT_TRADE_OPEN = False
-                    total_profit += potential_profit
-                    print("LOSE SHORT TRADE", potential_profit)
-                    potential_profit = 0
+        if IS_SHORT_TRADE_OPEN:
+            print("Close short trade", current_price_low)
+            analysis = ema_strategy.analyse(df, current_price_low, True, False, trade_open_price)
+            total_profit += (trade_open_price - current_price_low) - SPREAD
+            IS_SHORT_TRADE_OPEN = False
 
     print("TOTAL PROFIT:", total_profit)
