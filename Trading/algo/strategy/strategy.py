@@ -105,7 +105,6 @@ class DailyBuyStrategy:
         return Action.NO
 
 
-
 class EmaStrategy:
     def __init__(self,
                  take_profit_percentage: float,
@@ -118,14 +117,14 @@ class EmaStrategy:
         self.ema_fast_indicator = ema_fast_indicator
         self.ema_mid_indicator = ema_mid_indicator
         self.ema_slow_indicator = ema_slow_indicator
-        self.total_profit = 0.0
+        self.returns = list()
 
     def analyse(self,
                 df: pd.DataFrame,
                 current_price: float) -> TechnicalAnalysis:
 
         ema_fast_value = self.ema_fast_indicator.calculate_ema(df)
-        ema_mid_value = self.ema_mid_indicator.calculate_ema(df)
+        ema_mid_value  = self.ema_mid_indicator.calculate_ema(df)
         ema_slow_value = self.ema_slow_indicator.calculate_ema(df)
         trend = self.ema_slow_indicator.get_trend(30)
 
@@ -241,10 +240,11 @@ class EmaBuyStrategy(EmaStrategy):
             return 0.0
 
     def _accumulate_profit(self, current_price: float) -> None:
-        self.total_profit += self._calculate_potential_profit(current_price)
+        new_profit = self._calculate_potential_profit(current_price)
+        self.returns.append(new_profit)
 
     def get_total_profit(self) -> float:
-        return self.total_profit
+        return sum(self.returns)
 
     def get_type(self) -> str:
         return "BUY"
@@ -286,3 +286,5 @@ class EmaSellStrategy(EmaBuyStrategy):
 
     def get_type(self) -> str:
         return "SELL"
+
+# class BollingerBandsBuyStrategy:
