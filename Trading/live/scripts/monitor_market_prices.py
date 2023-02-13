@@ -22,8 +22,8 @@ from time import sleep
 TIMEFRAME_TO_MONITOR = '1M'
 N_TIMEFRAMES = 12
 
-PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3)]
-PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370)]
+PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3), ('MAXR.US', 53), ('PALLADIUM', 1650)]
+PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370), ('MAXR.US', 48), ('PALLADIUM', 1500)]
 
 if __name__ == '__main__':
 
@@ -42,12 +42,13 @@ if __name__ == '__main__':
 
     all_symbols_dict = read_json_file(DATA_STORAGE_PATH + 'symbols/all_symbols.json')
     failing_symbols = list()
-    report = ""
+    report = "-------CUSTOM ALERTS-------"
     for symbol, price in PRICES_BELOW_ALERTS:
         try:
             r = is_symbol_price_below_value(client, symbol, price)
             if r is not None:
                 report += r
+                report += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
@@ -58,11 +59,13 @@ if __name__ == '__main__':
             r = is_symbol_price_above_value(client, symbol, price)
             if r is not None:
                 report += r
+                report += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
             failing_symbols.append(symbol)
 
+    report += "-------MARKET ANALYSIS-------"
     for symbol in all_symbols_dict:
         if symbol in FAILING_SYMBOLS:
             continue
@@ -70,7 +73,7 @@ if __name__ == '__main__':
             r = is_symbol_price_below_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
                 report += r
-                r += "\n"
+                report += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
@@ -79,7 +82,7 @@ if __name__ == '__main__':
             r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
             if r is not None:
                 report += r
-                r += "\n"
+                report += "\n"
                 MAIN_LOGGER.info(r)
         except Exception as e:
             MAIN_LOGGER.info(str(e) + " " + symbol)
