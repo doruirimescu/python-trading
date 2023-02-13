@@ -58,7 +58,7 @@ class Ticker:
                 return True
             elif(self.timeframe == '1h' and (minute == 0)):
                 return True
-            elif(self.timeframe == '5h' and (hour % 5 == 0 and minute == 0)):
+            elif(self.timeframe == '4h' and (hour % 4 == 0 and minute == 0)):
                 return True
             elif(self.timeframe == '1D' and hour == 12 and minute == 0):
                 return True
