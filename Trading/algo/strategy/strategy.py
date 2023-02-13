@@ -4,7 +4,7 @@ import logging
 from Trading.algo.indicators.indicator import EMAIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
 import pandas as pd
-from typing import Optional
+from typing import Optional, List
 from abc import abstractmethod
 
 __all__ = ["Action", "decide_action"]
@@ -117,7 +117,7 @@ class EmaStrategy:
         self.ema_fast_indicator = ema_fast_indicator
         self.ema_mid_indicator = ema_mid_indicator
         self.ema_slow_indicator = ema_slow_indicator
-        self.returns = list()
+        self.returns: List[float] = list()
 
     def analyse(self,
                 df: pd.DataFrame,
