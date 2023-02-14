@@ -261,8 +261,9 @@ class EmaSellStrategy(EmaStrategy):
 
 class BollingerBandsStrategy(Strategy):
     def __init__(self,
+                 strategy_type: StrategyType,
                  bb_indicator: BollingerBandsIndicator = BollingerBandsIndicator(window=20, num_std=2)) -> None:
-        super().__init__()
+        super().__init__(strategy_type)
         self.bb_indicator = bb_indicator
 
     def analyse(self,
@@ -282,24 +283,14 @@ class BollingerBandsStrategy(Strategy):
 
     @abstractmethod
     def _is_trade_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        pass
+        if self.strategy_type == StrategyType.BUY:
+            return current_price <= indicator_result.low_band
+        else:
+            return current_price >= indicator_result.high_band
 
     @abstractmethod
     def _is_close_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        pass
-
-
-class BollingerBandsBuyStrategy(BollingerBandsStrategy):
-    def _is_trade_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        return current_price <= indicator_result.low_band
-
-    def _is_close_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        return current_price >= indicator_result.mean
-
-
-class BollingerBandsSellStrategy(BollingerBandsStrategy):
-    def _is_trade_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        return current_price >= indicator_result.high_band
-
-    def _is_close_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
-        return current_price <= indicator_result.mean
+        if self.strategy_type == StrategyType.BUY:
+            return current_price >= indicator_result.mean
+        else:
+            return current_price <= indicator_result.mean
