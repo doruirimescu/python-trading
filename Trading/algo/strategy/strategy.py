@@ -105,19 +105,57 @@ class DailyBuyStrategy:
         return Action.NO
 
 
-class EmaStrategy:
+class Strategy:
+    def __init__(self, take_profit_percentage: float) -> None:
+        self.returns: List[float] = list()
+        self.take_profit_percentage: float = take_profit_percentage
+        self.trade_open_price: Optional[float] = None
+        self.is_trade_open: bool = False
+
+    @abstractmethod
+    def _place_trade(self) -> Action:
+        pass
+
+    @abstractmethod
+    def _is_take_profit_condition(self, potential_profit: float) -> bool:
+        pass
+
+    @abstractmethod
+    def _is_stop_loss_condition(self, current_price: float, ema_slow_value: float) -> bool:
+        pass
+
+    @abstractmethod
+    def _calculate_potential_profit(self, current_price: float) -> float:
+        pass
+
+    @abstractmethod
+    def get_type(self) -> str:
+        pass
+
+    def _accumulate_profit(self, current_price: float) -> None:
+        new_profit = self._calculate_potential_profit(current_price)
+        self.returns.append(new_profit)
+
+    def get_total_profit(self) -> float:
+        return sum(self.returns)
+
+    def log_enter(self, current_price: float) -> None:
+        print(f"Entering {self.get_type()} trade at {current_price} price")
+
+    def log_exit(self, current_price: float) -> None:
+        print(f"Exiting {self.get_type()} trade at {current_price} price")
+
+
+class EmaStrategy(Strategy):
     def __init__(self,
                  take_profit_percentage: float,
                  ema_fast_indicator: EMAIndicator = EMAIndicator(30),
                  ema_mid_indicator: EMAIndicator = EMAIndicator(50),
                  ema_slow_indicator: EMAIndicator = EMAIndicator(100)) -> None:
-        self.take_profit_percentage: float = take_profit_percentage
-        self.is_trade_open: bool = False
-        self.trade_open_price: Optional[float] = None
+        super().__init__(take_profit_percentage)
         self.ema_fast_indicator = ema_fast_indicator
         self.ema_mid_indicator = ema_mid_indicator
         self.ema_slow_indicator = ema_slow_indicator
-        self.returns: List[float] = list()
 
     def analyse(self,
                 df: pd.DataFrame,
@@ -164,19 +202,7 @@ class EmaStrategy:
         return Action.NO
 
     @abstractmethod
-    def _place_trade(self):
-        pass
-
-    @abstractmethod
     def _is_trend_condition(self, trend: TrendAnalysis) -> bool:
-        pass
-
-    @abstractmethod
-    def _is_take_profit_condition(self, potential_profit: float) -> bool:
-        pass
-
-    @abstractmethod
-    def _is_stop_loss_condition(self, current_price: float, ema_slow_value: float) -> bool:
         pass
 
     @abstractmethod
@@ -186,33 +212,9 @@ class EmaStrategy:
                                  ema_mid_value: float) -> bool:
         pass
 
-    @abstractmethod
-    def _calculate_potential_profit(self, current_price: float) -> float:
-        pass
-
-    @abstractmethod
-    def _accumulate_profit(self, current_price: float) -> None:
-        pass
-
-    @abstractmethod
-    def get_total_profit(self) -> float:
-        pass
-
-    @abstractmethod
-    def get_type(self) -> str:
-        pass
-
-    @abstractmethod
-    def log_enter(self, current_price: float) -> None:
-        pass
-
-    @abstractmethod
-    def log_exit(self, current_price: float) -> None:
-        pass
-
 
 class EmaBuyStrategy(EmaStrategy):
-    def _place_trade(self):
+    def _place_trade(self) -> Action:
         return Action.BUY
 
     def _is_trend_condition(self, trend: TrendAnalysis) -> bool:
@@ -239,25 +241,12 @@ class EmaBuyStrategy(EmaStrategy):
         else:
             return 0.0
 
-    def _accumulate_profit(self, current_price: float) -> None:
-        new_profit = self._calculate_potential_profit(current_price)
-        self.returns.append(new_profit)
-
-    def get_total_profit(self) -> float:
-        return sum(self.returns)
-
     def get_type(self) -> str:
         return "BUY"
 
-    def log_enter(self, current_price: float) -> None:
-        print(f"Entering {self.get_type()} trade at {current_price} price")
-
-    def log_exit(self, current_price: float) -> None:
-        print(f"Exiting {self.get_type()} trade at {current_price} price")
-
 
 class EmaSellStrategy(EmaBuyStrategy):
-    def _place_trade(self):
+    def _place_trade(self) -> Action:
         return Action.SELL
 
     def _is_trend_condition(self, trend: TrendAnalysis) -> bool:
