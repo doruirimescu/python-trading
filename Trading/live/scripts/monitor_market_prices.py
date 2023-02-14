@@ -22,7 +22,7 @@ from time import sleep
 TIMEFRAME_TO_MONITOR = '1M'
 N_TIMEFRAMES = 12
 
-PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3), ('MAXR.US', 53), ('PALLADIUM', 1650)]
+PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3), ('NATGAS', 2.54), ('MAXR.US', 53), ('PALLADIUM', 1650)]
 PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370), ('MAXR.US', 48), ('PALLADIUM', 1500)]
 
 if __name__ == '__main__':
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     all_symbols_dict = read_json_file(DATA_STORAGE_PATH + 'symbols/all_symbols.json')
     failing_symbols = list()
-    report = "-------CUSTOM ALERTS-------"
+    report = "-------CUSTOM ALERTS-------\n"
     for symbol, price in PRICES_BELOW_ALERTS:
         try:
             r = is_symbol_price_below_value(client, symbol, price)
