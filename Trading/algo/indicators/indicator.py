@@ -1,6 +1,14 @@
 import pandas as pd
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
 from typing import Tuple
+from dataclasses import dataclass
+
+
+@dataclass
+class BollingerBandsResult:
+    high_band: float
+    low_band: float
+    mean: float
 
 
 class BollingerBandsIndicator:
@@ -9,7 +17,7 @@ class BollingerBandsIndicator:
         self.num_std = num_std
         self.data = None
 
-    def calculate_bb(self, df: pd.DataFrame, ohlc='close') -> Tuple[float, float]:
+    def calculate_bb(self, df: pd.DataFrame, ohlc='close') -> BollingerBandsResult:
         rolling_mean = df[ohlc].rolling(window=self.window).mean()
         rolling_std = df[ohlc].rolling(window=self.window).std()
         upper_band = rolling_mean + (rolling_std * self.num_std)
@@ -18,7 +26,7 @@ class BollingerBandsIndicator:
         df['upper_band'] = upper_band
         df['lower_band'] = lower_band
         self.data = df
-        return lower_band.iloc[-1], upper_band.iloc[-1]
+        return BollingerBandsResult(lower_band.iloc[-1], rolling_mean.iloc[-1], upper_band.iloc[-1])
 
     def plot(self, ax):
         ax.plot(self.data.rolling_mean, label=f'Rolling mean{self.window}', color='blue')

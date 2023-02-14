@@ -1,4 +1,4 @@
-from Trading.algo.strategy.strategy import EmaSellStrategy, Action
+from Trading.algo.strategy.strategy import EmaSellStrategy, Action, StrategyType
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
 import unittest
 from unittest.mock import MagicMock
@@ -123,3 +123,12 @@ class TestEmaSellStrategy(unittest.TestCase):
 
         response = strategy.analyse(pd.DataFrame(), 1.5)
         self.assertEqual(Action.STOP, response)
+
+    def test_get_type(self):
+        fast_indicator = MagicMock()
+        mid_indicator = MagicMock()
+        slow_indicator = MagicMock()
+
+        strategy = EmaSellStrategy(0.1, fast_indicator, mid_indicator, slow_indicator)
+
+        self.assertEqual(StrategyType.SELL.value, strategy.get_type())
