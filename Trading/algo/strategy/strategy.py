@@ -10,15 +10,16 @@ from enum import Enum
 
 __all__ = ["Action", "decide_action"]
 
+
 class Action(Enum):
-    BUY = "buy",    # to enter a trade with buy
-    SELL = "sell",   # to enter a trade with sell
-    NO = "no",     # no action
+    BUY = "buy"   # to enter a trade with buy
+    SELL = "sell"   # to enter a trade with sell
+    NO = "no"     # no action
     STOP = "stop"    # to close a trade
 
 
 class StrategyType(Enum):
-    BUY = "buy",
+    BUY = "buy"
     SELL = "sell"
 
 
@@ -116,8 +117,9 @@ class Strategy:
         self.trade_open_price: Optional[float] = None
         self.is_trade_open: bool = False
         self.strategy_type = strategy_type
+        self.spread = 0
 
-    def _place_trade(self) -> Action:
+    def _place_trade_action(self) -> Action:
         if self.strategy_type == StrategyType.BUY:
             return Action.BUY
         else:
@@ -141,7 +143,7 @@ class Strategy:
             return current_price - self.trade_open_price
 
     def _accumulate_profit(self, current_price: float) -> None:
-        new_profit = self._calculate_potential_profit(current_price)
+        new_profit = self._calculate_potential_profit(current_price) - self.spread
         self.returns.append(new_profit)
 
     def get_type(self) -> str:
@@ -155,6 +157,12 @@ class Strategy:
 
     def log_exit(self, current_price: float) -> None:
         print(f"Exiting {self.get_type()} trade at {current_price} price")
+
+    def get_min_return(self) -> float:
+        return min(self.returns)
+
+    def get_n_loser_in_a_row(self) -> float:
+        pass
 
 
 
@@ -172,12 +180,12 @@ class EmaStrategy(Strategy):
         self.ema_slow_indicator = ema_slow_indicator
 
     def analyse(self,
-                df: pd.DataFrame,
-                current_price: float) -> TechnicalAnalysis:
+                ohlc_data: pd.DataFrame,
+                current_price: float) -> Action:
 
-        ema_fast_value = self.ema_fast_indicator.calculate_ema(df)
-        ema_mid_value  = self.ema_mid_indicator.calculate_ema(df)
-        ema_slow_value = self.ema_slow_indicator.calculate_ema(df)
+        ema_fast_value = self.ema_fast_indicator.calculate_ema(ohlc_data)
+        ema_mid_value  = self.ema_mid_indicator.calculate_ema(ohlc_data)
+        ema_slow_value = self.ema_slow_indicator.calculate_ema(ohlc_data)
         trend = self.ema_slow_indicator.get_trend(30)
 
         if self._is_trend_condition(trend):
@@ -185,7 +193,7 @@ class EmaStrategy(Strategy):
                 self.is_trade_open = True
                 self.trade_open_price = current_price
                 self.log_enter(current_price)
-                return self._place_trade()
+                return self._place_trade_action()
 
             elif self.is_trade_open:
                 potential_profit = self._calculate_potential_profit(current_price)
@@ -267,38 +275,41 @@ class BollingerBandsStrategy(Strategy):
         self.bb_indicator = bb_indicator
 
     def analyse(self,
-                df: pd.DataFrame,
-                current_price: float) -> TechnicalAnalysis:
-        indicator_result = self.bb_indicator.calculate_bb(df)
+                ohlc_data: pd.DataFrame,
+                current_price: float) -> Action:
+        bollinger_bands_result = self.bb_indicator.calculate_bb(ohlc_data)
         ema_slow_indicator: EMAIndicator = EMAIndicator(100)
-        ema_slow_indicator.calculate_ema(df, 'close')
+        ema_slow_indicator.calculate_ema(ohlc_data, 'close')
         trend = ema_slow_indicator.get_trend(100)
+        action = Action.NO
 
-        #! Add trend condition
-        if not self.is_trade_open and self._is_trend_condition(trend) and self._is_trade_condition(indicator_result, current_price):
+        if self._is_trend_condition(trend) and self._is_trade_condition(bollinger_bands_result, current_price):
             self.is_trade_open = True
             self.trade_open_price = current_price
             self.log_enter(current_price)
-            return self._place_trade()
+            action = self._place_trade_action()
 
-        if self.is_trade_open and self._is_close_condition(indicator_result, current_price):
+        elif self.is_trade_open and self._is_close_condition(bollinger_bands_result, current_price):
             self._accumulate_profit(current_price)
             self.is_trade_open = False
             self.trade_open_price = None
             self.log_exit(current_price)
-            return Action.STOP
+            action = Action.STOP
+        return action
 
     def _is_trend_condition(self, trend: TrendAnalysis):
         return trend == TrendAnalysis.SIDE
 
-    def _is_trade_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
+    def _is_trade_condition(self, bollinger_bands_result: BollingerBandsResult, current_price: float) -> bool:
+        if self.is_trade_open:
+            return False
         if self.strategy_type == StrategyType.BUY:
-            return current_price <= indicator_result.low_band
+            return current_price <= bollinger_bands_result.low_band
         else:
-            return current_price >= indicator_result.high_band
+            return current_price >= bollinger_bands_result.high_band
 
-    def _is_close_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
+    def _is_close_condition(self, bollinger_bands_result: BollingerBandsResult, current_price: float) -> bool:
         if self.strategy_type == StrategyType.BUY:
-            return current_price >= indicator_result.mean
+            return current_price >= bollinger_bands_result.high_band
         else:
-            return current_price <= indicator_result.mean
+            return current_price <= bollinger_bands_result.low_band

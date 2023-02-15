@@ -66,4 +66,9 @@ def calculate_sharpe_ratio(profits: List[float]) -> float:
     Returns:
         float: mean of the profits divided by the standard deviation of the profits.
     """
-    return np.mean(profits) / np.std(profits)
+    return round(np.mean(profits) / np.std(profits), 2)
+
+
+def calculate_percentage_losers(profits: List[float]) -> float:
+    n_losers = len([loser for loser in profits if loser < 0.0])
+    return round(n_losers / len(profits), 2)
