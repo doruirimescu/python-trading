@@ -65,8 +65,8 @@ class EMAIndicator:
             if p > e:
                 total_up += 1
         result = TrendAnalysis.SIDE
-        if total_up / n > 0.7:
+        if total_up / n > 0.9:
             result = TrendAnalysis.UP
-        elif total_down / n > 0.7:
+        elif total_down / n > 0.9:
             result = TrendAnalysis.DOWN
         return result
