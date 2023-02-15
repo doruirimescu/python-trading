@@ -157,6 +157,7 @@ class Strategy:
         print(f"Exiting {self.get_type()} trade at {current_price} price")
 
 
+
 class EmaStrategy(Strategy):
     def __init__(self,
                  strategy_type: StrategyType,
@@ -250,7 +251,6 @@ class EmaBuyStrategy(EmaStrategy):
         super().__init__(StrategyType.BUY, take_profit_percentage, ema_fast_indicator, ema_mid_indicator, ema_slow_indicator)
 
 
-
 class EmaSellStrategy(EmaStrategy):
     def __init__(self, take_profit_percentage: float,
                  ema_fast_indicator: EMAIndicator = EMAIndicator(30),
@@ -270,25 +270,33 @@ class BollingerBandsStrategy(Strategy):
                 df: pd.DataFrame,
                 current_price: float) -> TechnicalAnalysis:
         indicator_result = self.bb_indicator.calculate_bb(df)
+        ema_slow_indicator: EMAIndicator = EMAIndicator(100)
+        ema_slow_indicator.calculate_ema(df, 'close')
+        trend = ema_slow_indicator.get_trend(100)
 
         #! Add trend condition
-        if self._is_trade_condition(indicator_result, current_price):
-            if not self.is_trade_open:
-                self.is_trade_open = True
-                self.trade_open_price = current_price
-                self.log_enter(current_price)
-                return self._place_trade()
-            elif self.is_trade_open and self._is_close_condition(indicator_result, current_price):
-                self._accumulate_profit(current_price)
+        if not self.is_trade_open and self._is_trend_condition(trend) and self._is_trade_condition(indicator_result, current_price):
+            self.is_trade_open = True
+            self.trade_open_price = current_price
+            self.log_enter(current_price)
+            return self._place_trade()
 
-    @abstractmethod
+        if self.is_trade_open and self._is_close_condition(indicator_result, current_price):
+            self._accumulate_profit(current_price)
+            self.is_trade_open = False
+            self.trade_open_price = None
+            self.log_exit(current_price)
+            return Action.STOP
+
+    def _is_trend_condition(self, trend: TrendAnalysis):
+        return trend == TrendAnalysis.SIDE
+
     def _is_trade_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
         if self.strategy_type == StrategyType.BUY:
             return current_price <= indicator_result.low_band
         else:
             return current_price >= indicator_result.high_band
 
-    @abstractmethod
     def _is_close_condition(self, indicator_result: BollingerBandsResult, current_price: float) -> bool:
         if self.strategy_type == StrategyType.BUY:
             return current_price >= indicator_result.mean

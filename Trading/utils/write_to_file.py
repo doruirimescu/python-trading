@@ -18,6 +18,21 @@ def read_json_file(file_name: str) -> dict:
     except Exception as e:
         return None
 
+def read_historical_data(file_name: str) -> dict:
+    ohlc = read_json_file(file_name)
+    history = dict()
+    history['open'] = list()
+    history['high'] = list()
+    history['low'] = list()
+    history['close'] = list()
+
+    for o, h, l, c in ohlc:
+        history['open'].append(o)
+        history['high'].append(h)
+        history['low'].append(l)
+        history['close'].append(c)
+    return history
+
 def write_json_to_file_named_with_today_date(json_dict, file_path: str):
     data_path = os.getenv("DATA_STORAGE_PATH", "data/")
     date_today = get_date_now_cet()

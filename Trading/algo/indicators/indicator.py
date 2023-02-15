@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 @dataclass
 class BollingerBandsResult:
-    high_band: float
     low_band: float
     mean: float
+    high_band: float
 
 
 class BollingerBandsIndicator:
@@ -22,17 +22,16 @@ class BollingerBandsIndicator:
         rolling_std = df[ohlc].rolling(window=self.window).std()
         upper_band = rolling_mean + (rolling_std * self.num_std)
         lower_band = rolling_mean - (rolling_std * self.num_std)
-        df['rolling_mean'] = rolling_mean
-        df['upper_band'] = upper_band
-        df['lower_band'] = lower_band
-        self.data = df
-        return BollingerBandsResult(lower_band.iloc[-1], rolling_mean.iloc[-1], upper_band.iloc[-1])
+        self.data = pd.DataFrame()
+        self.data['rolling_mean'] = rolling_mean
+        self.data['upper_band'] = upper_band
+        self.data['lower_band'] = lower_band
+        return BollingerBandsResult(low_band=lower_band.iloc[-1], mean=rolling_mean.iloc[-1], high_band=upper_band.iloc[-1])
 
     def plot(self, ax):
         ax.plot(self.data.rolling_mean, label=f'Rolling mean{self.window}', color='blue')
         ax.plot(self.data.upper_band, label=f'Upper band', color='red')
         ax.plot(self.data.lower_band, label=f'Lower band', color='green')
-        ax.legend()
 
 
 def moving_average(df, window=20, open_close='close'):
@@ -66,8 +65,8 @@ class EMAIndicator:
             if p > e:
                 total_up += 1
         result = TrendAnalysis.SIDE
-        if total_up / n > 0.9:
+        if total_up / n > 0.7:
             result = TrendAnalysis.UP
-        elif total_down / n > 0.9:
+        elif total_down / n > 0.7:
             result = TrendAnalysis.DOWN
         return result
