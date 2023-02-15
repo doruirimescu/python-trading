@@ -26,6 +26,8 @@ class CustomParser:
         self.__expressions: List[str] = list()
 
     def add_instrument(self):
+        """-s symbol -t timeframe
+        """
         self.__description += "currency, timeframe"
         self.__config.append(('-s', 'symbol', str))
         self.__config.append(('-t', 'timeframe', str))
@@ -33,21 +35,29 @@ class CustomParser:
         self.__expressions.append('timeframe')
 
     def add_contract_value(self):
+        """-cv contract_value
+        """
         self.__description += ",contract_value"
         self.__config.append(('-cv', 'contract_value', int))
         self.__expressions.append('contract_value')
 
     def add_xtb_mode(self):
+        """-xtbm demo/real
+        """
         self.__description += ", xtb_mode"
         self.__config.append(('-xtbm', 'xtb_mode', str))
         self.__expressions.append('xtb_mode')
 
     def add_xtb_username(self):
+        """-xtbu username
+        """
         self.__description += ", xtb_username"
         self.__config.append(('-xtbu', 'xtb_username', str))
         self.__expressions.append('xtb_username')
 
     def add_xtb_password(self):
+        """-xtbp password
+        """
         self.__description += ", xtb_password"
         self.__config.append(('-xtbp', 'xtb_password', str))
         self.__expressions.append('xtb_password')
