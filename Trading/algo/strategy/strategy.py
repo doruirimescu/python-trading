@@ -118,6 +118,7 @@ class Strategy:
         self.is_trade_open: bool = False
         self.strategy_type = strategy_type
         self.spread = 0
+        self.logger: Optional[logging.Logger] = None
 
     def _place_trade_action(self) -> Action:
         if self.strategy_type == StrategyType.BUY:
@@ -153,10 +154,18 @@ class Strategy:
         return sum(self.returns)
 
     def log_enter(self, current_price: float) -> None:
-        print(f"Entering {self.get_type()} trade at {current_price} price")
+        if self.logger:
+            p = self.logger.info
+        else:
+            p=print
+        p(f"Entering {self.get_type()} trade at {current_price} price")
 
     def log_exit(self, current_price: float) -> None:
-        print(f"Exiting {self.get_type()} trade at {current_price} price")
+        if self.logger:
+            p = self.logger.info
+        else:
+            p=print
+        p(f"Exiting {self.get_type()} trade at {current_price} price")
 
     def get_min_return(self) -> float:
         return min(self.returns)

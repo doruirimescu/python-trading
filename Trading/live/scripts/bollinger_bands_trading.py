@@ -10,7 +10,7 @@ from Trading.algo.strategy.strategy import EmaBuyStrategy, EmaSellStrategy
 from time import sleep
 from Trading.utils.write_to_file import write_to_json_file, read_historical_data
 from Trading.utils.calculations import calculate_sharpe_ratio, calculate_percentage_losers
-
+from Trading.utils.argument_parser import CustomParser
 from dotenv import load_dotenv
 import os
 import logging
@@ -27,11 +27,15 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    load_dotenv()
-    username = os.getenv("XTB_USERNAME")
-    password = os.getenv("XTB_PASSWORD")
-    mode = os.getenv("XTB_MODE")
-    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
+    cp = CustomParser()
+
+    cp.add_xtb_username()
+    cp.add_xtb_password()
+    cp.add_xtb_mode()
+
+
+    username, password, mode = cp.parse_args()
+    client = XTBTradingClient(username, password, mode, False)
 
     N_CANDLES = 2000
     history = client.get_last_n_candles_history(Instrument('GOLD', '15m'), N_CANDLES)
@@ -44,7 +48,10 @@ if __name__ == '__main__':
 
     bb_buy_strategy = BollingerBandsStrategy(StrategyType.BUY)
     bb_sell_strategy = BollingerBandsStrategy(StrategyType.SELL)
+
     bb_buy_strategy.spread, bb_sell_strategy.spread = SPREAD, SPREAD
+    bb_buy_strategy.logger = MAIN_LOGGER
+    bb_sell_strategy.logger = MAIN_LOGGER
 
     BUY_TRADE_ID = None
     SELL_TRADE_ID = None
@@ -58,8 +65,8 @@ if __name__ == '__main__':
         all_returns = bb_buy_strategy.returns + bb_sell_strategy.returns
         sharpe_ratio = calculate_sharpe_ratio(all_returns)
         sharpe_ratio = round(sharpe_ratio * 252**0.5, 2)
-        print(f"Buy p: {buy_profit} sell p: {sell_profit} total p: {total_profit} min return: {drawdown} sharpe r: {sharpe_ratio}")
-        print(f"Percent losers: {calculate_percentage_losers(all_returns)}")
+        MAIN_LOGGER.info(f"Buy p: {buy_profit} sell p: {sell_profit} total p: {total_profit} min return: {drawdown} sharpe r: {sharpe_ratio}")
+        MAIN_LOGGER.info(f"Percent losers: {calculate_percentage_losers(all_returns)}")
 
     while True:
         if client.is_market_open('GOLD'):
