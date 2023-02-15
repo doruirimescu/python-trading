@@ -172,7 +172,7 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    if IS_SAFE_TRADING and "real" == MODE:
+    if IS_SAFE_TRADING and MODE == "real":
         print("Trading with a live client. Do you wish to continue ? y/n")
         should_continue = input().strip()
         if should_continue.lower() != "y":
