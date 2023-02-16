@@ -168,7 +168,10 @@ class Strategy:
         p(f"Exiting {self.get_type()} trade at {current_price} price")
 
     def get_min_return(self) -> float:
-        return min(self.returns)
+        if self.returns:
+            return min(self.returns)
+        else:
+            return 0
 
     def get_n_loser_in_a_row(self) -> float:
         pass
