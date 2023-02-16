@@ -75,6 +75,14 @@ def calculate_percentage_losers(profits: List[float]) -> float:
 
 
 def calculate_max_consecutive_losers(profits: List[float]) -> int:
+    """Returns the maximum number of consecutive losers
+
+    Args:
+        profits (List[float]): list of profits
+
+    Returns:
+        int: number of maximum consecutive losing profits
+    """
     max_losers = 0
     current_losers = 0
     for profit in profits:
