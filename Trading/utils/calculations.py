@@ -103,4 +103,4 @@ def calculate_cumulative_returns(profits: List[float]) -> List[float]:
 
 def calculate_max_drawdown(profits: List[float]) -> float:
     cumulative_returns = calculate_cumulative_returns(profits)
-    return min(cumulative_returns)
+    return round(min(cumulative_returns), 2)
