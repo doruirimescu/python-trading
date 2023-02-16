@@ -227,7 +227,7 @@ class TradingClient(LoggingClient):
         return response
 
     @send_email_if_exception_occurs()
-    # @exception_with_retry(n_retry=10, sleep_time_s=6)
+    @exception_with_retry(n_retry=4, sleep_time_s=1)
     def close_trade(self, trade_id):
         """Closes a trade by trade id
         """
