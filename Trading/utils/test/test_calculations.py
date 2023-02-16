@@ -1,5 +1,8 @@
 import unittest
-from Trading.utils.calculations import calculate_percentage_losers, calculate_sharpe_ratio
+from Trading.utils.calculations import (calculate_percentage_losers,
+                                        calculate_sharpe_ratio,
+                                        calculate_max_consecutive_losers)
+
 
 class ReturnsCalculationsTest(unittest.TestCase):
     def test_calculate_sharpe_ratio(self):
@@ -27,3 +30,25 @@ class ReturnsCalculationsTest(unittest.TestCase):
         returns = [1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
         p = calculate_percentage_losers(returns)
         self.assertEqual(0.9, p)
+
+    def test_calculate_max_consecutive_losers(self):
+        returns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        m = calculate_max_consecutive_losers(returns)
+        self.assertEqual(0, m)
+
+        returns = [-1, -2, -3, -4, 5, 6, 7, 8, 9, 10]
+        m = calculate_max_consecutive_losers(returns)
+        self.assertEqual(4, m)
+
+
+        returns = [-1, 2, -3, -4, 5, -6, 7, -8, -9, -10]
+        m = calculate_max_consecutive_losers(returns)
+        self.assertEqual(3, m)
+
+        returns = [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
+        m = calculate_max_consecutive_losers(returns)
+        self.assertEqual(10, m)
+
+        returns = [-1, -2, -3, -4, -5, -6, -7, -8, 9, -10]
+        m = calculate_max_consecutive_losers(returns)
+        self.assertEqual(8, m)

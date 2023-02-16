@@ -72,3 +72,18 @@ def calculate_sharpe_ratio(profits: List[float]) -> float:
 def calculate_percentage_losers(profits: List[float]) -> float:
     n_losers = len([loser for loser in profits if loser < 0.0])
     return round(n_losers / len(profits), 2)
+
+
+def calculate_max_consecutive_losers(profits: List[float]) -> int:
+    max_losers = 0
+    current_losers = 0
+    for profit in profits:
+        if profit < 0:
+            current_losers += 1
+        else:
+            if current_losers > max_losers:
+                max_losers = current_losers
+            current_losers = 0
+    if current_losers > max_losers:
+        max_losers = current_losers
+    return max_losers
