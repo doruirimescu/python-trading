@@ -35,13 +35,14 @@ if __name__ == '__main__':
     cp.add_xtb_username()
     cp.add_xtb_password()
     cp.add_xtb_mode()
+    cp.add_instrument()
 
 
-    username, password, mode = cp.parse_args()
+    username, password, mode, symbol, timeframe = cp.parse_args()
     client = XTBTradingClient(username, password, mode, False)
 
     N_CANDLES = 2000
-    history = client.get_last_n_candles_history(Instrument('GOLD', '15m'), N_CANDLES)
+    history = client.get_last_n_candles_history(Instrument(symbol, timeframe), N_CANDLES)
 
 
     TP = 0.05
