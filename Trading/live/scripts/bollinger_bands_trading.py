@@ -9,7 +9,10 @@ import matplotlib.pyplot as plt
 from Trading.algo.strategy.strategy import EmaBuyStrategy, EmaSellStrategy
 from time import sleep
 from Trading.utils.write_to_file import write_to_json_file, read_historical_data
-from Trading.utils.calculations import calculate_sharpe_ratio, calculate_percentage_losers
+from Trading.utils.calculations import (calculate_sharpe_ratio,
+                                       calculate_percentage_losers,
+                                       calculate_max_consecutive_losers,
+                                       calculate_max_drawdown)
 from Trading.utils.argument_parser import CustomParser
 from dotenv import load_dotenv
 import os
@@ -60,13 +63,15 @@ if __name__ == '__main__':
         buy_profit = round(bb_buy_strategy.get_total_profit(), 2)
         sell_profit = round(bb_sell_strategy.get_total_profit(), 2)
         total_profit = round(buy_profit + sell_profit, 2)
-        drawdown = min(bb_buy_strategy.get_min_return(), bb_sell_strategy.get_min_return())
-        drawdown = round(drawdown, 2)
+        min_return = min(bb_buy_strategy.get_min_return(), bb_sell_strategy.get_min_return())
+        min_return = round(min_return, 2)
         all_returns = bb_buy_strategy.returns + bb_sell_strategy.returns
         sharpe_ratio = calculate_sharpe_ratio(all_returns)
         sharpe_ratio = round(sharpe_ratio * 252**0.5, 2)
-        MAIN_LOGGER.info(f"Buy p: {buy_profit} sell p: {sell_profit} total p: {total_profit} min return: {drawdown} sharpe r: {sharpe_ratio}")
+        MAIN_LOGGER.info(f"Buy p: {buy_profit} sell p: {sell_profit} total p: {total_profit} min return: {min_return}")
         MAIN_LOGGER.info(f"Percent losers: {calculate_percentage_losers(all_returns)}")
+        MAIN_LOGGER.info(f"Maximum consecutive losers: {calculate_max_consecutive_losers(all_returns)}")
+        MAIN_LOGGER.info(f"Maximum drawdown: {calculate_max_drawdown(all_returns)}")
 
     while True:
         if client.is_market_open('GOLD'):
