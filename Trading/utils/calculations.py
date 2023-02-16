@@ -95,3 +95,12 @@ def calculate_max_consecutive_losers(profits: List[float]) -> int:
     if current_losers > max_losers:
         max_losers = current_losers
     return max_losers
+
+
+def calculate_cumulative_returns(profits: List[float]) -> List[float]:
+    return [sum(profits[0: i + 1]) for i, p in enumerate(profits)]
+
+
+def calculate_max_drawdown(profits: List[float]) -> float:
+    cumulative_returns = calculate_cumulative_returns(profits)
+    return min(cumulative_returns)
