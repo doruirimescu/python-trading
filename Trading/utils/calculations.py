@@ -71,6 +71,8 @@ def calculate_sharpe_ratio(profits: List[float]) -> float:
 
 def calculate_percentage_losers(profits: List[float]) -> float:
     n_losers = len([loser for loser in profits if loser < 0.0])
+    if len(profits) == 0:
+        return 0.0
     return round(n_losers / len(profits), 2)
 
 
@@ -102,5 +104,7 @@ def calculate_cumulative_returns(profits: List[float]) -> List[float]:
 
 
 def calculate_max_drawdown(profits: List[float]) -> float:
+    if len(profits) == 0:
+        return 0
     cumulative_returns = calculate_cumulative_returns(profits)
     return round(min(cumulative_returns), 2)

@@ -2,11 +2,17 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument.instrument import Instrument
-from Trading.algo.indicators.indicator import bollinger_bands, moving_average, EMAIndicator
-from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis
-from Trading.algo.strategy.strategy import Action
-
-from Trading.algo.strategy.strategy import EmaStrategy
+from Trading.algo.indicators.indicator import EMAIndicator, BollingerBandsIndicator
+from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis, TechnicalAnalysis
+from Trading.algo.strategy.strategy import Action, StrategyType, BollingerBandsStrategy
+import matplotlib.pyplot as plt
+from Trading.algo.strategy.strategy import EmaBuyStrategy, EmaSellStrategy
+from time import sleep
+from Trading.utils.write_to_file import write_to_json_file, read_historical_data
+from Trading.utils.calculations import (calculate_sharpe_ratio,
+                                        calculate_percentage_losers,
+                                        calculate_max_consecutive_losers,
+                                        calculate_max_drawdown)
 
 from dotenv import load_dotenv
 import os
@@ -29,50 +35,71 @@ if __name__ == '__main__':
     mode = os.getenv("XTB_MODE")
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
-    N_CANDLES = 2000
-    history = client.get_last_n_candles_history(Instrument('GOLD', '4h'), N_CANDLES)
+    N_CANDLES = 1000
+    history = client.get_last_n_candles_history(Instrument('SILVER', '15m'), N_CANDLES)
 
-
-    print(type(history))
+    # history = read_historical_data("data/historical/gold-15m.json")
     main_data = pd.DataFrame(history)
 
-    TP = 0.01
+
+    TP = 0.05
     SPREAD = 0.3
-    ema_strategy = EmaStrategy(TP)
+    ema_buy_strategy = EmaBuyStrategy(TP)
+    ema_sell_strategy = EmaSellStrategy(TP)
 
-    IS_LONG_TRADE_OPEN = False
-    IS_SHORT_TRADE_OPEN = False
-    trade_open_price = 0
-    total_profit = 0
-    for i in range(100, N_CANDLES):
+    bb_buy_strategy = BollingerBandsStrategy(StrategyType.BUY)
+    bb_sell_strategy = BollingerBandsStrategy(StrategyType.SELL)
+    bb_buy_strategy.spread, bb_sell_strategy.spread = SPREAD, SPREAD
+
+    ema_slow_indicator: EMAIndicator = EMAIndicator(100)
+    ema_slow_indicator.calculate_ema(main_data, 'close')
+
+    bb_indicator: BollingerBandsIndicator = BollingerBandsIndicator(window=20, num_std=2)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    bb_indicator.calculate_bb(main_data)
+    # bb_indicator.plot(ax)
+    ax.plot(main_data['high'], label=f'high price', color='green')
+    ax.plot(main_data['low'], label=f'low price', color='red')
+    ema_slow_indicator.plot(ax)
+    plt.show()
+
+
+    BUY_TRADE_ID = None
+    SELL_TRADE_ID = None
+
+
+    for i in range(100, len(main_data)):
         df = main_data.iloc[0: i]
-        current_price_high = df.iloc[-1]['high']
+        current_price_high = df.iloc[-1]['open']
         current_price_low = df.iloc[-1]['low']
-        current_price_open = df.iloc[-1]['open']
 
-        if (not IS_LONG_TRADE_OPEN) and (not IS_SHORT_TRADE_OPEN):
-            analysis = ema_strategy.analyse(df, current_price_low)
-            if analysis == Action.BUY:
-                print("Enter long trade", current_price_low)
-                IS_LONG_TRADE_OPEN = True
-                trade_open_price = current_price_low
-            else:
-                analysis = ema_strategy.analyse(df, current_price_high)
-                if analysis == Action.SELL:
-                    print("Enter short trade", current_price_high)
-                    IS_SHORT_TRADE_OPEN = True
-                    trade_open_price = current_price_high
+        # ema_buy_strategy.analyse(df, current_price_low)
+        # ema_sell_strategy.analyse(df, current_price_high)
 
-        if IS_LONG_TRADE_OPEN:
-            analysis = ema_strategy.analyse(df, current_price_high, False, True, trade_open_price)
-            if analysis == Action.SELL:
-                print("Close long trade", current_price_high)
-                total_profit += (current_price_high - trade_open_price) - SPREAD
-                IS_LONG_TRADE_OPEN = False
-        if IS_SHORT_TRADE_OPEN:
-            print("Close short trade", current_price_low)
-            analysis = ema_strategy.analyse(df, current_price_low, True, False, trade_open_price)
-            total_profit += (trade_open_price - current_price_low) - SPREAD
-            IS_SHORT_TRADE_OPEN = False
+        if not bb_buy_strategy.is_trade_open and not bb_sell_strategy.is_trade_open:
+            a = bb_buy_strategy.analyse(df, current_price_low)
+            if a == Action.BUY:
+                print("BOUGhT AT InDEX ", i)
+        else:
+            bb_buy_strategy.analyse(df, current_price_high)
 
-    print("TOTAL PROFIT:", total_profit)
+        if not bb_buy_strategy.is_trade_open and not bb_sell_strategy.is_trade_open:
+            a = bb_sell_strategy.analyse(df, current_price_high)
+            if a == Action.SELL:
+                print("SOLD AT InDEX ", i)
+        else:
+            bb_sell_strategy.analyse(df, current_price_low)
+
+
+    buy_profit = round(bb_buy_strategy.get_total_profit(), 2)
+    sell_profit = round(bb_sell_strategy.get_total_profit(), 2)
+    total_profit = round(buy_profit + sell_profit, 2)
+    min_return = min(bb_buy_strategy.get_min_return(), bb_sell_strategy.get_min_return())
+    min_return = round(min_return, 2)
+    all_returns = bb_buy_strategy.returns + bb_sell_strategy.returns
+    sharpe_ratio = calculate_sharpe_ratio(all_returns)
+    sharpe_ratio = round(sharpe_ratio * 252**0.5, 2)
+    MAIN_LOGGER.info(f"Buy p: {buy_profit} sell p: {sell_profit} total p: {total_profit} min return: {min_return}")
+    MAIN_LOGGER.info(f"Percent losers: {calculate_percentage_losers(all_returns)}")
+    MAIN_LOGGER.info(f"Maximum consecutive losers: {calculate_max_consecutive_losers(all_returns)}")
+    MAIN_LOGGER.info(f"Maximum drawdown: {calculate_max_drawdown(all_returns)}")
