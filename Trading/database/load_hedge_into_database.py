@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from Trading.config.config import DB_USERNAME, DB_PASSWORD, DB_NAME, DATA_STORAGE_PATH
 from Trading.utils.write_to_file import read_json_file
+from Trading.database.add_hedge_into_database import add_hedge
 import pymysql
 
 
@@ -24,22 +25,26 @@ db.autocommit(True)
 cursor = db.cursor()
 
 # delete today
-query = "DELETE FROM trading.hedge_monitor WHERE date_open <= CURRENT_DATE"
-cursor.execute(query)
+# query = "DELETE FROM trading.hedge_monitor WHERE date_open <= CURRENT_DATE"
+# cursor.execute(query)
 
 for (date_open,
      i_1_open_price,
      i_2_open_price,
      i_1_net_profits,
      i_2_net_profits) in zip(dates, i_1_o, i_2_o, i_1_profits, i_2_profits):
+
+    # Avoid inserting duplicate
     query = (
-        f"INSERT INTO trading.hedge_monitor(date_open, instrument_1_symbol, instrument_2_symbol, "
-        f"instrument_1_open_price, instrument_2_open_price, instrument_1_net_profits, instrument_2_net_profits) VALUES ("
-        f"'{date_open}', '{PAIR_1_SYMBOL}', '{PAIR_2_SYMBOL}', {i_1_open_price}, {i_2_open_price}, {i_1_net_profits}, {i_2_net_profits});"
-        )
-    print(query)
+        f"SELECT * FROM trading.hedge_monitor WHERE instrument_1_symbol='{PAIR_1_SYMBOL}' AND "
+        f"instrument_2_symbol='{PAIR_2_SYMBOL}' AND instrument_1_open_price={i_1_open_price} AND instrument_2_open_price={i_2_open_price}"
+        f";"
+    )
     cursor.execute(query)
+    rows = cursor.fetchall()
 
+    if len(rows) != 0:
+        continue
 
-# disconnect from server
+    add_hedge(date_open, PAIR_1_SYMBOL, PAIR_2_SYMBOL, i_1_open_price, i_2_open_price, i_1_net_profits, i_2_net_profits)
 db.close()
