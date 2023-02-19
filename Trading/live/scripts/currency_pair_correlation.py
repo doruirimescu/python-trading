@@ -2,7 +2,93 @@ from Trading.live.client.client import XTBLoggingClient
 from Trading.instrument.instrument import Instrument
 from Trading.config.config import USERNAME, PASSWORD, MODE
 import logging
+from Trading.utils.write_to_file import write_to_json_file, read_json_file
+from datetime import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
+from Trading.algo.indicators.indicator import BollingerBandsIndicator
+
+N_CANDLES = 360
+PAIR_1_SYMBOL = 'USDHUF'
+PAIR_2_SYMBOL = 'EURUSD'
+PAIR_1_POSITION = 'SELL'
+PAIR_2_POSITION = 'SELL'
+PAIR_1_VOLUME = 0.01
+PAIR_2_VOLUME = 0.01
+
+PAIR_1_MULTIPLIER = 3
+PAIR_2_MULTIPLIER = 5
+
+
+def get_cmd(position: str):
+    if position == 'BUY':
+        return 0
+    else:
+        return 1
+
+def get_filename():
+    return "data/hedging_correlation/" + PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL + ".json"
+
+def get_prices_from_client(client, should_write_to_file=False):
+    pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, '1D'), N_CANDLES)
+    pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, '1D'), N_CANDLES)
+
+    pair_1_oh = list(zip(pair_1['open'], pair_1['high']))
+    pair_2_oh = list(zip(pair_2['open'], pair_2['high']))
+
+
+    pair_1_open_price = pair_1_oh[0][0]
+    print(f"{PAIR_1_SYMBOL} open price {pair_1_open_price}")
+    pair_2_open_price = pair_2_oh[0][0]
+    print(f"{PAIR_2_SYMBOL} open price {pair_2_open_price}")
+
+    net_profits = list()
+    pair_1_profits = list()
+    pair_2_profits = list()
+    i = 1
+    for pair_1_o, pair_2_o in zip(pair_1['open'], pair_2['open']):
+        pair_1_profit = client.get_profit_calculation(PAIR_1_SYMBOL, pair_1_open_price, pair_1_o, PAIR_1_VOLUME, get_cmd(PAIR_1_POSITION))
+        pair_2_profit = client.get_profit_calculation(PAIR_2_SYMBOL, pair_2_open_price, pair_2_o, PAIR_2_VOLUME, get_cmd(PAIR_2_POSITION))
+        print(f"Candles processed {i} / {N_CANDLES}")
+        i += 1
+        net_profits.append(pair_1_profit + pair_2_profit)
+        pair_1_profits.append(pair_1_profit)
+        pair_2_profits.append(pair_2_profit)
+
+
+    if should_write_to_file:
+        prices = dict()
+        prices[PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL] = { PAIR_1_SYMBOL: pair_1['open'],
+                                                        PAIR_2_SYMBOL: pair_2['open'],
+                                                        'net_profits': net_profits,
+                                                        PAIR_1_SYMBOL + "_profits": pair_1_profits,
+                                                        PAIR_2_SYMBOL + "_profits": pair_2_profits,
+                                                        PAIR_1_SYMBOL + "_volume" : PAIR_1_VOLUME,
+                                                        PAIR_2_SYMBOL + "_volume" : PAIR_2_VOLUME,
+                                                        'N_DAYS': N_CANDLES,
+                                                        'date': str(datetime.now().date())}
+        write_to_json_file(get_filename(), prices)
+
+
+    return (pair_1, pair_2, pair_1_oh, pair_2_oh, net_profits)
+
+
+def get_prices_from_file():
+    filename = get_filename()
+    json_dict = read_json_file(filename)
+    pair_1_o = json_dict[PAIR_1_SYMBOL]
+    pair_2_o = json_dict[PAIR_2_SYMBOL]
+    net_profits = list()
+    for p1, p2 in  zip(json_dict[PAIR_1_SYMBOL + "_profits"], json_dict[PAIR_2_SYMBOL + "_profits"]):
+        net_profits.append(PAIR_1_MULTIPLIER * p1 + PAIR_2_MULTIPLIER * p2)
+
+    pair_1_open_price = pair_1_o[0]
+    print(f"{PAIR_1_SYMBOL} open price {pair_1_open_price}")
+    pair_2_open_price = pair_2_o[0]
+    print(f"{PAIR_2_SYMBOL} open price {pair_2_open_price}")
+
+    return (pair_1_o, pair_2_o, net_profits)
+
 
 if __name__ == '__main__':
 
@@ -15,41 +101,41 @@ if __name__ == '__main__':
 
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
 
-    n = 300
-    usd_huf = client.get_last_n_candles_history(Instrument('USDHUF', '1D'), n)
-    eur_usd = client.get_last_n_candles_history(Instrument('EURUSD', '1D'), n)
+    # (pair_1, pair_2, pair_1_oh, pair_2_oh, net_profits) = get_prices_from_client(client,
+    #                                                                              should_write_to_file=True)
 
-    usd_huf_oh = list(zip(usd_huf['open'], usd_huf['high']))
-    eur_usd_oh = list(zip(eur_usd['open'], eur_usd['high']))
+    (pair_1_o, pair_2_o, net_profits) = get_prices_from_file()
 
-
-    usd_huf_open_price = usd_huf_oh[0][0]
-    print("USD HUF OP", usd_huf_open_price)
-    eur_usd_open_price = eur_usd_oh[0][0]
-    print("EUR USD OP", eur_usd_open_price)
-
-    min_total_profit = 1000
-    max_total_profit = -1000
-
-    for ((usd_huf_o, usd_huf_h), (eur_usd_o, eur_usd_h)) in zip(usd_huf_oh, eur_usd_oh):
-        usdhuf_p = round(client.get_profit_calculation("USDHUF", usd_huf_open_price, usd_huf_h, 0.01, 1), 2)
-        eurusd_p = round(client.get_profit_calculation("EURUSD", eur_usd_open_price, eur_usd_h, 0.01, 1), 2)
-        total_profit = round(usdhuf_p + eurusd_p, 2)
-        if total_profit > max_total_profit:
-            max_total_profit = total_profit
-        if total_profit < min_total_profit:
-            min_total_profit = total_profit
-
-        print(usdhuf_p, eurusd_p, total_profit)
-
-
-    print(f"Min profit {min_total_profit}, Max profit {max_total_profit}")
-
-    data = {"EURUSD" : eur_usd['open'], "USDHUF": usd_huf['open']}
+    # data = {PAIR_1_SYMBOL : pair_1['open'], PAIR_2_SYMBOL: pair_2['open']}
+    data = {PAIR_1_SYMBOL : pair_1_o, PAIR_2_SYMBOL: pair_2_o}
     df = pd.DataFrame(data)
-    correlation = df["EURUSD"].corr(df["USDHUF"])
-    print(f"The correlation between EURUSD and USDHUF is {correlation}")
+    correlation = df[PAIR_1_SYMBOL].corr(df[PAIR_2_SYMBOL])
+    print(f"The correlation between {PAIR_1_SYMBOL} and {PAIR_2_SYMBOL} is {correlation}")
 
-# volumes usdhuf, eurusd: 0.01, 0.01: Min profit -250.82, Max profit 416.43
-# volumes usdhuf, eurusd: 0.01, 0.02: Min profit -315.63, Max profit 194.01
-# for 300 days volumes usdhuf, eurusd: 0.01, 0.01: Min profit -1085, Max profit -53.56
+    avg_net = sum(net_profits) / len(net_profits)
+    print(f"Average net profit: {avg_net}")
+
+    # Prepare net profits for bollinger bands
+    main_data = pd.DataFrame({'close': net_profits})
+    bb = BollingerBandsIndicator(20)
+    bb.calculate_bb(main_data)
+
+    fig, ax = plt.subplots(2, figsize=(10, 5), sharex=True)
+    ax[0].plot(net_profits, label=f'Hedged net profit', color='green')
+    ax[1].plot(net_profits, label=f'Hedged net profit', color='orange')
+    bb.plot(ax[1])
+
+    ax[0].legend()
+
+    ax[0].grid()
+    ax[1].grid()
+
+    ax[0].set_title(f'Hedged net profit for {PAIR_1_SYMBOL} {PAIR_1_POSITION} {PAIR_1_MULTIPLIER * PAIR_1_VOLUME} '
+                    f'with {PAIR_2_SYMBOL} {PAIR_2_POSITION} {PAIR_2_MULTIPLIER * PAIR_2_VOLUME}')
+    ax[1].set_title(f'Bollinger bands on hedged net profit')
+    ax[0].set_xlabel('Days')
+    ax[0].set_ylabel('Eur')
+
+    ax[1].set_xlabel('Days')
+    ax[1].set_ylabel('Eur')
+    plt.show()
