@@ -4,7 +4,7 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
 from Trading.live.alert.alert import get_total_swap_of_open_forex_trades_report, is_symbol_price_below_value, is_symbol_price_below_last_n_intervals_low
-
+from Trading.database.add_swaps_to_database import add_swap
 from dotenv import load_dotenv
 from datetime import datetime
 import os
@@ -30,10 +30,12 @@ if __name__ == '__main__':
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
         subject = "Daily swap report " + str(datetime.now())
-        body = get_total_swap_of_open_forex_trades_report(client)
+        body, data = get_total_swap_of_open_forex_trades_report(client)
         send_email(subject, body)
         MAIN_LOGGER.info(body)
-
+        for symbol, swap in data:
+            print("ADD SWAPS")
+            add_swap(symbol, swap)
     if MONITOR_FOREX_TRADE_SWAPS_ONCE == "True":
         monitor_once()
     else:

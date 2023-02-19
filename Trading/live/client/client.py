@@ -65,7 +65,7 @@ class LoggingClient:
         return symbols
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_profit_calculation(self, symbol, open_price, close_price, volume, cmd):
         # cmd = 0 for buy, 1 for sell
         self._client.login()
@@ -259,12 +259,16 @@ class TradingClient(LoggingClient):
         total_profit = 0.0
         total_swap = 0.0
         text_message = ""
+        data = list()
         for trade in open_trades:
             symbol = trade['symbol']
             symbol_info = self._client.get_symbol(symbol)
             if symbol_info['categoryName'] == 'FX':
                 pair_profit = float(trade['profit'])
                 pair_swap = float(trade['storage'])
+                if pair_swap == 0.0:
+                    continue
+                data.append((symbol, pair_swap))
                 total_profit += pair_profit
                 total_swap += pair_swap
                 text_message += "Pair:\t{}\tProfit:{:>10}\tSwap:{:>10}".format(symbol, pair_profit, pair_swap)
@@ -272,7 +276,7 @@ class TradingClient(LoggingClient):
         self._client.logout()
 
         total_profit = round(total_profit, 5)
-        return (total_profit, total_swap, text_message)
+        return (total_profit, total_swap, text_message, data)
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
