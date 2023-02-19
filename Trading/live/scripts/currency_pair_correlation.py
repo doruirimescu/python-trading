@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from Trading.algo.indicators.indicator import BollingerBandsIndicator
 
-N_CANDLES = 360
+N_CANDLES = 3
 PAIR_1_SYMBOL = 'USDHUF'
 PAIR_2_SYMBOL = 'EURUSD'
 PAIR_1_POSITION = 'SELL'
@@ -57,20 +57,19 @@ def get_prices_from_client(client, should_write_to_file=False):
 
 
     if should_write_to_file:
-        prices = dict()
-        prices[PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL] = { PAIR_1_SYMBOL: pair_1['open'],
-                                                        PAIR_2_SYMBOL: pair_2['open'],
-                                                        'net_profits': net_profits,
-                                                        PAIR_1_SYMBOL + "_profits": pair_1_profits,
-                                                        PAIR_2_SYMBOL + "_profits": pair_2_profits,
-                                                        PAIR_1_SYMBOL + "_volume" : PAIR_1_VOLUME,
-                                                        PAIR_2_SYMBOL + "_volume" : PAIR_2_VOLUME,
-                                                        'N_DAYS': N_CANDLES,
-                                                        'date': str(datetime.now().date())}
+        prices = {  PAIR_1_SYMBOL: pair_1['open'],
+                    PAIR_2_SYMBOL: pair_2['open'],
+                    'net_profits': net_profits,
+                    PAIR_1_SYMBOL + "_profits": pair_1_profits,
+                    PAIR_2_SYMBOL + "_profits": pair_2_profits,
+                    PAIR_1_SYMBOL + "_volume" : PAIR_1_VOLUME,
+                    PAIR_2_SYMBOL + "_volume" : PAIR_2_VOLUME,
+                    'N_DAYS': N_CANDLES,
+                    'date': str(datetime.now().date())}
         write_to_json_file(get_filename(), prices)
 
 
-    return (pair_1, pair_2, pair_1_oh, pair_2_oh, net_profits)
+    return (pair_1['open'], pair_2['open'], net_profits)
 
 
 def get_prices_from_file():
@@ -101,12 +100,10 @@ if __name__ == '__main__':
 
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
 
-    # (pair_1, pair_2, pair_1_oh, pair_2_oh, net_profits) = get_prices_from_client(client,
-    #                                                                              should_write_to_file=True)
+    (pair_1_o, pair_2_o, net_profits) = get_prices_from_client(client, should_write_to_file=True)
 
-    (pair_1_o, pair_2_o, net_profits) = get_prices_from_file()
+    # (pair_1_o, pair_2_o, net_profits) = get_prices_from_file()
 
-    # data = {PAIR_1_SYMBOL : pair_1['open'], PAIR_2_SYMBOL: pair_2['open']}
     data = {PAIR_1_SYMBOL : pair_1_o, PAIR_2_SYMBOL: pair_2_o}
     df = pd.DataFrame(data)
     correlation = df[PAIR_1_SYMBOL].corr(df[PAIR_2_SYMBOL])
