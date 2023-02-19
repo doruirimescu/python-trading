@@ -21,6 +21,10 @@ EMAIL_RECIPIENTS=["recipient@example.com"]
 MONITOR_FOREX_TRADE_SWAPS_ONCE="True"
 DATA_STORAGE_PATH="/home/user/other_paths/trading/Trading/live/scripts/data/"
 
+# Database
+DB_USERNAME='mysql_server_username'
+DB_PASSWORD='mysql_server_pwd'
+DB_NAME='trading'
 ```
 
 ## Trading live
