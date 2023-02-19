@@ -6,7 +6,7 @@ import json
 
 def write_to_json_file(file_name: str, data_dict: dict) -> None:
     f = open(file_name, 'w')
-    json_object = json.dumps(data_dict, indent=4)
+    json_object = json.dumps(data_dict, indent=4, sort_keys=True, default=str)
     f.write(json_object)
     f.close()
 

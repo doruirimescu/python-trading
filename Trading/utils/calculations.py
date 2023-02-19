@@ -1,6 +1,7 @@
 from typing import List, Tuple, Optional
 import logging
 import numpy as np
+import pandas as pd
 
 def round_to_two_decimals(decimal_number: float) -> float:
     """Rounds number to two decimal points
@@ -108,3 +109,25 @@ def calculate_max_drawdown(profits: List[float]) -> float:
         return 0
     cumulative_returns = calculate_cumulative_returns(profits)
     return round(min(cumulative_returns), 2)
+
+
+def calculate_correlation(instrument_1_symbol: str,
+                          instrument_2_symbol: str,
+                          instrument_1_open: List[float],
+                          instrument_2_open: List[float]) -> float:
+    data = {instrument_1_symbol : instrument_1_open, instrument_2_symbol: instrument_2_open}
+    df = pd.DataFrame(data)
+    correlation = df[instrument_1_symbol].corr(df[instrument_2_symbol])
+    print(f"The correlation between {instrument_1_symbol} and {instrument_2_symbol} is {correlation}")
+    return correlation
+
+
+def calculate_rolling_correlation(instrument_1_symbol: str,
+                                  instrument_2_symbol: str,
+                                  instrument_1_open: List[float],
+                                  instrument_2_open: List[float],
+                                  window: int = 20) -> List[float]:
+    data = {instrument_1_symbol : instrument_1_open, instrument_2_symbol: instrument_2_open}
+    df = pd.DataFrame(data)
+    rolling_correlation = df[instrument_1_symbol].rolling(window).corr(df[instrument_2_symbol])
+    return rolling_correlation
