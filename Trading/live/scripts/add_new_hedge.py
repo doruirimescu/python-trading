@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBLoggingClient
 from Trading.instrument.instrument import Instrument
-from Trading.config.config import USERNAME, PASSWORD, MODE
+from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
 from Trading.utils.calculations import calculate_correlation, calculate_rolling_correlation
 import logging
 from Trading.database.add_hedge_into_database import add_hedge
@@ -22,7 +22,7 @@ def get_cmd(position: str):
         return 1
 
 def get_filename():
-    return "data/hedging_correlation/" + PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL + ".json"
+    return DATA_STORAGE_PATH + "hedging_correlation/" + PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL + ".json"
 
 
 def get_prices_from_file():
