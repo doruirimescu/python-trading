@@ -30,7 +30,13 @@ if __name__ == '__main__':
     def monitor_once():
         trades = client.get_open_trades()
         for trade in trades:
+
             symbol = trade['symbol']
+
+            s = client.get_symbol(symbol)['categoryName']
+            if 'STC' in s:
+                continue
+
             nominal_value = float(trade['nominalValue'])
             if not contract_values.get(symbol):
                 contract_values[symbol] = 0.0
