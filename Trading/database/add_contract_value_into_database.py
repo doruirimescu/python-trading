@@ -11,7 +11,7 @@ def add_contract_value(symbol, value):
     cursor = db.cursor()
 
     # First delete
-    query = f"DELETE FROM trading.contract_value WHERE symbol='{symbol}';"
+    query = f"DELETE FROM trading.contract_value;"
     cursor.execute(query)
 
     query = (
