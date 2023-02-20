@@ -39,6 +39,11 @@ CREATE TABLE IF NOT EXISTS margin_level(
     stock_value DECIMAL (10,2) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS hedged_profit(
+    trade_name VARCHAR(100) NOT NULL,
+    net_profit DECIMAL (10,2) NOT NULL
+);
+
 -- CREATE TABLE IF NOT EXISTS open_trades(
 --     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 --     description VARCHAR(20) NOT NULL,
