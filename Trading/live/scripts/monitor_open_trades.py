@@ -3,7 +3,7 @@ from exception_with_retry import exception_with_retry
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.add_contract_value_into_database import add_contract_value
+from Trading.database.add_contract_value_into_database import add_contract_value, delete_contract_value
 from Trading.database.add_margin_level_into_database import add_margin_level
 from dotenv import load_dotenv
 
@@ -44,6 +44,7 @@ if __name__ == '__main__':
             if not contract_values.get(symbol):
                 contract_values[symbol] = 0.0
             contract_values[symbol] += contract_value
+        delete_contract_value()
         for k, v in contract_values.items():
             print(k, v)
             add_contract_value(k, v)
