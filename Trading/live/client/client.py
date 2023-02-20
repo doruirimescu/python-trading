@@ -143,6 +143,13 @@ class LoggingClient:
         self._client.logout()
         return response
 
+    def get_margin_trade(self, symbol, volume):
+        self._client.login()
+        response = self._client.get_margin_trade(symbol, volume)
+        self._client.logout()
+        return response['margin']
+
+
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
     def get_closed_trade_profit(self, position):

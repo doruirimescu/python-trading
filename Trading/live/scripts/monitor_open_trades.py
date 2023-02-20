@@ -32,15 +32,16 @@ if __name__ == '__main__':
         for trade in trades:
 
             symbol = trade['symbol']
-
-            s = client.get_symbol(symbol)['categoryName']
-            if 'STC' in s:
+            volume = trade['volume']
+            s = client.get_symbol(symbol)
+            cat = s['categoryName']
+            leverage = 100/float(s['leverage'])
+            if 'STC' in cat:
                 continue
-
-            nominal_value = float(trade['nominalValue'])
+            contract_value = client.get_margin_trade(symbol, volume) * leverage
             if not contract_values.get(symbol):
                 contract_values[symbol] = 0.0
-            contract_values[symbol] += nominal_value
+            contract_values[symbol] += contract_value
 
     monitor_once()
     for k, v in contract_values.items():
