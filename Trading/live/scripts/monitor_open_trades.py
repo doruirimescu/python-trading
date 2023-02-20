@@ -4,7 +4,7 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.database.add_contract_value_into_database import add_contract_value
-
+from Trading.database.add_margin_level_into_database import add_margin_level
 from dotenv import load_dotenv
 
 import os
@@ -26,6 +26,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     contract_values = dict()
+    margin_level = 0
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
         trades = client.get_open_trades()
@@ -35,6 +36,7 @@ if __name__ == '__main__':
             volume = trade['volume']
             s = client.get_symbol(symbol)
             cat = s['categoryName']
+
             leverage = 100/float(s['leverage'])
             if 'STC' in cat:
                 continue
@@ -42,8 +44,12 @@ if __name__ == '__main__':
             if not contract_values.get(symbol):
                 contract_values[symbol] = 0.0
             contract_values[symbol] += contract_value
+        for k, v in contract_values.items():
+            print(k, v)
+            add_contract_value(k, v)
 
+        margin_level = client.get_margin_level()
+        add_margin_level(margin_level['balance'], margin_level['margin'],
+                     margin_level['equity'], margin_level['margin_free'],
+                     margin_level['margin_level'], margin_level['stockValue'])
     monitor_once()
-    for k, v in contract_values.items():
-        print(k, v)
-        add_contract_value(k, v)

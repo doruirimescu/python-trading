@@ -29,6 +29,16 @@ CREATE TABLE IF NOT EXISTS contract_value(
     PRIMARY KEY(symbol)
 );
 
+CREATE TABLE IF NOT EXISTS margin_level(
+    id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    balance DECIMAL (10,2) NOT NULL,
+    margin DECIMAL (10,2) NOT NULL,
+    equity DECIMAL (10,2) NOT NULL,
+    margin_free DECIMAL (10,2) NOT NULL,
+    margin_level DECIMAL (10,2) NOT NULL,
+    stock_value DECIMAL (10,2) NOT NULL
+);
+
 -- CREATE TABLE IF NOT EXISTS open_trades(
 --     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 --     description VARCHAR(20) NOT NULL,
