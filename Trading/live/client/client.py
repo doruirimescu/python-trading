@@ -149,6 +149,12 @@ class LoggingClient:
         self._client.logout()
         return response['margin']
 
+    def get_margin_level(self):
+        self._client.login()
+        response = self._client.get_margin_level()
+        self._client.logout()
+        return response
+
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
