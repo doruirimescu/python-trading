@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS contract_value(
 );
 
 CREATE TABLE IF NOT EXISTS margin_level(
-    id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id int NOT NULL PRIMARY KEY,
     balance DECIMAL (10,2) NOT NULL,
     margin DECIMAL (10,2) NOT NULL,
     equity DECIMAL (10,2) NOT NULL,
