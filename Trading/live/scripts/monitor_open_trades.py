@@ -31,6 +31,8 @@ if __name__ == '__main__':
     def monitor_once():
         trades = client.get_open_trades()
         for trade in trades:
+            if trade['closed'] == True:
+                continue
 
             symbol = trade['symbol']
             volume = trade['volume']
