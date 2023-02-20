@@ -22,3 +22,15 @@ CREATE TABLE IF NOT EXISTS hedge_monitor(
     instrument_2_net_profits DECIMAL (10,2) NOT NULL,
     PRIMARY KEY(date_open, instrument_1_symbol, instrument_2_symbol, instrument_1_open_price, instrument_2_open_price)
 );
+
+CREATE TABLE IF NOT EXISTS contract_value(
+    symbol VARCHAR(20) NOT NULL,
+    contract_value DECIMAL (10,2) NOT NULL,
+    PRIMARY KEY(symbol)
+);
+
+-- CREATE TABLE IF NOT EXISTS open_trades(
+--     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+--     description VARCHAR(20) NOT NULL,
+--     net_profit DECIMAL (10,2) NOT NULL,
+-- );
