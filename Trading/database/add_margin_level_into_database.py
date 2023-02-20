@@ -15,8 +15,8 @@ def add_margin_level(balance, margin, equity, margin_free, margin_level, stock_v
     cursor.execute(query)
 
     query = (
-        f"INSERT INTO trading.margin_level(balance, margin, equity, margin_free, margin_level, stock_value) VALUES"
-        f" ({balance}, {margin}, {equity}, {margin_free}, {margin_level}, {stock_value});"
+        f"INSERT INTO trading.margin_level(id, balance, margin, equity, margin_free, margin_level, stock_value) VALUES"
+        f" (1, {balance}, {margin}, {equity}, {margin_free}, {margin_level}, {stock_value});"
         )
     cursor.execute(query)
     db.close()
