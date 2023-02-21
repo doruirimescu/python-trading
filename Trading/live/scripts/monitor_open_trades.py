@@ -32,7 +32,8 @@ if __name__ == '__main__':
 
     @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
-        hedged_profit = 0
+        aud_nzd_profit = 0
+        sek_nok_profit = 0
 
         trades = client.get_open_trades()
         for trade in trades:
@@ -43,7 +44,10 @@ if __name__ == '__main__':
             volume = trade['volume']
 
             if symbol == "AUDUSD" or symbol == "NZDUSD":
-                hedged_profit += float(trade['profit'])
+                aud_nzd_profit += float(trade['profit'])
+
+            if symbol == "USDSEK" or symbol == "USDNOK":
+                sek_nok_profit += float(trade['profit'])
 
             s = client.get_symbol(symbol)
             cat = s['categoryName']
@@ -60,7 +64,9 @@ if __name__ == '__main__':
             print(k, v)
             add_contract_value(k, v)
 
-        add_hedged_profit('AUDUSD_NZDUSD', hedged_profit)
+        add_hedged_profit('AUDUSD_NZDUSD', aud_nzd_profit)
+        add_hedged_profit('USDSEK_USDNOK', sek_nok_profit)
+
 
         margin_level = client.get_margin_level()
         add_margin_level(margin_level['balance'], margin_level['margin'],
