@@ -36,9 +36,9 @@ if __name__ == '__main__':
 
         trades = client.get_open_trades()
         for trade in trades:
-            if trade['closed'] == True:
+            if trade['closed'] == True or not trade['profit']:
                 continue
-
+            print(trade)
             symbol = trade['symbol']
             volume = trade['volume']
 
