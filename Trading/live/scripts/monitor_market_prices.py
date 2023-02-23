@@ -22,8 +22,8 @@ from time import sleep
 TIMEFRAME_TO_MONITOR = '1M'
 N_TIMEFRAMES = 12
 
-PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3), ('NATGAS', 2.54), ('MAXR.US', 53), ('PALLADIUM', 1650)]
-PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370), ('MAXR.US', 48), ('PALLADIUM', 1500)]
+PRICES_ABOVE_ALERTS = [('USDHUF', 360), ('EURMXN', 21), ('CHFHUF', 390), ('GOLD', 1950), ('NATGAS', 3), ('NATGAS', 2.54), ('MAXR.US', 53)]
+PRICES_BELOW_ALERTS = [('EBAY.US_9', 39), ('NATGAS', 2), ('ETSY.US_9', 79), ('BABA.US_9', 78), ('CHFHUF', 370), ('MAXR.US', 48), ('PALLADIUM', 1000)]
 
 if __name__ == '__main__':
 
@@ -42,9 +42,12 @@ if __name__ == '__main__':
 
     all_symbols_dict = read_json_file(DATA_STORAGE_PATH + 'symbols/all_symbols.json')
     failing_symbols = list()
-    report = "-------CUSTOM ALERTS-------\n"
+    report_header = "-------CUSTOM ALERTS-------\n"
+    report = None
     for symbol, price in PRICES_BELOW_ALERTS:
         try:
+            if report is None:
+                report = report_header
             r = is_symbol_price_below_value(client, symbol, price)
             if r is not None:
                 report += r
@@ -54,43 +57,43 @@ if __name__ == '__main__':
             MAIN_LOGGER.info(str(e) + " " + symbol)
             failing_symbols.append(symbol)
 
-    for symbol, price in PRICES_ABOVE_ALERTS:
-        try:
-            r = is_symbol_price_above_value(client, symbol, price)
-            if r is not None:
-                report += r
-                report += "\n"
-                MAIN_LOGGER.info(r)
-        except Exception as e:
-            MAIN_LOGGER.info(str(e) + " " + symbol)
-            failing_symbols.append(symbol)
+    # for symbol, price in PRICES_ABOVE_ALERTS:
+    #     try:
+    #         r = is_symbol_price_above_value(client, symbol, price)
+    #         if r is not None:
+    #             report += r
+    #             report += "\n"
+    #             MAIN_LOGGER.info(r)
+    #     except Exception as e:
+    #         MAIN_LOGGER.info(str(e) + " " + symbol)
+    #         failing_symbols.append(symbol)
 
-    report += "-------MARKET ANALYSIS-------"
-    for symbol in all_symbols_dict:
-        if symbol in FAILING_SYMBOLS:
-            continue
-        try:
-            r = is_symbol_price_below_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
-            if r is not None:
-                report += r
-                report += "\n"
-                MAIN_LOGGER.info(r)
-        except Exception as e:
-            MAIN_LOGGER.info(str(e) + " " + symbol)
-            failing_symbols.append(symbol)
-        try:
-            r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
-            if r is not None:
-                report += r
-                report += "\n"
-                MAIN_LOGGER.info(r)
-        except Exception as e:
-            MAIN_LOGGER.info(str(e) + " " + symbol)
-            failing_symbols.append(symbol)
+    # report += "-------MARKET ANALYSIS-------"
+    # for symbol in all_symbols_dict:
+    #     if symbol in FAILING_SYMBOLS:
+    #         continue
+    #     try:
+    #         r = is_symbol_price_below_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
+    #         if r is not None:
+    #             report += r
+    #             report += "\n"
+    #             MAIN_LOGGER.info(r)
+    #     except Exception as e:
+    #         MAIN_LOGGER.info(str(e) + " " + symbol)
+    #         failing_symbols.append(symbol)
+    #     try:
+    #         r = is_symbol_price_above_last_n_intervals_low(client, Instrument(symbol, TIMEFRAME_TO_MONITOR), N_TIMEFRAMES)
+    #         if r is not None:
+    #             report += r
+    #             report += "\n"
+    #             MAIN_LOGGER.info(r)
+    #     except Exception as e:
+    #         MAIN_LOGGER.info(str(e) + " " + symbol)
+    #         failing_symbols.append(symbol)
 
-
-time_now = str(get_date_now_cet())
-subject = "Daily market monitor report " + time_now
-report += "\n"
-report += str(failing_symbols)
-send_email(subject, report)
+if report is not None:
+    time_now = str(get_date_now_cet())
+    subject = "Daily market monitor report " + time_now
+    report += "\n"
+    report += str(failing_symbols)
+    send_email(subject, report)
