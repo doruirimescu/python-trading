@@ -53,7 +53,7 @@ if __name__ == '__main__':
             cat = s['categoryName']
 
             leverage = 100/float(s['leverage'])
-            if 'STC' in cat:
+            if 'STC' in cat or 'ETF' in cat:
                 continue
             contract_value = client.get_margin_trade(symbol, volume) * leverage
             if not contract_values.get(symbol):
