@@ -302,11 +302,12 @@ class TradingClient(LoggingClient):
             symbol_info = self._client.get_symbol(symbol)
             if symbol_info['categoryName'] == 'FX':
                 short_long = trade['cmd']
-                print(symbol_info, short_long)
                 if short_long == 0:
                     swap = symbol_info['swapLong']
                 elif short_long == 1:
                     swap = symbol_info['swapShort']
+                else:
+                    continue
                 symbol_list.append((symbol, swap,))
         return symbol_list
 
