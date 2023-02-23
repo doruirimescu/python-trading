@@ -3,12 +3,13 @@ from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
 from Trading.utils.calculations import round_to_two_decimals
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple, List
 
 
 # We should create one main daily report, which aggregates all the alerts
-def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> str:
+def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> Tuple[str, List]:
     open_trade_swaps = client.get_swaps_of_forex_open_trades()
+    print(open_trade_swaps)
     report = ""
     for symbol, swap in open_trade_swaps:
         if swap < 0.0:
