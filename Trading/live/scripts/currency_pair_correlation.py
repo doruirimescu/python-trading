@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
-N_CANDLES = 0
+N_CANDLES = 360
 PAIR_1_SYMBOL = 'USDSEK'
 PAIR_2_SYMBOL = 'USDNOK'
 PAIR_1_POSITION = 'BUY'
@@ -26,8 +26,8 @@ PAIR_2_VOLUME = 0.01
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 2
 
-FROM_CLIENT = False
-SAVE_TO_FILE = False
+FROM_CLIENT      = False
+SAVE_TO_FILE     = False
 
 if FROM_CLIENT:
     PAIR_1_MULTIPLIER, PAIR_2_MULTIPLIER = 1, 1
@@ -73,6 +73,15 @@ def add_missing_candles_to_existing_json():
         print(f"Candles processed {i} / {days_behind}")
         i += 1
 
+    if json_dict['dates'][-1] == pair_1['date'][0]:
+        pair_1['open'].pop()
+        pair_2['open'].pop()
+        net_profits.pop()
+        json_dict[PAIR_1_SYMBOL + "_profits"].pop()
+        json_dict[PAIR_2_SYMBOL + "_profits"].pop()
+        json_dict['dates'].pop()
+        days_behind -= 1
+
     json_dict[PAIR_1_SYMBOL] += pair_1['open']
     json_dict[PAIR_2_SYMBOL] += pair_2['open']
     json_dict['net_profits'] += net_profits
@@ -82,6 +91,7 @@ def add_missing_candles_to_existing_json():
     json_dict['dates'] += pair_1['date']
 
     write_to_json_file(get_filename(), json_dict)
+    exit()
 
 def get_prices_from_client(client):
     pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, '1D'), N_CANDLES)
@@ -100,7 +110,6 @@ def get_prices_from_client(client):
     for pair_1_o, pair_2_o in zip(pair_1['open'], pair_2['open']):
         pair_1_profit = client.get_profit_calculation(PAIR_1_SYMBOL, pair_1_open_price, pair_1_o, PAIR_1_VOLUME, get_cmd(PAIR_1_POSITION))
         pair_2_profit = client.get_profit_calculation(PAIR_2_SYMBOL, pair_2_open_price, pair_2_o, PAIR_2_VOLUME, get_cmd(PAIR_2_POSITION))
-        print(f"Candles processed {i} / {N_CANDLES}")
         i += 1
         net_profits.append(pair_1_profit + pair_2_profit)
         pair_1_profits.append(pair_1_profit)
@@ -141,6 +150,21 @@ def get_prices_from_file():
     return (pair_1_o, pair_2_o, net_profits)
 
 
+def count_zero_crossings(net_profits):
+    n = 0
+    for i, j in zip(net_profits, net_profits[1:]):
+        if i*j <= 0:
+            n += 1
+    return n
+
+def convert_ron_to_eur(net_profits):
+    """Profit calculations coming from client are in RON, because the demo account is in RON.
+    Thus, before presenting, we need to convert in eur
+    """
+    eur_ron = float(client.get_current_price('EURRON')[0])
+    print(eur_ron)
+    return [float(n)/eur_ron for n in net_profits]
+
 if __name__ == '__main__':
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -152,12 +176,13 @@ if __name__ == '__main__':
 
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
     add_missing_candles_to_existing_json()
-    exit()
 
     if FROM_CLIENT:
         (pair_1_o, pair_2_o, net_profits) = get_prices_from_client(client)
     else:
         (pair_1_o, pair_2_o, net_profits) = get_prices_from_file()
+
+    net_profits = convert_ron_to_eur(net_profits)
 
     avg_net = sum(net_profits) / len(net_profits)
     print(f"Average net profit: {avg_net}")
@@ -175,28 +200,30 @@ if __name__ == '__main__':
                                                         pair_2_o,
                                                         20)
 
+    print(f"Crossed zero {count_zero_crossings(net_profits)} times")
+
     fig, ax = plt.subplots(3, figsize=(10, 5), sharex=True)
     ax[0].plot(net_profits, label=f'Hedged net profit', color='green')
+
     ax[1].plot(net_profits, label=f'Hedged net profit', color='orange')
-    ax[2].plot(rolling_correlation, label=f'Rolling correlation', color='green')
     bb.plot(ax[1])
+    ax[1].set_title(f'Bollinger bands on hedged net profit')
+    ax[1].set_xlabel('Days')
+    ax[1].set_ylabel('Eur')
+    ax[1].grid()
+
     ax[0].axhline(color='red')
 
     ax[0].legend()
-    ax[2].legend()
-
     ax[0].grid()
-    ax[1].grid()
-    ax[2].grid()
-
     ax[0].set_title(f'Hedged net profit for {PAIR_1_SYMBOL} {PAIR_1_POSITION} {PAIR_1_MULTIPLIER * PAIR_1_VOLUME} '
                     f'with {PAIR_2_SYMBOL} {PAIR_2_POSITION} {PAIR_2_MULTIPLIER * PAIR_2_VOLUME}')
-    ax[1].set_title(f'Bollinger bands on hedged net profit')
     ax[0].set_xlabel('Days')
     ax[0].set_ylabel('Eur')
-
-    ax[1].set_xlabel('Days')
-    ax[1].set_ylabel('Eur')
     ax[0].tick_params(labelbottom=True)
+
+    ax[2].plot(rolling_correlation, label=f'Rolling correlation', color='green')
+    ax[2].legend()
+    ax[2].grid()
 
     plt.show()
