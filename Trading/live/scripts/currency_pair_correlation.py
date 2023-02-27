@@ -16,8 +16,8 @@ from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
 N_CANDLES = 360
-PAIR_1_SYMBOL = 'USDSEK'
-PAIR_2_SYMBOL = 'USDNOK'
+PAIR_1_SYMBOL = 'AUDUSD'
+PAIR_2_SYMBOL = 'NZDUSD'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
 PAIR_1_VOLUME = 0.01
@@ -49,9 +49,11 @@ def add_missing_candles_to_existing_json():
     json_dict = read_json_file(filename)
     today_date = get_datetime_now_cet()
     last_date_in_dict = datetime.datetime.strptime(json_dict['dates'][-1], "%Y-%m-%d %H:%M:%S")
+    last_date_in_dict_no_timezone = last_date_in_dict
     last_date_in_dict = pytz.timezone(TIMEZONE).localize(last_date_in_dict)
 
     days_behind = (today_date - last_date_in_dict).days
+
     if days_behind <= 0:
         return
 
@@ -73,7 +75,9 @@ def add_missing_candles_to_existing_json():
         print(f"Candles processed {i} / {days_behind}")
         i += 1
 
-    if json_dict['dates'][-1] == pair_1['date'][0]:
+    print(last_date_in_dict_no_timezone)
+    if last_date_in_dict_no_timezone == pair_1['date'][0]:
+        print("POPPING")
         pair_1['open'].pop()
         pair_2['open'].pop()
         net_profits.pop()
