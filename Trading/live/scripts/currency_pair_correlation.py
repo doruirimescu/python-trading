@@ -16,7 +16,7 @@ from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
 N_CANDLES = 360
-PAIR_1_SYMBOL = 'AUDUSD'
+PAIR_1_SYMBOL = 'EURUSD'
 PAIR_2_SYMBOL = 'NZDUSD'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
@@ -26,7 +26,7 @@ PAIR_2_VOLUME = 0.01
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 2
 
-FROM_CLIENT      = False
+FROM_CLIENT      = True
 SAVE_TO_FILE     = False
 
 if FROM_CLIENT:
@@ -47,6 +47,8 @@ def get_filename():
 def add_missing_candles_to_existing_json():
     filename = get_filename()
     json_dict = read_json_file(filename)
+    if not json_dict:
+        return
     today_date = get_datetime_now_cet()
     last_date_in_dict = datetime.datetime.strptime(json_dict['dates'][-1], "%Y-%m-%d %H:%M:%S")
     last_date_in_dict_no_timezone = last_date_in_dict
@@ -111,14 +113,17 @@ def get_prices_from_client(client):
     pair_1_profits = list()
     pair_2_profits = list()
     i = 1
+    client.login()
     for pair_1_o, pair_2_o in zip(pair_1['open'], pair_2['open']):
         pair_1_profit = client.get_profit_calculation(PAIR_1_SYMBOL, pair_1_open_price, pair_1_o, PAIR_1_VOLUME, get_cmd(PAIR_1_POSITION))
         pair_2_profit = client.get_profit_calculation(PAIR_2_SYMBOL, pair_2_open_price, pair_2_o, PAIR_2_VOLUME, get_cmd(PAIR_2_POSITION))
-        i += 1
+
         net_profits.append(pair_1_profit + pair_2_profit)
         pair_1_profits.append(pair_1_profit)
         pair_2_profits.append(pair_2_profit)
-
+        print(f"Candles processed {i} / {N_CANDLES}")
+        i += 1
+    client.logout()
     if SAVE_TO_FILE:
         prices = {  PAIR_1_SYMBOL: pair_1['open'],
                     PAIR_2_SYMBOL: pair_2['open'],
