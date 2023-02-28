@@ -44,8 +44,14 @@ CREATE TABLE IF NOT EXISTS hedged_profit(
     net_profit DECIMAL (10,2) NOT NULL
 );
 
--- CREATE TABLE IF NOT EXISTS open_trades(
---     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
---     description VARCHAR(20) NOT NULL,
---     net_profit DECIMAL (10,2) NOT NULL,
--- );
+CREATE TABLE IF NOT EXISTS open_trades(
+    symbol VARCHAR(20) NOT NULL,
+    instrument_type VARCHAR(20) NOT NULL,
+    gross_profit DECIMAL (10,2) NOT NULL,
+    swap DECIMAL (10,2) NOT NULL,
+    cmd  INT NOT NULL,
+    open_price DECIMAL (10,5) NOT NULL,
+    timestamp_open VARCHAR(30),
+    position_id INT NOT NULL,
+    order_id INT NOT NULL
+);
