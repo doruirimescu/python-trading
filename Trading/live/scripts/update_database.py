@@ -1,11 +1,6 @@
-from exception_with_retry import exception_with_retry
-
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.add_contract_value_into_database import add_contract_value, delete_contract_value
-from Trading.database.add_hedged_trade_profit_into_database import add_hedged_profit
-from Trading.database.wrapper import update_open_trades
+from Trading.database.wrapper import update_open_trades, clear_open_trades
 from dotenv import load_dotenv
 
 import os
@@ -27,6 +22,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     trades = client.get_open_trades()
+    clear_open_trades()
     for trade in trades:
         if trade['closed'] == True or not trade['profit']:
                 continue
