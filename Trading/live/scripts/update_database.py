@@ -10,7 +10,6 @@ import logging
 
 def _update_open_trades(client):
     trades = client.get_open_trades()
-    clear_open_trades()
 
     updates = list()
     for trade in trades:
@@ -42,6 +41,7 @@ def _update_open_trades(client):
                 order_id=order_id
                 )
             )
+    clear_open_trades()
     update_open_trades(updates)
 
 

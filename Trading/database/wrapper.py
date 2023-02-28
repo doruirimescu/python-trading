@@ -3,6 +3,7 @@ from Trading.config.config import DB_USERNAME, DB_PASSWORD, DB_NAME, DATA_STORAG
 from Trading.utils.write_to_file import read_json_file
 from Trading.database.add_hedge_into_database import add_hedge
 from dataclasses import dataclass
+from typing import List
 import pymysql
 
 
@@ -18,6 +19,7 @@ class OpenTradeUpdate:
     position_id: int
     order_id: int
 
+
 def clear_open_trades():
     db = pymysql.connect(host='localhost', database=DB_NAME, user=DB_USERNAME, password=DB_PASSWORD)
     db.autocommit(True)
@@ -27,17 +29,17 @@ def clear_open_trades():
     db.close()
 
 
-def update_open_trades(update: OpenTradeUpdate):
+def update_open_trades(updates: List[OpenTradeUpdate]):
     # Open database connection
     db = pymysql.connect(host='localhost', database=DB_NAME, user=DB_USERNAME, password=DB_PASSWORD)
     db.autocommit(True)
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
-
-    query = (
-        f"INSERT INTO trading.open_trades(symbol, instrument_type, gross_profit, swap, cmd, open_price, timestamp_open, position_id, order_id) VALUES"
-        f" ('{update.symbol}', '{update.instrument_type}', {update.gross_profit}, {update.swap}, {update.cmd}, {update.open_price}, '{update.timestamp_open}', {update.position_id}, {update.order_id});"
-        )
+    for update in updates:
+        query = (
+            f"INSERT INTO trading.open_trades(symbol, instrument_type, gross_profit, swap, cmd, open_price, timestamp_open, position_id, order_id) VALUES"
+            f" ('{update.symbol}', '{update.instrument_type}', {update.gross_profit}, {update.swap}, {update.cmd}, {update.open_price}, '{update.timestamp_open}', {update.position_id}, {update.order_id});"
+            )
     print(query)
     cursor.execute(query)
     db.close()
