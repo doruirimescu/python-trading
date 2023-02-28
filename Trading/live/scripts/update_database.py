@@ -2,25 +2,13 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.database.wrapper import update_open_trades, clear_open_trades
 from dotenv import load_dotenv
+import time
 
 import os
 import logging
 
-if __name__ == '__main__':
 
-    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=FORMAT)
-
-    MAIN_LOGGER = logging.getLogger('Main logger')
-    MAIN_LOGGER.setLevel(logging.DEBUG)
-    MAIN_LOGGER.propagate = True
-
-    load_dotenv()
-    username = os.getenv("XTB_USERNAME")
-    password = os.getenv("XTB_PASSWORD")
-    mode = os.getenv("XTB_MODE")
-    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
-
+def _update_open_trades(client):
     trades = client.get_open_trades()
     clear_open_trades()
     for trade in trades:
@@ -45,3 +33,23 @@ if __name__ == '__main__':
         update_open_trades(
             symbol, instrument_type, gross_profit, swap,
             cmd, open_price, timestamp_open, position_id, order_id)
+
+
+if __name__ == '__main__':
+
+    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(format=FORMAT)
+
+    MAIN_LOGGER = logging.getLogger('Main logger')
+    MAIN_LOGGER.setLevel(logging.DEBUG)
+    MAIN_LOGGER.propagate = True
+
+    load_dotenv()
+    username = os.getenv("XTB_USERNAME")
+    password = os.getenv("XTB_PASSWORD")
+    mode = os.getenv("XTB_MODE")
+    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
+
+    while True:
+        _update_open_trades(client)
+        time.sleep(1)
