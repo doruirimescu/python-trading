@@ -35,11 +35,11 @@ def update_open_trades(updates: List[OpenTradeUpdate]):
     db.autocommit(True)
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
+    print(updates)
     for update in updates:
         query = (
             f"INSERT INTO trading.open_trades(symbol, instrument_type, gross_profit, swap, cmd, open_price, timestamp_open, position_id, order_id) VALUES"
             f" ('{update.symbol}', '{update.instrument_type}', {update.gross_profit}, {update.swap}, {update.cmd}, {update.open_price}, '{update.timestamp_open}', {update.position_id}, {update.order_id});"
             )
-    print(query)
     cursor.execute(query)
     db.close()
