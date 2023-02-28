@@ -14,7 +14,7 @@ def _update_open_trades(client):
     updates = list()
     for trade in trades:
         if trade['closed'] == True or not trade['profit']:
-                continue
+            continue
         if trade['cmd'] != 0 and trade['cmd'] != 1:
             continue
 
