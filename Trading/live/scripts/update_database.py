@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.wrapper import update_open_trades, clear_open_trades
+from Trading.database.wrapper import update_open_trades, clear_open_trades, OpenTradeUpdate
 from dotenv import load_dotenv
 import time
 
@@ -11,6 +11,8 @@ import logging
 def _update_open_trades(client):
     trades = client.get_open_trades()
     clear_open_trades()
+
+    updates = list()
     for trade in trades:
         if trade['closed'] == True or not trade['profit']:
                 continue
@@ -30,9 +32,17 @@ def _update_open_trades(client):
         s = client.get_symbol(symbol)
         instrument_type = s['categoryName']
 
-        update_open_trades(
-            symbol, instrument_type, gross_profit, swap,
-            cmd, open_price, timestamp_open, position_id, order_id)
+        updates.append(
+            OpenTradeUpdate
+            (
+                symbol=symbol, instrument_type=instrument_type,
+                gross_profit=gross_profit, swap=swap,
+                cmd=cmd, open_price=open_price,
+                timestamp_open=timestamp_open, position_id=position_id,
+                order_id=order_id
+                )
+            )
+    update_open_trades(updates)
 
 
 if __name__ == '__main__':
