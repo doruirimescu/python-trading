@@ -61,5 +61,8 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     while True:
-        _update_open_trades(client)
+        try:
+            _update_open_trades(client)
+        except Exception as e:
+            time.sleep(5)
         time.sleep(1)
