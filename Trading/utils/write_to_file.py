@@ -2,6 +2,9 @@ from Trading.utils.time import get_date_now_cet
 from Trading.config.config import DATA_STORAGE_PATH
 import os
 import json
+from Trading.utils.logging import get_logger
+
+MAIN_LOGGER = get_logger()
 
 
 def write_to_json_file(file_name: str, data_dict: dict) -> None:
@@ -9,6 +12,8 @@ def write_to_json_file(file_name: str, data_dict: dict) -> None:
     json_object = json.dumps(data_dict, indent=4, sort_keys=True, default=str)
     f.write(json_object)
     f.close()
+    MAIN_LOGGER.info(f"Wrote to file {file_name}")
+
 
 def read_json_file(file_name: str) -> dict:
     try:
@@ -17,6 +22,7 @@ def read_json_file(file_name: str) -> dict:
             return json_data
     except Exception as e:
         return None
+
 
 def read_historical_data(file_name: str) -> dict:
     ohlc = read_json_file(file_name)
@@ -32,6 +38,7 @@ def read_historical_data(file_name: str) -> dict:
         history['low'].append(l)
         history['close'].append(c)
     return history
+
 
 def write_json_to_file_named_with_today_date(json_dict, file_path: str):
     data_path = os.getenv("DATA_STORAGE_PATH", "data/")
