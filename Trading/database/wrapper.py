@@ -7,7 +7,7 @@ from typing import List
 import pymysql
 
 
-@dataclass
+@dataclass(frozen=True)
 class OpenTrade:
     symbol: str
     instrument_type: str
