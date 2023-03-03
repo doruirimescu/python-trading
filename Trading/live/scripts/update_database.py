@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.wrapper import update_open_trades, clear_open_trades, OpenTrade
+from Trading.database.wrapper import TradingDatabase, OpenTrade
 from dotenv import load_dotenv
 import time
 
@@ -41,8 +41,11 @@ def _update_open_trades(client):
                 order_id=order_id
                 )
             )
-    clear_open_trades()
-    update_open_trades(updates)
+    trading_db = TradingDatabase()
+    with trading_db:
+        trading_db.clear_open_trades()
+        trading_db.update_open_trades(updates)
+
 
 
 if __name__ == '__main__':
@@ -64,5 +67,6 @@ if __name__ == '__main__':
         try:
             _update_open_trades(client)
         except Exception as e:
+            print(e)
             time.sleep(5)
         time.sleep(1)
