@@ -161,3 +161,11 @@ def calculate_net_profit_eur(open_price: float,
         raise ValueError("Wrong cmd {cmd}, acceptable values are 0 or 1")
     net_profit_quote_currency = price_difference * contract_value
     return net_profit_quote_currency * quote_currency_to_eur_conversion_rate
+
+
+def count_zero_crossings(prices: List[float]):
+    n = 0
+    for i, j in zip(prices, prices[1:]):
+        if i*j <= 0:
+            n += 1
+    return n
