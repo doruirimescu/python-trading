@@ -1,4 +1,4 @@
-from Trading.live.client.client import XTBLoggingClient
+from Trading.live.client.client import XTBLoggingClient, get_cmd
 from Trading.instrument.instrument import Instrument
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import calculate_correlation, calculate_rolling_correlation
@@ -16,8 +16,8 @@ from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
 N_CANDLES = 360
-PAIR_1_SYMBOL = 'EURUSD'
-PAIR_2_SYMBOL = 'NZDUSD'
+PAIR_1_SYMBOL = 'USDSEK'
+PAIR_2_SYMBOL = 'USDNOK'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
 PAIR_1_VOLUME = 0.01
@@ -32,17 +32,14 @@ SAVE_TO_FILE     = False
 if FROM_CLIENT:
     PAIR_1_MULTIPLIER, PAIR_2_MULTIPLIER = 1, 1
 
+
 def exit():
     sys.exit(0)
 
-def get_cmd(position: str):
-    if position == 'BUY':
-        return 0
-    else:
-        return 1
 
 def get_filename():
     return "data/hedging_correlation/" + PAIR_1_SYMBOL + "_" + PAIR_2_SYMBOL + ".json"
+
 
 def add_missing_candles_to_existing_json():
     filename = get_filename()
@@ -99,10 +96,10 @@ def add_missing_candles_to_existing_json():
     write_to_json_file(get_filename(), json_dict)
     exit()
 
+
 def get_prices_from_client(client):
     pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, '1D'), N_CANDLES)
     pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, '1D'), N_CANDLES)
-
 
     pair_1_open_price = pair_1['open'][0]
     print(f"{PAIR_1_SYMBOL} open price {pair_1_open_price}")
@@ -137,7 +134,6 @@ def get_prices_from_client(client):
                     'N_DAYS': N_CANDLES,
                     'dates': pair_1['date']}
         write_to_json_file(get_filename(), prices)
-
 
     return (pair_1['open'], pair_2['open'], net_profits)
 
