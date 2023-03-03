@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.wrapper import update_open_trades, clear_open_trades, OpenTradeUpdate
+from Trading.database.wrapper import update_open_trades, clear_open_trades, OpenTrade
 from dotenv import load_dotenv
 import time
 
@@ -32,7 +32,7 @@ def _update_open_trades(client):
         instrument_type = s['categoryName']
 
         updates.append(
-            OpenTradeUpdate
+            OpenTrade
             (
                 symbol=symbol, instrument_type=instrument_type,
                 gross_profit=gross_profit, swap=swap,

@@ -8,7 +8,7 @@ import pymysql
 
 
 @dataclass
-class OpenTradeUpdate:
+class OpenTrade:
     symbol: str
     instrument_type: str
     gross_profit: float
@@ -29,7 +29,7 @@ def clear_open_trades():
     db.close()
 
 
-def update_open_trades(updates: List[OpenTradeUpdate]):
+def update_open_trades(updates: List[OpenTrade]):
     # Open database connection
     db = pymysql.connect(host='localhost', database=DB_NAME, user=DB_USERNAME, password=DB_PASSWORD)
     db.autocommit(True)
