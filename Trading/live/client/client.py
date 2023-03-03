@@ -74,9 +74,9 @@ class LoggingClient:
     @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_profit_calculation(self, symbol, open_price, close_price, volume, cmd):
         # cmd = 0 for buy, 1 for sell
-        # self._client.login()
+        self._client.login()
         response = self._client.get_profit_calculation(symbol, cmd, volume, open_price, close_price)
-        # self._client.logout()
+        self._client.logout()
         return float(response['profit'])
 
     @send_email_if_exception_occurs()

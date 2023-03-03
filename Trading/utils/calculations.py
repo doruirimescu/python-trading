@@ -2,6 +2,9 @@ from typing import List, Tuple, Optional
 import logging
 import numpy as np
 import pandas as pd
+from Trading.utils.logging import get_logger
+
+MAIN_LOGGER = get_logger()
 
 
 def are_all_items_same(items: List) -> bool:
@@ -127,7 +130,7 @@ def calculate_correlation(instrument_1_symbol: str,
     data = {instrument_1_symbol : instrument_1_open, instrument_2_symbol: instrument_2_open}
     df = pd.DataFrame(data)
     correlation = df[instrument_1_symbol].corr(df[instrument_2_symbol])
-    print(f"The correlation between {instrument_1_symbol} and {instrument_2_symbol} is {correlation}")
+    MAIN_LOGGER.info(f"The correlation between {instrument_1_symbol} and {instrument_2_symbol} is {correlation}")
     return correlation
 
 
