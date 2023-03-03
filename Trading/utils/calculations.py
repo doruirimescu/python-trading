@@ -141,11 +141,15 @@ def calculate_rolling_correlation(instrument_1_symbol: str,
     rolling_correlation = df[instrument_1_symbol].rolling(window).corr(df[instrument_2_symbol])
     return rolling_correlation
 
+
 def calculate_net_profit_eur(open_price: float,
                              close_price: float,
                              contract_value: int,
-                             quote_currency_to_eur_conversion: float,
+                             quote_currency_to_eur_conversion_rate: float,
                              cmd: int):
+    """Calculate net profit in euro, taking into account the open price, close price,
+    contract value (volume*contractSize), quote currency to euro conversion rate
+    """
     price_difference = 0
     if cmd == 0:
         #buy
@@ -156,4 +160,4 @@ def calculate_net_profit_eur(open_price: float,
     else:
         raise ValueError("Wrong cmd {cmd}, acceptable values are 0 or 1")
     net_profit_quote_currency = price_difference * contract_value
-    return net_profit_quote_currency * quote_currency_to_eur_conversion
+    return net_profit_quote_currency * quote_currency_to_eur_conversion_rate
