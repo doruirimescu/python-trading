@@ -1,8 +1,11 @@
 from Trading.instrument.instrument import Instrument
 from Trading.live.client.client import get_cmd, LoggingClient
-from Trading.config.config import DATA_STORAGE_PATH
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
+from Trading.utils.logging import get_logger
+from Trading.config.config import DATA_STORAGE_PATH
 from typing import List
+
+MAIN_LOGGER = get_logger()
 
 
 def get_prices_from_client(client: LoggingClient,
@@ -22,8 +25,8 @@ def get_prices_from_client(client: LoggingClient,
     if not should_reference_profits_to_zero:
         pair_1_open_price = pair_1['open'][0]
         pair_2_open_price = pair_2['open'][0]
-    print(f"{pair_1_symbol} open price {pair_1_open_price}")
-    print(f"{pair_2_symbol} open price {pair_2_open_price}")
+    MAIN_LOGGER.info(f"{pair_1_symbol} open price {pair_1_open_price}")
+    MAIN_LOGGER.info(f"{pair_2_symbol} open price {pair_2_open_price}")
 
     net_profits = list()
     pair_1_profits = list()
@@ -41,7 +44,7 @@ def get_prices_from_client(client: LoggingClient,
         net_profits.append(pair_1_profit + pair_2_profit)
         pair_1_profits.append(pair_1_profit)
         pair_2_profits.append(pair_2_profit)
-        print(f"Candles processed {i} / {n_candles}")
+        MAIN_LOGGER.info(f"Candles processed {i} / {n_candles}")
         i += 1
     client.logout()
     prices = {
@@ -62,23 +65,24 @@ def get_prices_from_client(client: LoggingClient,
 
 
 def get_prices_from_file(
-    pair_1_symbol: str,
-    pair_2_symbol: str,
-    pair_1_multiplier: float,
-    pair_2_multiplier: float,
-    ):
+        pair_1_symbol: str,
+        pair_2_symbol: str,
+        pair_1_multiplier: float,
+        pair_2_multiplier: float,
+        ):
     filename = get_filename(pair_1_symbol, pair_2_symbol)
     json_dict = read_json_file(filename)
     pair_1_o = json_dict[pair_1_symbol]
     pair_2_o = json_dict[pair_2_symbol]
     net_profits = list()
-    for p1, p2 in  zip(json_dict[pair_1_symbol + "_profits"], json_dict[pair_2_symbol + "_profits"]):
+    for p1, p2 in zip(json_dict[pair_1_symbol + "_profits"], json_dict[pair_2_symbol + "_profits"]):
         net_profits.append(pair_1_multiplier * p1 + pair_2_multiplier * p2)
 
     pair_1_open_price = pair_1_o[0]
-    print(f"{pair_1_symbol} open price {pair_1_open_price}")
     pair_2_open_price = pair_2_o[0]
-    print(f"{pair_2_symbol} open price {pair_2_open_price}")
+
+    MAIN_LOGGER.info(f"{pair_1_symbol} open price {pair_1_open_price}")
+    MAIN_LOGGER.info(f"{pair_2_symbol} open price {pair_2_open_price}")
 
     return (pair_1_o, pair_2_o, net_profits)
 
