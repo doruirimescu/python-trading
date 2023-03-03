@@ -1,7 +1,7 @@
 from Trading.live.client.client import XTBLoggingClient, get_cmd
 from Trading.instrument.instrument import Instrument
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.utils.calculations import calculate_correlation, calculate_rolling_correlation
+from Trading.utils.calculations import calculate_correlation, calculate_rolling_correlation, count_zero_crossings
 from Trading.utils.time import get_datetime_now_cet
 from Trading.config.config import TIMEZONE
 import pytz
@@ -154,13 +154,6 @@ def get_prices_from_file():
 
     return (pair_1_o, pair_2_o, net_profits)
 
-
-def count_zero_crossings(net_profits):
-    n = 0
-    for i, j in zip(net_profits, net_profits[1:]):
-        if i*j <= 0:
-            n += 1
-    return n
 
 def convert_ron_to_eur(net_profits):
     """Profit calculations coming from client are in RON, because the demo account is in RON.
