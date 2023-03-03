@@ -1,9 +1,25 @@
-# import unittest
-# from Trading.live.client.client import LoggingClient
-# from unittest.mock import MagicMock
+import unittest
+from Trading.live.client.client import get_cmd
+from unittest.mock import MagicMock
 
 
-# class TestClient(unittest.TestCase):
+class TestClient(unittest.TestCase):
+    def test_get_cmd(self):
+        result = get_cmd("buy")
+        self.assertEqual(0, result)
+
+        result = get_cmd("sell")
+        self.assertEqual(1, result)
+
+        result = get_cmd("BuY")
+        self.assertEqual(0, result)
+
+        result = get_cmd("SeLL")
+        self.assertEqual(1, result)
+
+        with self.assertRaises(ValueError):
+            result = get_cmd("123")
+
 #     def test_get_server_time(self):
 #         client = MagicMock()
 #         server_tester = MagicMock()

@@ -330,3 +330,12 @@ class XTBTradingClient(TradingClient):
         client = XTBClient(uname, pwd, mode, should_log)
         server_tester = ServerTester(client)
         super().__init__(client, server_tester)
+
+
+def get_cmd(position: str):
+    if position.upper() == 'BUY':
+        return 0
+    elif position.upper() == 'SELL':
+        return 1
+    else:
+        raise ValueError("Position {position} not BUY or SELL")
