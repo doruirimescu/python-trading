@@ -3,6 +3,15 @@ import logging
 import numpy as np
 import pandas as pd
 
+
+def are_all_items_same(items: List) -> bool:
+    return all(x == items[0] for x in items)
+
+
+def calculate_mean(items: List) -> float:
+    return sum(items)/len(items)
+
+
 def round_to_two_decimals(decimal_number: float) -> float:
     """Rounds number to two decimal points
 
@@ -131,3 +140,20 @@ def calculate_rolling_correlation(instrument_1_symbol: str,
     df = pd.DataFrame(data)
     rolling_correlation = df[instrument_1_symbol].rolling(window).corr(df[instrument_2_symbol])
     return rolling_correlation
+
+def calculate_net_profit_eur(open_price: float,
+                             close_price: float,
+                             contract_value: int,
+                             quote_currency_to_eur_conversion: float,
+                             cmd: int):
+    price_difference = 0
+    if cmd == 0:
+        #buy
+        price_difference = close_price - open_price
+    elif cmd == 1:
+        #sell
+        price_difference = open_price - close_price
+    else:
+        raise ValueError("Wrong cmd {cmd}, acceptable values are 0 or 1")
+    net_profit_quote_currency = price_difference * contract_value
+    return net_profit_quote_currency * quote_currency_to_eur_conversion
