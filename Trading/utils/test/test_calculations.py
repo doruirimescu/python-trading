@@ -117,3 +117,13 @@ class ReturnsCalculationsTest(unittest.TestCase):
             cmd=0)
         result = round(result, 2)
         self.assertAlmostEqual(8.19, result, 2)
+
+        #NATGAS
+        result = calculate_net_profit_eur(
+            open_price=2.864,
+            close_price=3.0,
+            contract_value=30000*0.01,
+            quote_currency_to_eur_conversion=1.0/1.06166,
+            cmd=0)
+        result = round(result, 2)
+        self.assertAlmostEqual(38.43, result, 2)
