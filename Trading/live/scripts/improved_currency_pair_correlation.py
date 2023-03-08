@@ -17,21 +17,16 @@ import matplotlib.pyplot as plt
 from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
-N_CANDLES = 10
-PAIR_1_SYMBOL = 'GOLD'
-PAIR_2_SYMBOL = 'AUDNZD'
+N_CANDLES = 500
+PAIR_1_SYMBOL = 'AUDUSD'
+PAIR_2_SYMBOL = 'NZDUSD'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
 PAIR_1_VOLUME = 0.01
 PAIR_2_VOLUME = 0.01
 
-PAIR_1_MULTIPLIER = 1
+PAIR_1_MULTIPLIER = 3
 PAIR_2_MULTIPLIER = 2
-
-FROM_CLIENT      = True
-
-if FROM_CLIENT:
-    PAIR_1_MULTIPLIER, PAIR_2_MULTIPLIER = 1, 1
 
 FILENAME = get_filename(PAIR_1_SYMBOL, PAIR_2_SYMBOL)
 
@@ -109,23 +104,20 @@ if __name__ == '__main__':
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
     add_missing_candles_to_existing_json()
 
-    if FROM_CLIENT:
-        data = get_prices_from_client(
-            client,
-            Instrument(PAIR_1_SYMBOL, '1D'),
-            Instrument(PAIR_2_SYMBOL, '1D'),
-            0.01,
-            0.01,
-            N_CANDLES,
-            should_reference_profits_to_zero=False,
-            should_calculate_prices_with_client=True)
-        (pair_1_o, pair_2_o, net_profits) = data[PAIR_1_SYMBOL], data[PAIR_1_SYMBOL], data['net_profits']
-        write_to_json_file(FILENAME, data)
-    else:
-        (pair_1_o, pair_2_o, net_profits) = get_prices_from_file(
-            PAIR_1_SYMBOL, PAIR_2_SYMBOL, PAIR_1_MULTIPLIER, PAIR_2_MULTIPLIER)
+    data = get_prices_from_client(
+        client,
+        Instrument(PAIR_1_SYMBOL, '1D'),
+        Instrument(PAIR_2_SYMBOL, '1D'),
+        0.01,
+        0.01,
+        N_CANDLES,
+        PAIR_1_MULTIPLIER,
+        PAIR_2_MULTIPLIER,
+        should_reference_profits_to_zero=False,
+        should_calculate_prices_with_client=False)
+    (pair_1_o, pair_2_o, net_profits) = data[PAIR_1_SYMBOL], data[PAIR_1_SYMBOL], data['net_profits']
+    write_to_json_file(FILENAME, data)
 
-    net_profits = convert_ron_to_eur(net_profits)
 
     avg_net = sum(net_profits) / len(net_profits)
     MAIN_LOGGER.info(f"Average net profit: {avg_net}")
