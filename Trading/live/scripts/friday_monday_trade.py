@@ -48,6 +48,8 @@ if __name__ == '__main__':
     sell_price = None
     total_profit = 0
     min_drawdown = 1000
+    profit = 0
+
     for date, open, close, low in zip(history['date'], history['open'], history['close'], history['low']):
 
         weekday = date.weekday()
