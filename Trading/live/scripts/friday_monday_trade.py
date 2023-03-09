@@ -60,10 +60,12 @@ if __name__ == '__main__':
             # Monday
             close_price = open
             print(f"Close on Monday at: {close_price}")
-            profit = calculate_net_profit_eur(sell_price, close_price, contract_value, conversion_rate_eur, BUY_SELL) + swap * 3 - spread_raw
-            total_profit += profit
-            print(profit)
-            if profit < min_drawdown:
-                min_drawdown = profit
+            new_profit = calculate_net_profit_eur(sell_price, close_price, contract_value, conversion_rate_eur, BUY_SELL) + swap * 3 - spread_raw
+            total_profit += new_profit
+            if new_profit < min_drawdown:
+                min_drawdown = new_profit
+            if new_profit < 0 and profit < 0:
+                print(f"----------TWO LOSSES In A ROW {new_profit} {profit}----------")
+            profit = new_profit
             sell_price = None
     print(f"Total profit: {round(total_profit, 2)} with drawdown: {round(min_drawdown, 2)}")
