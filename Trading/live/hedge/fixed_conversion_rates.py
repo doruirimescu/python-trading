@@ -20,5 +20,9 @@ def convert_currency_to_eur(currency: str):
         return 0.09
     elif currency == "NOK":
         return 0.091
+    elif currency == "JPY":
+        return 0.0069
+    elif currency == "TRY":
+        return 0.05
     else:
-        raise ValueError("Currency {currency} not supported")
+        raise ValueError(f"Currency {currency} not supported")
