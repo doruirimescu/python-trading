@@ -17,15 +17,15 @@ import matplotlib.pyplot as plt
 from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
-N_CANDLES = 500
-PAIR_1_SYMBOL = 'AUDUSD'
-PAIR_2_SYMBOL = 'NZDUSD'
+N_CANDLES = 310
+PAIR_1_SYMBOL = 'USDSEK'
+PAIR_2_SYMBOL = 'USDNOK'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
 PAIR_1_VOLUME = 0.01
 PAIR_2_VOLUME = 0.01
 
-PAIR_1_MULTIPLIER = 3
+PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 2
 
 FILENAME = get_filename(PAIR_1_SYMBOL, PAIR_2_SYMBOL)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     MAIN_LOGGER = get_logger()
 
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
-    add_missing_candles_to_existing_json()
+    #add_missing_candles_to_existing_json()
 
     data = get_prices_from_client(
         client,
@@ -115,7 +115,7 @@ if __name__ == '__main__':
         PAIR_2_MULTIPLIER,
         should_reference_profits_to_zero=False,
         should_calculate_prices_with_client=False)
-    (pair_1_o, pair_2_o, net_profits) = data[PAIR_1_SYMBOL], data[PAIR_1_SYMBOL], data['net_profits']
+    (pair_1_o, pair_2_o, net_profits) = data[PAIR_1_SYMBOL], data[PAIR_2_SYMBOL], data['net_profits']
     write_to_json_file(FILENAME, data)
 
 
@@ -137,6 +137,10 @@ if __name__ == '__main__':
 
     MAIN_LOGGER.info(f"Crossed zero {count_zero_crossings(net_profits)} times")
 
+    from statsmodels.tsa.stattools import acf, q_stat, adfuller
+    ADF = adfuller(net_profits)[1]
+    print(f"ADF is: {ADF}")
+
     fig, ax = plt.subplots(3, figsize=(10, 5), sharex=True)
     ax[0].plot(net_profits, label=f'Hedged net profit', color='green')
 
@@ -147,7 +151,7 @@ if __name__ == '__main__':
     ax[1].set_ylabel('Eur')
     ax[1].grid()
 
-    ax[0].axhline(color='red')
+    ax[0].axhline(color='red', y=avg_net)
 
     ax[0].legend()
     ax[0].grid()
