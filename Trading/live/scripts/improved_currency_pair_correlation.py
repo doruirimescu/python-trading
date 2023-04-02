@@ -17,6 +17,9 @@ import matplotlib.pyplot as plt
 from Trading.algo.indicators.indicator import BollingerBandsIndicator
 import sys
 
+#! Use percentage of the initial price as return. In this way, both net profits are
+#! already normalized
+
 N_CANDLES = 310
 PAIR_1_SYMBOL = 'USDSEK'
 PAIR_2_SYMBOL = 'USDNOK'
