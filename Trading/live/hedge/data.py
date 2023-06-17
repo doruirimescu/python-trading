@@ -19,6 +19,8 @@ def get_prices_from_client(client: LoggingClient,
                            n_candles: int,
                            pair_1_multiplier: float = 1.0,
                            pair_2_multiplier: float = 1.0,
+                           pair_1_position: str = 'BUY',
+                           pair_2_position: str = 'SELL',
                            should_reference_profits_to_zero=False,
                            should_calculate_prices_with_client=True):
     pair_1_symbol = instrument_1.symbol
@@ -26,9 +28,9 @@ def get_prices_from_client(client: LoggingClient,
 
     if should_calculate_prices_with_client:
         pair_1_profit_calculator = partial(
-            client.get_profit_calculation, symbol=pair_1_symbol, volume=pair_1_volume, cmd=get_cmd('BUY'))
+            client.get_profit_calculation, symbol=pair_1_symbol, volume=pair_1_volume, cmd=get_cmd(pair_1_position))
         pair_2_profit_calculator = partial(
-            client.get_profit_calculation, symbol=pair_2_symbol, volume=pair_2_volume, cmd=get_cmd('SELL'))
+            client.get_profit_calculation, symbol=pair_2_symbol, volume=pair_2_volume, cmd=get_cmd(pair_2_position))
     else:
         info_1 = client.get_symbol(pair_1_symbol)
         info_2 = client.get_symbol(pair_2_symbol)
@@ -39,10 +41,10 @@ def get_prices_from_client(client: LoggingClient,
 
         pair_1_profit_calculator = partial(
             calculate_net_profit_eur, contract_value=pair_1_contract_value,
-            quote_currency_to_eur_conversion_rate=pair_1_conversion_rate_eur, cmd=get_cmd('BUY'))
+            quote_currency_to_eur_conversion_rate=pair_1_conversion_rate_eur, cmd=get_cmd(pair_1_position))
         pair_2_profit_calculator = partial(
             calculate_net_profit_eur, contract_value=pair_2_contract_value,
-            quote_currency_to_eur_conversion_rate=pair_2_conversion_rate_eur, cmd=get_cmd('SELL'))
+            quote_currency_to_eur_conversion_rate=pair_2_conversion_rate_eur, cmd=get_cmd(pair_2_position))
 
     pair_1 = client.get_last_n_candles_history(instrument_1, n_candles)
     pair_2 = client.get_last_n_candles_history(instrument_2, n_candles)
@@ -77,8 +79,8 @@ def get_prices_from_client(client: LoggingClient,
         pair_2_symbol + "_profits": pair_2_profits,
         pair_1_symbol + "_volume": pair_1_volume,
         pair_2_symbol + "_volume": pair_2_volume,
-        pair_1_symbol + "_position": 'BUY',
-        pair_2_symbol + "_position": 'SELL',
+        pair_1_symbol + "_position": pair_1_position,
+        pair_2_symbol + "_position": pair_2_position,
         'N_DAYS': n_candles,
         'dates': pair_1['date']
     }

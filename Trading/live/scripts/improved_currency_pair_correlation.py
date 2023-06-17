@@ -21,15 +21,15 @@ import sys
 #! already normalized
 
 N_CANDLES = 310
-PAIR_1_SYMBOL = 'USDSEK'
-PAIR_2_SYMBOL = 'USDNOK'
+PAIR_1_SYMBOL = 'AUDCHF'
+PAIR_2_SYMBOL = 'NZDCHF'
 PAIR_1_POSITION = 'BUY'
 PAIR_2_POSITION = 'SELL'
 PAIR_1_VOLUME = 0.01
 PAIR_2_VOLUME = 0.01
 
 PAIR_1_MULTIPLIER = 1
-PAIR_2_MULTIPLIER = 2
+PAIR_2_MULTIPLIER = 1
 
 FILENAME = get_filename(PAIR_1_SYMBOL, PAIR_2_SYMBOL)
 
@@ -116,6 +116,8 @@ if __name__ == '__main__':
         N_CANDLES,
         PAIR_1_MULTIPLIER,
         PAIR_2_MULTIPLIER,
+        PAIR_1_POSITION,
+        PAIR_2_POSITION,
         should_reference_profits_to_zero=False,
         should_calculate_prices_with_client=False)
     (pair_1_o, pair_2_o, net_profits) = data[PAIR_1_SYMBOL], data[PAIR_2_SYMBOL], data['net_profits']
