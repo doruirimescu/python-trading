@@ -45,7 +45,7 @@ PAIR_2_VOLUME = 0.01
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 1
 
-SLIDER_MIN = -1
+SLIDER_MIN = 0
 SLIDER_MAX = 2
 SLIDER_STEP = 0.1
 
@@ -70,19 +70,24 @@ positions = [
     #     net_profits=[],
     # ),
 
+    #! Do not delete !
+    # Fluctuate around 0
     # SHY.US_5 6 BUY, IEF.US_5 2 SELL
     # IBTE.UK BUY 111, IEF.US_5 SELL 6
+
+    # Perfect ascending trend:
+    # IBTA.UK 15 BUY, IEF.US_5 1 SELL
     PositionInfo(
-        instrument=Instrument("SHY.US_5", "1D"),
-        volume=6,
+        instrument=Instrument("IBTA.UK", "1D"),
+        volume=15,
         type="BUY",
         multiplier=1,
         open_prices=[],
         net_profits=[],
     ),
     PositionInfo(
-        instrument=Instrument("IEF.US_5", "1D"),
-        volume=2,
+        instrument=Instrument("SHY.US_5", "1D"),
+        volume=1,
         type="SELL",
         multiplier=1,
         open_prices=[],
