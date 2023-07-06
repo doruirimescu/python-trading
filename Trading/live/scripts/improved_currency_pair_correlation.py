@@ -2,8 +2,6 @@ from Trading.live.client.client import XTBLoggingClient, get_cmd
 from Trading.instrument.instrument import Instrument
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import (
-    calculate_correlation,
-    calculate_rolling_correlation,
     count_zero_crossings,
 )
 from Trading.utils.logging import get_logger
@@ -11,7 +9,6 @@ from Trading.utils.time import get_datetime_now_cet
 from Trading.config.config import TIMEZONE
 from Trading.live.hedge.data import (
     get_filename,
-    get_prices_from_client,
     calculate_net_profit_with_multiplier_of_positions,
     PositionInfo,
     get_returns_for_list_of_positions,
@@ -37,48 +34,55 @@ def exit():
 #! Use percentage of the initial price as return. In this way, both net profits are
 #! already normalized
 
-N_CANDLES = 150
+N_CANDLES = 300
 PAIR_1_SYMBOL = "NZDUSD"
 PAIR_2_SYMBOL = "AUDUSD"
-PAIR_1_POSITION = "SELL"
-PAIR_2_POSITION = "BUY"
+PAIR_1_POSITION = "BUY"
+PAIR_2_POSITION = "SELL"
 PAIR_1_VOLUME = 0.01
 PAIR_2_VOLUME = 0.01
 
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 1
 
+SLIDER_MIN = -1
+SLIDER_MAX = 2
+SLIDER_STEP = 0.1
+
 FILENAME = get_filename(PAIR_1_SYMBOL, PAIR_2_SYMBOL)
 
 
 positions = [
+    # PositionInfo(
+    #     instrument=Instrument(PAIR_1_SYMBOL, "1D"),
+    #     volume=PAIR_1_VOLUME,
+    #     type=PAIR_1_POSITION,
+    #     multiplier=PAIR_1_MULTIPLIER,
+    #     open_prices=[],
+    #     net_profits=[],
+    # ),
+    # PositionInfo(
+    #     instrument=Instrument(PAIR_2_SYMBOL, "1D"),
+    #     volume=PAIR_2_VOLUME,
+    #     type=PAIR_2_POSITION,
+    #     multiplier=PAIR_2_MULTIPLIER,
+    #     open_prices=[],
+    #     net_profits=[],
+    # ),
+
+    # SHY.US_5 6 BUY, IEF.US_5 2 SELL
+    # IBTE.UK BUY 111, IEF.US_5 SELL 6
     PositionInfo(
-        instrument=Instrument(PAIR_1_SYMBOL, "1D"),
-        volume=PAIR_1_VOLUME,
-        type=PAIR_1_POSITION,
-        multiplier=PAIR_1_MULTIPLIER,
-        open_prices=[],
-        net_profits=[],
-    ),
-    PositionInfo(
-        instrument=Instrument(PAIR_2_SYMBOL, "1D"),
-        volume=PAIR_2_VOLUME,
-        type=PAIR_2_POSITION,
-        multiplier=PAIR_2_MULTIPLIER,
-        open_prices=[],
-        net_profits=[],
-    ),
-    PositionInfo(
-        instrument=Instrument("EURUSD", "1D"),
-        volume=0.01,
-        type="SELL",
+        instrument=Instrument("SHY.US_5", "1D"),
+        volume=6,
+        type="BUY",
         multiplier=1,
         open_prices=[],
         net_profits=[],
     ),
     PositionInfo(
-        instrument=Instrument("OIL", "1D"),
-        volume=0.01,
+        instrument=Instrument("IEF.US_5", "1D"),
+        volume=2,
         type="SELL",
         multiplier=1,
         open_prices=[],
@@ -193,7 +197,7 @@ def plot_main(main_ax, positions, main_fig):
         txt += "with "
     txt = txt[:-6]
 
-    main_ax[0].set_title(f"Hedged net profit for {txt}")
+    main_ax[0].set_title(f"Hedged net profit for {txt} \nentered N {N_CANDLES} days ago")
     main_ax[0].set_xlabel("Days")
     main_ax[0].set_ylabel("Eur")
     main_ax[0].tick_params(labelbottom=True)
@@ -218,18 +222,6 @@ if __name__ == "__main__":
 
     data = get_returns_for_list_of_positions(client, positions, N_CANDLES)
     net_profits = data["net_profits"]
-    pair_1_o = data[PAIR_1_SYMBOL]
-    pair_2_o = data[PAIR_2_SYMBOL]
-
-    write_to_json_file(FILENAME, data)
-
-    correlation = calculate_correlation(
-        PAIR_1_SYMBOL, PAIR_2_SYMBOL, pair_1_o, pair_2_o
-    )
-
-    rolling_correlation = calculate_rolling_correlation(
-        PAIR_1_SYMBOL, PAIR_2_SYMBOL, pair_1_o, pair_2_o, 20
-    )
 
     # Prepare net profits for bollinger bands
     main_data = pd.DataFrame({"close": net_profits})
@@ -238,9 +230,8 @@ if __name__ == "__main__":
 
     MAIN_LOGGER.info(f"Crossed zero {count_zero_crossings(net_profits)} times")
 
-    # from statsmodels.tsa.stattools import acf, q_stat, adfuller
-    # ADF = adfuller(net_profits)[1]
-    # print(f"ADF is: {ADF}")
+    for p in positions:
+        MAIN_LOGGER.info(f"Open price of {p.instrument.symbol}: {p.open_prices[0]}")
 
     main_fig, main_ax = plt.subplots(1 + len(positions), figsize=(10, 5), sharex=True)
     plot_main(main_ax, positions, main_fig)
@@ -252,15 +243,14 @@ if __name__ == "__main__":
             Slider(
                 plt.axes([0.25, 0.2 + i * 0.2, 0.5, 0.03]),
                 f"{position.instrument.symbol} multiplier",
-                0,
-                10,
+                SLIDER_MIN,
+                SLIDER_MAX,
                 valinit=position.multiplier,
-                valstep=1,
+                valstep=SLIDER_STEP,
                 dragging=True,
             )
         )
 
-    for i, slider in enumerate(sliders):
         def update(val, index=i):
             print(f"---- Updating with value {val}----")
             positions[index].multiplier = val
