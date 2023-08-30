@@ -18,7 +18,8 @@ url = get_first_google_result("alphaspread " + name)
 symbol = url.split("/")[-2]
 
 # Replace the last part of the url with "summary"
-url = url.replace(url.split("/")[-1], "summary")
+splits = url.split("/")
+url = url.replace(splits[-1], "summary")
 
 print(symbol, url)
 

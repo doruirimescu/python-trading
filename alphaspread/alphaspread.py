@@ -22,7 +22,7 @@ class Analysis(BaseModel):
 
 
 def fetch_data_from_div(url, class_name):
-    response = requests.get(url)
+    response = requests.get(url, timeout=15)
     response.raise_for_status()  # Raise an error for failed requests
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -35,7 +35,7 @@ def fetch_data_from_div(url, class_name):
 
 
 def fetch_data_from_paragraph(url, class_name):
-    response = requests.get(url)
+    response = requests.get(url, timeout=15)
     response.raise_for_status()  # Raise an error for failed requests
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -62,8 +62,12 @@ def get_solvency_score(url):
 def get_valuation_score(url) -> Tuple[ValuationType, int]:
     valuation_class_name = "sixteen wide column"
     extracted_data = fetch_data_from_div(url, valuation_class_name)
+
     extracted_data = [line.replace("\t", "") for line in extracted_data]
     extracted_data = [line for line in extracted_data if "%." in line]
+    if not extracted_data:
+        raise ValueError("No data found for the given class in divs.")
+
     extracted_data = extracted_data[0]
 
     pattern = re.compile(r"(Overvalued by|Undervalued by)\s+(\d+%)")
@@ -90,34 +94,3 @@ def analyze_url(url: str, symbol: str) -> Analysis:
         valuation_score=score,
         solvency_score=solvency_score,
     )
-
-
-def get_nasdaq_symbols() -> List:
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-    }
-    res = requests.get(
-        "https://api.nasdaq.com/api/quote/list-type/nasdaq100", headers=headers
-    )
-    main_data = res.json()["data"]["data"]["rows"]
-    symbols = []
-    for i in range(len(main_data)):
-        symbols.append(main_data[i]["symbol"])
-    return symbols
-
-
-if __name__ == "__main__":
-    nasdaq_symbols = get_nasdaq_symbols()
-    undervalued_symbols = []
-    for symbol in nasdaq_symbols:
-        url = f"https://www.alphaspread.com/security/nasdaq/{symbol}/summary"
-        analysis = analyze_url(url, symbol)
-        undervalued_symbols.append(analysis)
-
-    date_today = date.today()
-    file_name = f"nasdaq_analysis_{date_today}.json"
-    with open(file_name, "w") as f:
-        json_str = json.dumps(
-            [analysis.dict() for analysis in undervalued_symbols], indent=4
-        )
-        f.write(json_str)
