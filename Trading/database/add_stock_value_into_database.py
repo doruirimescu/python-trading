@@ -37,12 +37,3 @@ def add_stock_value(symbol: str,
     )
     cursor.execute(query)
     db.close()
-
-add_stock_value(
-    symbol="AAPL",
-    instrument_type=StockInstrumentType.STOCK,
-    contract_value=1010,
-    profit=100,
-    account_type=StockAccountType.EUR
-
-)

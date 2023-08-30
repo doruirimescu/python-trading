@@ -1,15 +1,15 @@
 from exception_with_retry import exception_with_retry
+import plotly.express as px
 
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.send_email import send_email
+from Trading.config.config import ALL_SYMBOLS
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.database.add_contract_value_into_database import add_contract_value, delete_contract_value
-from Trading.database.add_hedged_trade_profit_into_database import add_hedged_profit
-from Trading.database.add_margin_level_into_database import add_margin_level
 from dotenv import load_dotenv
 
 import os
 import logging
+
+# open all symbols file
 
 # Monitor stock allocations
 
@@ -40,17 +40,20 @@ if __name__ == '__main__':
 
         trades = client.get_open_trades()
         for trade in trades:
-            if trade['closed'] == True or not trade['profit']:
+            if trade['closed'] or not trade['profit']:
                 continue
 
             symbol = trade['symbol']
             nominal_value = trade['nominalValue']
+            print(f"Analysing symbol {symbol}")
 
-            s = client.get_symbol(symbol)
+            # Filter out other instruments
+            s = ALL_SYMBOLS[symbol]
             cat = s['categoryName']
             if cat not in ['STC', 'ETF']:
                 continue
 
+            # Add up contract value and profit
             if not stock_contract_value.get(symbol):
                 stock_contract_value[symbol] = nominal_value
                 stock_profits[symbol] = trade['profit']
@@ -63,6 +66,23 @@ if __name__ == '__main__':
 
         total_portfolio_contract_value = sum(stock_contract_value.values())
         total_portfolio_profit = sum(stock_profits.values())
+
+        stock_contract_value_percentage = dict()
+        stock_profits_percentage = dict()
+        for symbol in stock_contract_value.keys():
+            stock_contract_value_percentage[symbol] = stock_contract_value[symbol] / total_portfolio_contract_value
+            stock_profits_percentage[symbol] = stock_profits[symbol] / total_portfolio_profit
+
+        # Data for pie chart
+        labels = list(stock_contract_value_percentage.keys())
+        labels = [ALL_SYMBOLS[l]['description'] for l in labels]
+        sizes = list(stock_contract_value_percentage.values())
+
+        # Create the pie chart
+        fig = px.pie(values=sizes, names=labels, title="Stock Contract Value Percentage")
+
+        # Show the pie chart
+        fig.show()
 
         print(stock_contract_value)
         print(stock_profits)
