@@ -3,11 +3,15 @@ from datetime import date
 from alphaspread import ValuationType
 
 # load nasdaq json from data
+DATE_TODAY = str(date.today())
+PREFIX = "data/nasdaq_analysis_"
+READ_FILENAME = PREFIX + DATE_TODAY + ".json"
+WRITE_FILENAME = PREFIX + DATE_TODAY + "_filtered.json"
 
-with open("nasdaq_analysis_2021-08-09.json", "r") as f:
+with open(READ_FILENAME, "r") as f:
     nasdaq_json = json.load(f)
 
-UNDERVALUED_THRESHOLD = 50
+UNDERVALUED_THRESHOLD = 15
 SOLVENCY_THRESHOLD = 50
 
 # filter nasdaq json for undervalued stocks that are also solvent
@@ -29,6 +33,6 @@ print(json.dumps(filtered_nasdaq_json, indent=4))
 
 # dump to file
 
-with open("filtered_nasdaq_analysis_2021-08-09.json", "w") as f:
+with open(WRITE_FILENAME, "w") as f:
     json_str = json.dumps(filtered_nasdaq_json, indent=4)
     f.write(json_str)

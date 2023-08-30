@@ -87,7 +87,7 @@ def analyze_url(url: str, symbol: str) -> Analysis:
     print(f"Analyzing {symbol}...")
     valuation, score = get_valuation_score(url)
     solvency_score = get_solvency_score(url)
-    print(f"Symbol: {symbol} is undervalued by {score}% solvency: {solvency_score}")
+    print(f"Symbol: {symbol} is {valuation} by {score}% solvency: {solvency_score}")
     return Analysis(
         symbol=symbol,
         valuation_type=valuation,

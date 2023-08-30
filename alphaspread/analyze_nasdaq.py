@@ -4,7 +4,7 @@ from typing import List
 import requests
 from alphaspread import analyze_url
 
-DATE_TODAY = date.today()
+DATE_TODAY = str(date.today())
 ANALYSIS_FILENAME = f"data/nasdaq_analysis_{DATE_TODAY}.json"
 
 def get_nasdaq_symbols() -> List:
