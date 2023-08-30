@@ -39,23 +39,19 @@ def fetch_data_from_paragraph(url, class_name):
     response.raise_for_status()  # Raise an error for failed requests
 
     soup = BeautifulSoup(response.text, "html.parser")
-    paragraph_data = soup.find("p", class_=class_name)
-
-    if paragraph_data:
-        return paragraph_data.get_text(strip=True)
+    paragraphs = soup.find_all("p", class_=class_name)
+    if paragraphs:
+        return [paragraph.get_text(strip=True) for paragraph in paragraphs]
     else:
-        return "No data found for the given class in a paragraph."
+        return ["No data found for the given class in a paragraph."]
 
 
 def get_solvency_score(url):
     profitability_class_name = "mobile-hidden block-desc"
     extracted_data = fetch_data_from_paragraph(url, profitability_class_name)
-    extracted_data = extracted_data.split("\n")
-    for i, line in enumerate(extracted_data):
-        extracted_data[i] = line.strip()
-        extracted_data[i] = line.replace("\t", "")
-    # Search for pattern /100 in list
-    profitability_score = [s for s in extracted_data if "/100" in s][0]
+    extracted_data = [line.replace("\t", "") for line in extracted_data][1]
+    profitability_score = extracted_data.split("\n")[1]
+
     # Remove the pattern /100 from the string
     profitability_score = profitability_score.replace("/100.", "")
     # convert to int
