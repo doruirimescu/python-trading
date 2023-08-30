@@ -55,3 +55,13 @@ CREATE TABLE IF NOT EXISTS open_trades(
     position_id INT NOT NULL,
     order_id INT NOT NULL
 );
+
+-- for monitoring stock performance --
+CREATE TABLE IF NOT EXISTS stock_account(
+    symbol VARCHAR(20) NOT NULL,
+    instrument_type VARCHAR(20) NOT NULL,
+    contract_value DECIMAL (10,2) NOT NULL,
+    profit DECIMAL (10,2) NOT NULL,
+    account_type VARCHAR(20) NOT NULL,
+    PRIMARY KEY(symbol, account_type)
+)
