@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,13 +11,18 @@ class ValuationType(str, Enum):
     OVERVALUED = "Overvalued"
     UNDERVALUED = "Undervalued"
 
+# Define a custom sort order for ValuationType strings
+valuation_type_order = {
+    ValuationType.OVERVALUED: 1,
+    ValuationType.UNDERVALUED: 2
+}
 
 class Analysis(BaseModel):
     symbol: str
     valuation_type: ValuationType
     valuation_score: int
-    solvency_score: int
-    profitability_score: int
+    solvency_score: Optional[int]
+    profitability_score: Optional[int]
 
     def __str__(self) -> str:
         return (
@@ -27,7 +32,7 @@ class Analysis(BaseModel):
 
 
 def fetch_data_from_url(url) -> requests.Response:
-    response = requests.get(url, timeout=15)
+    response = requests.get(url, timeout=35)
     response.raise_for_status()  # Raise an error for failed requests
     return response
 
@@ -53,29 +58,38 @@ def fetch_data_from_paragraph(response: requests.Response, class_name):
 
 def get_solvency_score(response: requests.Response):
     solvency_class_name = "mobile-hidden block-desc"
-    extracted_data = fetch_data_from_paragraph(response, solvency_class_name)
-    extracted_data = [line.replace("\t", "") for line in extracted_data][1]
-    solvency_score = extracted_data.split("\n")[1]
+    try:
+        extracted_data = fetch_data_from_paragraph(response, solvency_class_name)
+        extracted_data = [line.replace("\t", "") for line in extracted_data][1]
+        solvency_score = extracted_data.split("\n")[1]
+        # Remove the pattern /100 from the string
+        solvency_score = solvency_score.replace("/100.", "")
+        # convert to int
+        solvency_score = int(solvency_score)
+        return solvency_score
 
-    # Remove the pattern /100 from the string
-    solvency_score = solvency_score.replace("/100.", "")
-    # convert to int
-    solvency_score = int(solvency_score)
-    return solvency_score
+    except Exception as e:
+        print(f"Error fetching data from paragraph: {e}")
+        return None
 
 
 def get_profitability_score(response: requests.Response):
     profitability_class_name = "mobile-hidden block-desc"
-    extracted_data = fetch_data_from_paragraph(response, profitability_class_name)
-    profitability_score = [line.replace("\t", "") for line in extracted_data][0]
-    profitability_score = profitability_score.split("\n")[1]
+    try:
+        extracted_data = fetch_data_from_paragraph(response, profitability_class_name)
+        profitability_score = [line.replace("\t", "") for line in extracted_data][0]
+        profitability_score = profitability_score.split("\n")[1]
 
-    # Remove the pattern /100 from the string
-    profitability_score = profitability_score.replace("/100.", "")
+        # Remove the pattern /100 from the string
+        profitability_score = profitability_score.replace("/100.", "")
 
-    # convert to int
-    profitability_score = int(profitability_score)
-    return profitability_score
+        # convert to int
+        profitability_score = int(profitability_score)
+        return profitability_score
+
+    except Exception as e:
+        print(f"Error fetching data from paragraph: {e}")
+        return None
 
 
 def get_valuation_score(response: requests.Response) -> Tuple[ValuationType, int]:
