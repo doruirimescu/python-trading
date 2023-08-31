@@ -1,8 +1,6 @@
-import json
 import re
-from datetime import date
 from enum import Enum
-from typing import List, Tuple
+from typing import Tuple
 
 import requests
 from bs4 import BeautifulSoup

@@ -1,7 +1,8 @@
 # add cli parser for the symbol
 import argparse
-from alphaspread import analyze_url
-from google import get_first_google_result
+from Trading.alphaspread.alphaspread import analyze_url
+from Trading.alphaspread.url import get_alphaspread_symbol_url
+
 
 # Create a parser object
 parser = argparse.ArgumentParser(description="Get the symbol and url to analyze.")
@@ -13,15 +14,7 @@ args = parser.parse_args()
 # Get the symbol
 name = args.name
 
-url = get_first_google_result("alphaspread " + name)
-# Strip the symbol as the second last part of the url
-symbol = url.split("/")[-2]
-
-# Replace the last part of the url with "summary"
-splits = url.split("/")
-url = url.replace(splits[-1], "summary")
-
-print(symbol, url)
+symbol, url = get_alphaspread_symbol_url(name)
 
 # Analyze the symbol
 analysis = analyze_url(url, symbol)
