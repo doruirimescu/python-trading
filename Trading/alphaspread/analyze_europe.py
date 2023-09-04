@@ -1,27 +1,27 @@
 import json
-from typing import List
+from typing import List, Optional
 import requests
 from alphaspread import analyze_url
 from constants import NASDAQ_ANALYSIS_FILENAME
+from Trading.config.config import STOCKS_PATH
 
-def get_nasdaq_symbols() -> List:
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-    }
-    res = requests.get(
-        "https://api.nasdaq.com/api/quote/list-type/nasdaq100", headers=headers
-    )
-    main_data = res.json()["data"]["data"]["rows"]
-    symbols = []
-    for i in range(len(main_data)):
-        symbols.append(main_data[i]["symbol"])
+
+def get_europe_symbols(countries_list: Optional[List] = None ) -> List:
+    with open(STOCKS_PATH, "r") as f:
+        symbols = json.load(f)
+        # filter only symbols with eur currency
+        symbols = [symbol for symbol in symbols if symbol["currency"] == "EUR"]
+
+    # Filter only symbols from the given countries
+    if countries_list:
+        symbols = [symbol for symbol in symbols if symbol["country"] in countries_list]
     return symbols
 
 
 if __name__ == "__main__":
-    nasdaq_symbols = get_nasdaq_symbols()
+    europe_symbols = get_europe_symbols(["France", "Netherlands"])
     undervalued_symbols = []
-    for symbol in nasdaq_symbols:
+    for symbol in europe_symbols:
         url = f"https://www.alphaspread.com/security/nasdaq/{symbol}/summary"
         try:
             analysis = analyze_url(url, symbol)

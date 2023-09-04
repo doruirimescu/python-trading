@@ -1,4 +1,4 @@
 from datetime import date
 DATE_TODAY = str(date.today())
-ANALYSIS_FILENAME = f"data/nasdaq_analysis_{DATE_TODAY}.json"
+NASDAQ_ANALYSIS_FILENAME = f"data/nasdaq_analysis_{DATE_TODAY}.json"
 FILTERED_ANALYSIS_FILENAME = f"data/nasdaq_analysis_{DATE_TODAY}_filtered.json"
