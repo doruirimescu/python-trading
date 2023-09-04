@@ -11,7 +11,7 @@ WRITE_FILENAME = PREFIX + DATE_TODAY + "_filtered.json"
 with open(READ_FILENAME, "r") as f:
     nasdaq_json = json.load(f)
 
-UNDERVALUED_THRESHOLD = 15
+# UNDERVALUED_THRESHOLD = 15
 SOLVENCY_THRESHOLD = 50
 
 # filter nasdaq json for undervalued stocks that are also solvent
@@ -20,7 +20,7 @@ filtered_nasdaq_json = [
     stock
     for stock in nasdaq_json
     if stock["valuation_type"] == ValuationType.UNDERVALUED
-    and stock["valuation_score"] > UNDERVALUED_THRESHOLD
+    # and stock["valuation_score"] > UNDERVALUED_THRESHOLD
     and stock["solvency_score"] > SOLVENCY_THRESHOLD
 ]
 
