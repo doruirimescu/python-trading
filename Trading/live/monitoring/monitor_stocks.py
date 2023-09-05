@@ -99,7 +99,7 @@ if __name__ == '__main__':
             try:
                 symbol, url = get_alphaspread_symbol_url(stock_name)
                 analysis = analyze_url(url, symbol)
-                stock_valuation[stock_name] = (analysis.valuation_type, analysis.valuation_score)
+                stock_valuation[stock_name] = (analysis.valuation_type, analysis.valuation_score, analysis.solvency_score)
             except Exception as e:
                 MAIN_LOGGER.error(f"Error analyzing {stock_name}: {e}")
 
@@ -113,10 +113,12 @@ if __name__ == '__main__':
             print(f"{stock_name}: {valuation[0]} {valuation[1]}")
 
         # Add bar chart
+        solvencies = [item[1][2] for item in sorted_stock_valuation_new]
         stock_names = [item[0] for item in sorted_stock_valuation_new]
         scores = [item[1][1] for item in sorted_stock_valuation_new]
+        texts = [f"Valuation: {score}, Solvency: {solvency}" for score, solvency in zip(scores, solvencies)]
         colors = ['red' if item[1][0] == 'Overvalued' else 'green' for item in sorted_stock_valuation_new]
-        fig.add_trace(go.Bar(x=stock_names, y=scores, text=scores, textposition='auto', marker_color=colors), row=1, col=2)
+        fig.add_trace(go.Bar(x=stock_names, y=scores, text=texts, textposition='auto', marker_color=colors), row=1, col=2)
 
         # Update layout
         fig.update_layout(title_text="Stock Analysis")
