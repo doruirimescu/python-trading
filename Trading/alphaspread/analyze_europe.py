@@ -2,34 +2,46 @@ import json
 from typing import List, Optional
 import requests
 from alphaspread import analyze_url
-from constants import NASDAQ_ANALYSIS_FILENAME
+from constants import EUROPE_ANALYSIS_FILENAME
 from Trading.config.config import STOCKS_PATH
-
+from Trading.alphaspread.url import get_alphaspread_symbol_url
 
 def get_europe_symbols(countries_list: Optional[List] = None ) -> List:
     with open(STOCKS_PATH, "r") as f:
         symbols = json.load(f)
         # filter only symbols with eur currency
-        symbols = [symbol for symbol in symbols if symbol["currency"] == "EUR"]
+        symbols = [(symbol['symbol'],symbol['description'])
+                   for key, symbol in symbols.items()
+                   if symbol["currency"] == "EUR"
+                   and symbol["groupName"] in countries_list]
 
     # Filter only symbols from the given countries
-    if countries_list:
-        symbols = [symbol for symbol in symbols if symbol["country"] in countries_list]
     return symbols
 
 
 if __name__ == "__main__":
     europe_symbols = get_europe_symbols(["France", "Netherlands"])
     undervalued_symbols = []
-    for symbol in europe_symbols:
-        url = f"https://www.alphaspread.com/security/nasdaq/{symbol}/summary"
+    for sym, name in europe_symbols:
         try:
+            # strip _9 from sym if it exists
+            if sym.endswith("_9"):
+                sym = sym[:-2]
+            symbol, url = get_alphaspread_symbol_url(name)
             analysis = analyze_url(url, symbol)
             undervalued_symbols.append(analysis)
+            import time
+            time.sleep(1)
         except Exception as e:
-            print(f"Error analyzing {symbol}: {e}")
+            try:
+                symbol, url = get_alphaspread_symbol_url(sym)
+                analysis = analyze_url(url, symbol)
+                undervalued_symbols.append(analysis)
+            except Exception as e:
+                print(e)
+                print(f"Could not analyze {sym} - {name}")
 
-    with open(NASDAQ_ANALYSIS_FILENAME, "w") as f:
+    with open(EUROPE_ANALYSIS_FILENAME, "w") as f:
         json_str = json.dumps(
             [analysis.dict() for analysis in undervalued_symbols], indent=4
         )

@@ -3,13 +3,13 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 import plotly.graph_objects as go
-from constants import FILTERED_ANALYSIS_FILENAME, DATE_TODAY
+from constants import FILTERED_NASDAQ_ANALYSIS_FILENAME, EUROPE_ANALYSIS_FILENAME
 from Trading.alphaspread.alphaspread import valuation_type_order, ValuationType
 
 stock_valuation = dict()
 
 # open data file
-with open(FILTERED_ANALYSIS_FILENAME, "r") as f:
+with open(EUROPE_ANALYSIS_FILENAME, "r") as f:
     data = json.load(f)
 
 for stk in data:
@@ -22,7 +22,7 @@ for stk in data:
 
 sorted_stock_valuation_new = sorted(
             stock_valuation.items(),
-            key=lambda item: (item[1][2])
+            key=lambda item: (item[1][2] if item[1][2] else 0, item[1][1]),
         )
 
 

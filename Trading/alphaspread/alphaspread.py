@@ -120,8 +120,14 @@ def analyze_url(url: str, symbol: str) -> Analysis:
     print(f"Analyzing {symbol}...")
     response = fetch_data_from_url(url)
     valuation, score = get_valuation_score(response)
-    solvency_score = get_solvency_score(response)
-    profitability_score = get_profitability_score(response)
+    try:
+        solvency_score = get_solvency_score(response)
+    except Exception as e:
+        solvency_score = None
+    try:
+        profitability_score = get_profitability_score(response)
+    except Exception as e:
+        profitability_score = None
     return Analysis(
         symbol=symbol,
         valuation_type=valuation,
