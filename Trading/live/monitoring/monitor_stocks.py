@@ -6,8 +6,8 @@ from plotly.subplots import make_subplots
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import ALL_SYMBOLS
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.alphaspread.url import get_alphaspread_symbol_url
-from Trading.alphaspread.alphaspread import analyze_url, valuation_type_order, ValuationType
+from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.stock.alphaspread.alphaspread import analyze_url, valuation_type_order, ValuationType
 from dotenv import load_dotenv
 
 import os

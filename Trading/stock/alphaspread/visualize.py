@@ -4,7 +4,7 @@ from plotly.subplots import make_subplots
 
 import plotly.graph_objects as go
 from constants import FILTERED_NASDAQ_ANALYSIS_FILENAME, EUROPE_ANALYSIS_FILENAME
-from Trading.alphaspread.alphaspread import valuation_type_order, ValuationType
+from Trading.stock.alphaspread.alphaspread import valuation_type_order, ValuationType
 
 stock_valuation = dict()
 

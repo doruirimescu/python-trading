@@ -4,7 +4,7 @@ import requests
 from alphaspread import analyze_url
 from constants import EUROPE_ANALYSIS_FILENAME
 from Trading.config.config import STOCKS_PATH
-from Trading.alphaspread.url import get_alphaspread_symbol_url
+from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
 
 def get_europe_symbols(countries_list: Optional[List] = None ) -> List:
     with open(STOCKS_PATH, "r") as f:

@@ -1,4 +1,4 @@
-from Trading.alphaspread.google import get_first_google_result
+from Trading.stock.alphaspread.google import get_first_google_result
 from typing import Tuple
 
 
