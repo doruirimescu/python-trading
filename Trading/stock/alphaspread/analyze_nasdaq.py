@@ -4,6 +4,7 @@ import requests
 from alphaspread import analyze_url
 from constants import NASDAQ_ANALYSIS_FILENAME
 from time import sleep
+import os
 
 def get_nasdaq_symbols() -> List:
     headers = {
@@ -23,11 +24,13 @@ if __name__ == "__main__":
     nasdaq_symbols = get_nasdaq_symbols()
     undervalued_symbols = []
 
-    with open(NASDAQ_ANALYSIS_FILENAME, "r") as f:
-        # load json
-        json_str = f.read()
-        data = json.loads(json_str)
-
+    if os.path.exists(NASDAQ_ANALYSIS_FILENAME):
+        with open(NASDAQ_ANALYSIS_FILENAME, "r") as f:
+            # load json
+            json_str = f.read()
+            data = json.loads(json_str)
+    else:
+        data = []
 
     for symbol in nasdaq_symbols:
         # Check if symbol is already in json
