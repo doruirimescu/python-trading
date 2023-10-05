@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup as bs
-from Trading.live.investing_api.symbols_url import SYMBOLS_URL
+from Trading.symbols.investing.symbols_url import SYMBOLS_URL
 from Trading.instrument.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.instrument.instrument import Instrument
