@@ -1,23 +1,9 @@
 import json
-from typing import List
-import requests
+from Trading.symbols.wrapper import get_nasdaq_symbols
 from alphaspread import analyze_url
 from constants import NASDAQ_ANALYSIS_FILENAME
 from time import sleep
 import os
-
-def get_nasdaq_symbols() -> List:
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-    }
-    res = requests.get(
-        "https://api.nasdaq.com/api/quote/list-type/nasdaq100", headers=headers
-    )
-    main_data = res.json()["data"]["data"]["rows"]
-    symbols = []
-    for i in range(len(main_data)):
-        symbols.append(main_data[i]["symbol"])
-    return symbols
 
 
 if __name__ == "__main__":
