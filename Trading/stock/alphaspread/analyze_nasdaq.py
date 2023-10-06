@@ -1,7 +1,7 @@
 import json
 from Trading.symbols.wrapper import get_nasdaq_symbols
 from alphaspread import analyze_url
-from constants import NASDAQ_ANALYSIS_FILENAME
+from Trading.stock.constants import NASDAQ_ANALYSIS_FILENAME
 from time import sleep
 import os
 

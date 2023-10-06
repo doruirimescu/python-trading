@@ -1,8 +1,7 @@
 import json
 from typing import List, Optional
-import requests
 from alphaspread import analyze_url
-from constants import EUROPE_ANALYSIS_FILENAME
+from Trading.stock.constants import EUROPE_ANALYSIS_FILENAME
 from Trading.symbols.constants import XTB_STOCK_SYMBOLS
 from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
 
