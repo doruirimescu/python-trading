@@ -4,6 +4,8 @@ from typing import Tuple
 
 def get_alphaspread_url_from_ticker(ticker: str) -> str:
     if ticker in ALPHASPREAD_URL_DICT:
+        if ticker.lower() not in ALPHASPREAD_URL_DICT[ticker].lower():
+            print(f"+++ Careful with {ticker} and {ALPHASPREAD_URL_DICT[ticker]}")
         return (ticker, ALPHASPREAD_URL_DICT[ticker])
     else:
         raise Exception(f"Could not find alphaspread url for {ticker}")

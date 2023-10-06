@@ -361,7 +361,6 @@
     "WEX": "https://www.alphaspread.com/security/nyse/wex/summary",
     "CLDX": "https://www.alphaspread.com/security/nasdaq/cldx/summary",
     "AMN": "https://www.alphaspread.com/security/nyse/amn/summary",
-    "EXO": "https://www.alphaspread.com/security/pink/exxrf/summary",
     "CI": "https://www.alphaspread.com/security/nyse/ci/summary",
     "APPH": "https://www.alphaspread.com/security/nasdaq/apph/summary",
     "AMC": "https://www.alphaspread.com/security/nyse/amc/summary",
