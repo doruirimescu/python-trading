@@ -29,3 +29,6 @@ with open(XTB_ETF_SYMBOLS_PATH, "r") as f:
 # ALPHASPREAD
 ALPHASPREAD_PATH = CURRENT_FILE_PATH.joinpath("alphaspread/")
 ALPHASPREAD_URL_PATH = ALPHASPREAD_PATH.joinpath("urls.json")
+
+with open(ALPHASPREAD_URL_PATH, "r") as f:
+    ALPHASPREAD_URL_DICT = json.load(f)
