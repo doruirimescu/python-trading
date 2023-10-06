@@ -1,8 +1,9 @@
 # get current file path
 
-import os
 import json
+import os
 from pathlib import Path
+
 from Trading.symbols.xtb.failing_symbols import XTB_FAILING_SYMBOLS
 
 CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
