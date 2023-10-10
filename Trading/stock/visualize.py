@@ -3,13 +3,31 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 import plotly.graph_objects as go
-from Trading.stock.constants import FILTERED_NASDAQ_ANALYSIS_FILENAME, EUROPE_ANALYSIS_FILENAME
+from Trading.stock.constants import (FILTERED_NASDAQ_ANALYSIS_FILENAME,
+                                     EUROPE_ANALYSIS_FILENAME,
+                                     NASDAQ_ANALYSIS_FILENAME,
+                                     HELSINKI_NASDAQ_ANALYSIS_FILENAME,)
 from Trading.stock.alphaspread.alphaspread import valuation_type_order, ValuationType
+import argparse
 
 stock_valuation = dict()
 
+arg = argparse.ArgumentParser()
+arg.add_argument("--helsinki", action="store_true")
+arg.add_argument("--nasdaq", action="store_true")
+arg.add_argument("--filtered", action="store_true")
+args = arg.parse_args()
+
+if args.helsinki:
+    filename = HELSINKI_NASDAQ_ANALYSIS_FILENAME
+elif args.nasdaq:
+    if args.filtered:
+        filename = FILTERED_NASDAQ_ANALYSIS_FILENAME
+    else:
+        filename = NASDAQ_ANALYSIS_FILENAME
+
 # open data file
-with open(EUROPE_ANALYSIS_FILENAME, "r") as f:
+with open(filename, "r") as f:
     data = json.load(f)
 
 for stk in data:

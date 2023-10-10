@@ -21,6 +21,7 @@ with open(XTB_ALL_SYMBOLS_PATH, "r") as f:
 with open(XTB_STOCK_SYMBOLS_PATH, "r") as f:
     XTB_STOCK_SYMBOLS_DICT = json.load(f)
     XTB_STOCK_SYMBOLS = [symbol for symbol in XTB_STOCK_SYMBOLS_DICT]
+    # The universal stock tickers, without the xtb-specific suffix
     XTB_STOCK_TICKERS = [symbol.split(".")[0] for symbol in XTB_STOCK_SYMBOLS]
 
 with open(XTB_ETF_SYMBOLS_PATH, "r") as f:
