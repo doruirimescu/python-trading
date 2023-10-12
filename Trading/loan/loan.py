@@ -82,6 +82,11 @@ def cost_paid(json_data: Optional[dict] = None) -> float:
         total_cost += loan["cost"]
     return round(total_cost, 3)
 
+def get_interest_rate(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+    return json_data["interest_rate"]
+
 
 def principal_total(json_data: Optional[dict] = None) -> float:
     if json_data is None:

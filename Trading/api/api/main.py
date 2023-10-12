@@ -44,3 +44,7 @@ def cost_paid():
 @app.get("/loan/total/principal")
 def total_principal():
     return  {"total": loan.principal_total()}
+
+@app.get("/loan/interest_rate")
+def interest_rate():
+    return {"value": loan.get_interest_rate()}
