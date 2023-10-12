@@ -1,0 +1,17 @@
+{
+    "total": 100000,
+    "history":[
+            {
+                "date": "2022-05-02",
+                "principal": 100.99,
+                "interest": 47.24,
+                "cost": 2.5
+            },
+            {
+                "date": "2022-06-02",
+                "principal": 124.01,
+                "interest": 50.21,
+                "cost": 3.5
+            }
+    ]
+}
