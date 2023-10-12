@@ -26,21 +26,21 @@ def loan_history():
     return loan.loan_history()
 
 @app.get("/loan/total/principal_paid")
-def loan_history():
-    return loan.principal_paid()
+def principal_paid():
+    return {"total_principal_paid": loan.principal_paid()}
+
+@app.get("/loan/cumulative/principal_paid")
+def principal_paid():
+    return {"cumulative_principal_paid": loan.cumulative_principal_paid()}
 
 @app.get("/loan/total/interest_paid")
-def loan_history():
-    return loan.interest_paid()
+def interest_paid():
+    return {"interest_paid": loan.interest_paid()}
 
 @app.get("/loan/total/cost_paid")
-def loan_history():
-    return loan.cost_paid()
-
-@app.get("/loan/total/cost_paid")
-def loan_history():
-    return loan.cost_paid()
+def cost_paid():
+    return {"cost_paid": loan.cost_paid()}
 
 @app.get("/loan/total/principal")
-def loan_history():
-    return loan.principal_total()
+def total_principal():
+    return  {"total": loan.principal_total()}

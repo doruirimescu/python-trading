@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from pathlib import Path
 from pathlib import Path
@@ -18,12 +18,15 @@ class Loan(BaseModel):
     def __str__(self):
         return f"Date: {self.date} Principal: {self.principal:.2f} Interest: {self.interest} Cost: {self.cost}"
 
+
 def load_data(filename: Path | str) -> List[Loan]:
     with open(filename) as f:
         data = json.load(f)
     return data
 
+
 LOAN_DATA = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+
 
 def combine_loans_same_date(loans: List[Loan]) -> Loan:
     total_principal = 0
@@ -34,51 +37,98 @@ def combine_loans_same_date(loans: List[Loan]) -> Loan:
         total_interest += loan.interest
         total_cost += loan.cost
 
-    return Loan(date=loans[0].date, principal=total_principal, interest=total_interest, cost=total_cost)
+    return Loan(
+        date=loans[0].date,
+        principal=total_principal,
+        interest=total_interest,
+        cost=total_cost,
+    )
 
 
 def history_as_loans(json_data: dict = LOAN_DATA) -> List[Loan]:
     results = list()
-    data = json_data['history']
+    data = json_data["history"]
     for loan in data:
         results.append(Loan(**loan))
     return results
 
-def loan_history(json_data: dict = LOAN_DATA) -> List[Loan]:
+
+def loan_history(json_data: Optional[dict] = None) -> List[Loan]:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
     loans = history_as_loans(json_data)
     loans_by_date = dict()
     for loan in loans:
-        if loan.date not in loans_by_date:
-            loans_by_date[loan.date] = list()
-        loans_by_date[loan.date].append(loan)
+        year_month = (loan.date.year, loan.date.month)
+        if year_month not in loans_by_date:
+            loans_by_date[year_month] = list()
+        loans_by_date[year_month].append(loan)
     # combine loans with same date
     results = list()
-    for date, loans in loans_by_date.items():
+    for _, loans in loans_by_date.items():
         results.append(combine_loans_same_date(loans))
+        # replace date with year, month
+        d = results[-1].date
+        results[-1].date.replace(year=d.year, month=d.month, day=1)
     return results
 
 
-def cost_paid(json_data: dict = LOAN_DATA) -> float:
-    history = json_data['history']
+def cost_paid(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+    history = json_data["history"]
     total_cost = 0
     for loan in history:
-        total_cost += loan['cost']
+        total_cost += loan["cost"]
     return round(total_cost, 3)
 
-def principal_total(json_data: dict = LOAN_DATA) -> float:
-    return json_data['total']
 
-def principal_paid(json_data: dict = LOAN_DATA) -> float:
+def principal_total(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+    return json_data["total"]
+
+
+def principal_paid(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
     total_principal = 0
-    for d in json_data['history']:
-        total_principal += d['principal']
+    for d in json_data["history"]:
+        total_principal += d["principal"]
     return round(total_principal, 3)
 
+def cumulative_principal_paid(json_data: Optional[dict] = None) -> List[Loan]:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+    loans = history_as_loans(json_data)
+    loans_by_date = dict()
+    for loan in loans:
+        year_month = (loan.date.year, loan.date.month)
+        if year_month not in loans_by_date:
+            loans_by_date[year_month] = list()
+        loans_by_date[year_month].append(loan)
+    # combine loans with same date
+    results = list()
+    for _, loans in loans_by_date.items():
+        results.append(combine_loans_same_date(loans))
+        # replace date with year, month
+        d = results[-1].date
+        results[-1].date.replace(year=d.year, month=d.month, day=1)
 
-def interest_paid(json_data: dict = LOAN_DATA) -> float:
+    cumulative_principal = 0
+    for loan in results:
+        cumulative_principal += loan.principal
+        loan.principal = cumulative_principal
+    return results
+
+
+def interest_paid(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
     total_interest = 0
-    for loan in json_data['history']:
-        total_interest += loan['interest']
+    for loan in json_data["history"]:
+        total_interest += loan["interest"]
+    print(total_interest)
     return round(total_interest, 3)
 
 
@@ -88,10 +138,17 @@ def data_on_date(date: date, json_data: dict = LOAN_DATA) -> List[Loan]:
     # filter history by date
     return combine_loans_same_date([loan for loan in history if loan.date == date])
 
-def data_on_month_year(month: int, year: int, json_data: dict = LOAN_DATA) -> List[Loan]:
+
+def data_on_month_year(
+    month: int, year: int, json_data: dict = LOAN_DATA
+) -> List[Loan]:
     results = list()
     history = history_as_loans(json_data)
     # filter history by month
-    return combine_loans_same_date([loan for loan in history
-                          if loan.date.month == month and
-                          loan.date.year == year])
+    return combine_loans_same_date(
+        [
+            loan
+            for loan in history
+            if loan.date.month == month and loan.date.year == year
+        ]
+    )
