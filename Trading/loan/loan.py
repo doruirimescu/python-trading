@@ -162,3 +162,8 @@ def data_on_month_year(
             if loan.date.month == month and loan.date.year == year
         ]
     )
+
+def get_monthly_installment(json_data: Optional[dict] = None) -> float:
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
+    return json_data["monthly_installment"]

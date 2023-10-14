@@ -3,11 +3,13 @@ from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Optional
 import Trading.loan.loan as loan
-from Trading.loan.routes.loan_routes import router
+from Trading.loan.routes.loan_routes import router as loan_router
+from Trading.investment.routes.investment_routes import router as investment_router
 load_dotenv()
 
 app = FastAPI()
-app.include_router(router=router, prefix="/loan")
+app.include_router(router=loan_router, prefix="/loan")
+app.include_router(router=investment_router, prefix="/investment")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 orchestrators_dict = {}
