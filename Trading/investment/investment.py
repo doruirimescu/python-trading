@@ -38,3 +38,8 @@ def get_target_rate(json_data: Optional[dict] = None):
     months_remaining = time_remaining.days / 30
     amount_remaining = get_target(json_data) - get_total_invested(json_data)
     return amount_remaining / months_remaining
+
+def get_history(json_data: Optional[dict] = None):
+    if json_data is None:
+        json_data = load_data(CURRENT_FILE_PATH.joinpath("us500.json"))
+    return json_data["history"]
