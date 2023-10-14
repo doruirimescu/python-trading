@@ -9,7 +9,7 @@ import os
 CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
 
 
-class Loan(BaseModel):
+class Payment(BaseModel):
     date: date
     principal: float
     interest: float
@@ -19,7 +19,7 @@ class Loan(BaseModel):
         return f"Date: {self.date} Principal: {self.principal:.2f} Interest: {self.interest} Cost: {self.cost}"
 
 
-def load_data(filename: Path | str) -> List[Loan]:
+def load_data(filename: Path | str) -> List[Payment]:
     with open(filename) as f:
         data = json.load(f)
     return data
@@ -27,8 +27,13 @@ def load_data(filename: Path | str) -> List[Loan]:
 
 LOAN_DATA = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
 
+def add_payment(payment: Payment, json_data: dict = LOAN_DATA) -> None:
+    print(payment.__dict__)
+    json_data["history"].append(payment.__dict__)
+    with open(CURRENT_FILE_PATH.joinpath("loan.json"), "w") as f:
+        json.dump(json_data, f, indent=4, sort_keys=True, default=str)
 
-def combine_loans_same_date(loans: List[Loan]) -> Loan:
+def combine_loans_same_date(loans: List[Payment]) -> Payment:
     total_principal = 0
     total_interest = 0
     total_cost = 0
@@ -37,7 +42,7 @@ def combine_loans_same_date(loans: List[Loan]) -> Loan:
         total_interest += loan.interest
         total_cost += loan.cost
 
-    return Loan(
+    return Payment(
         date=loans[0].date,
         principal=total_principal,
         interest=total_interest,
@@ -45,15 +50,15 @@ def combine_loans_same_date(loans: List[Loan]) -> Loan:
     )
 
 
-def history_as_loans(json_data: dict = LOAN_DATA) -> List[Loan]:
+def history_as_loans(json_data: dict = LOAN_DATA) -> List[Payment]:
     results = list()
     data = json_data["history"]
     for loan in data:
-        results.append(Loan(**loan))
+        results.append(Payment(**loan))
     return results
 
 
-def loan_history(json_data: Optional[dict] = None) -> List[Loan]:
+def loan_history(json_data: Optional[dict] = None) -> List[Payment]:
     if json_data is None:
         json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
     loans = history_as_loans(json_data)
@@ -102,7 +107,7 @@ def principal_paid(json_data: Optional[dict] = None) -> float:
         total_principal += d["principal"]
     return round(total_principal, 3)
 
-def cumulative_principal_paid(json_data: Optional[dict] = None) -> List[Loan]:
+def cumulative_principal_paid(json_data: Optional[dict] = None) -> List[Payment]:
     if json_data is None:
         json_data = load_data(CURRENT_FILE_PATH.joinpath("loan.json"))
     loans = history_as_loans(json_data)
@@ -137,7 +142,7 @@ def interest_paid(json_data: Optional[dict] = None) -> float:
     return round(total_interest, 3)
 
 
-def data_on_date(date: date, json_data: dict = LOAN_DATA) -> List[Loan]:
+def data_on_date(date: date, json_data: dict = LOAN_DATA) -> List[Payment]:
     results = list()
     history = history_as_loans(json_data)
     # filter history by date
@@ -146,7 +151,7 @@ def data_on_date(date: date, json_data: dict = LOAN_DATA) -> List[Loan]:
 
 def data_on_month_year(
     month: int, year: int, json_data: dict = LOAN_DATA
-) -> List[Loan]:
+) -> List[Payment]:
     results = list()
     history = history_as_loans(json_data)
     # filter history by month
