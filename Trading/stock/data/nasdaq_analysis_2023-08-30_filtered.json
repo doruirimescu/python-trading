@@ -1,0 +1,20 @@
+[
+    {
+        "symbol": "JD",
+        "valuation_type": "Undervalued",
+        "valuation_score": 46,
+        "solvency_score": 62
+    },
+    {
+        "symbol": "PYPL",
+        "valuation_type": "Undervalued",
+        "valuation_score": 56,
+        "solvency_score": 57
+    },
+    {
+        "symbol": "ZM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 23,
+        "solvency_score": 80
+    }
+]

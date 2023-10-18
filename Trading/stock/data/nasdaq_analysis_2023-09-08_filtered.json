@@ -1,0 +1,37 @@
+[
+    {
+        "symbol": "PCAR",
+        "valuation_type": "Undervalued",
+        "valuation_score": 14,
+        "solvency_score": 67,
+        "profitability_score": 59
+    },
+    {
+        "symbol": "QCOM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 19,
+        "solvency_score": 66,
+        "profitability_score": 77
+    },
+    {
+        "symbol": "SBUX",
+        "valuation_type": "Undervalued",
+        "valuation_score": 16,
+        "solvency_score": 51,
+        "profitability_score": 45
+    },
+    {
+        "symbol": "MCHP",
+        "valuation_type": "Undervalued",
+        "valuation_score": 17,
+        "solvency_score": 66,
+        "profitability_score": 70
+    },
+    {
+        "symbol": "ZM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 24,
+        "solvency_score": 80,
+        "profitability_score": 69
+    }
+]

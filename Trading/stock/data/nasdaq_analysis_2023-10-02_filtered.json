@@ -1,0 +1,86 @@
+[
+    {
+        "symbol": "PCAR",
+        "valuation_type": "Undervalued",
+        "valuation_score": 4,
+        "solvency_score": 67,
+        "profitability_score": 59
+    },
+    {
+        "symbol": "QCOM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 20,
+        "solvency_score": 66,
+        "profitability_score": 79
+    },
+    {
+        "symbol": "SBUX",
+        "valuation_type": "Undervalued",
+        "valuation_score": 20,
+        "solvency_score": 51,
+        "profitability_score": 46
+    },
+    {
+        "symbol": "MCHP",
+        "valuation_type": "Undervalued",
+        "valuation_score": 17,
+        "solvency_score": 66,
+        "profitability_score": 70
+    },
+    {
+        "symbol": "DLTR",
+        "valuation_type": "Undervalued",
+        "valuation_score": 27,
+        "solvency_score": 58,
+        "profitability_score": 53
+    },
+    {
+        "symbol": "NXPI",
+        "valuation_type": "Undervalued",
+        "valuation_score": 15,
+        "solvency_score": 54,
+        "profitability_score": 74
+    },
+    {
+        "symbol": "JD",
+        "valuation_type": "Undervalued",
+        "valuation_score": 56,
+        "solvency_score": 63,
+        "profitability_score": 49
+    },
+    {
+        "symbol": "PYPL",
+        "valuation_type": "Undervalued",
+        "valuation_score": 53,
+        "solvency_score": 57,
+        "profitability_score": 62
+    },
+    {
+        "symbol": "ZM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 29,
+        "solvency_score": 80,
+        "profitability_score": 72
+    },
+    {
+        "symbol": "CTSH",
+        "valuation_type": "Undervalued",
+        "valuation_score": 12,
+        "solvency_score": 93,
+        "profitability_score": 59
+    },
+    {
+        "symbol": "ILMN",
+        "valuation_type": "Undervalued",
+        "valuation_score": 6,
+        "solvency_score": 65,
+        "profitability_score": 42
+    },
+    {
+        "symbol": "ENPH",
+        "valuation_type": "Undervalued",
+        "valuation_score": 12,
+        "solvency_score": 80,
+        "profitability_score": 84
+    }
+]
