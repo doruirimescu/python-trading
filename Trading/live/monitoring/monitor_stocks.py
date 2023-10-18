@@ -104,7 +104,7 @@ def monitor_once(client, should_plot=True):
                     analysis.solvency_score,
                 )
             except Exception as e:
-                MAIN_LOGGER.error(f"Error analyzing {stock_name}: {e}")
+                print(f"Error analyzing {stock_name}: {e}")
 
     # Sort the dictionary using the new sort order
     sorted_stock_valuation_new = sorted(

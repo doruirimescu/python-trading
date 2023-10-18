@@ -6,7 +6,6 @@ import os
 import Trading.live.monitoring.monitor_stocks as monitor_stocks
 router = APIRouter()
 
-
 @router.get("/nasdaq")
 def analyse():
     # check if file exists
@@ -26,9 +25,9 @@ def analyse():
     }
 
 @router.get("/portfolio/usd/pie")
-def analyse_usd_portfolio():
+def analyse_usd_portfolio_pie():
     return monitor_stocks.monitor_usd()["pie"]
 
 @router.get("/portfolio/usd/valuation")
-def analyse_usd_portfolio():
+def analyse_usd_portfolio_valuation():
     return monitor_stocks.monitor_usd()["valuation"]

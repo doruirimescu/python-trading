@@ -9,27 +9,14 @@ import os
 
 import argparse
 
-SLEEP_TIME = 1.0
+SLEEP_TIME = 2.0
 
-arg = argparse.ArgumentParser()
-arg.add_argument("--helsinki", action="store_true")
-arg.add_argument("--nasdaq", action="store_true")
-args = arg.parse_args()
 
-if args.helsinki:
-    nasdaq_symbols = get_nasdaq_helsinki_symbols()
-    filename = HELSINKI_NASDAQ_ANALYSIS_FILENAME
-    url_getter = get_alphaspread_url
-elif args.nasdaq:
-    nasdaq_symbols = get_nasdaq_symbols()
-    filename = NASDAQ_ANALYSIS_FILENAME
-    url_getter = get_alphaspread_nasdaq_url
-else:
-    print("Please specify --helsinki or --nasdaq")
-    sys.exit(1)
-
-if __name__ == "__main__":
+def analyze(filename):
     undervalued_symbols = []
+    print("Getting symbols")
+    nasdaq_symbols = get_nasdaq_symbols()
+    print("Done getting symbols")
 
     if os.path.exists(filename):
         with open(filename, "r") as f:
@@ -39,6 +26,7 @@ if __name__ == "__main__":
     else:
         data = []
 
+    print(nasdaq_symbols)
     for symbol in nasdaq_symbols:
         # Check if symbol is already in json
         should_continue = False
@@ -50,7 +38,7 @@ if __name__ == "__main__":
         if should_continue:
             continue
 
-        _, url = url_getter(symbol)
+        url = url_getter(symbol)
         try:
             analysis = analyze_url(url, symbol)
             undervalued_symbols.append(analysis)
@@ -67,3 +55,24 @@ if __name__ == "__main__":
             data, indent=4
         )
         f.write(json_str)
+
+if __name__ == "__main__":
+    arg = argparse.ArgumentParser()
+    arg.add_argument("--helsinki", action="store_true")
+    arg.add_argument("--nasdaq", action="store_true")
+    args = arg.parse_args()
+
+    if args.helsinki:
+        nasdaq_symbols = get_nasdaq_helsinki_symbols()
+        filename = HELSINKI_NASDAQ_ANALYSIS_FILENAME
+        url_getter = get_alphaspread_url
+    elif args.nasdaq:
+        nasdaq_symbols = get_nasdaq_symbols()
+        filename = NASDAQ_ANALYSIS_FILENAME
+        url_getter = get_alphaspread_nasdaq_url
+    else:
+        print("Please specify --helsinki or --nasdaq")
+        sys.exit(1)
+
+    if __name__ == "__main__":
+        analyze(filename)
