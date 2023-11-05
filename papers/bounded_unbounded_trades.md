@@ -2,7 +2,7 @@
 In this paper, we will attempt to categorize trades and their risk scores by analyzing their entry and exit conditions. We shall introduce the following terms: bounded, unbounded, soft-bound, hard-bounded.
 
 * A trade's entry condition is a set of logical rules, which, if evaluated to true, result in the execution of the trade.
-* A trade's exit condition is a set of logical rules, which, if evaluated to true, result in the closing of the trade. We can further categorise the exit conditions into two categories: stop loss (denoted by L) and take profit (P).
+* A trade's exit condition is a set of logical rules, which, if evaluated to true, result in the closing of the trade. We can further categorize the exit conditions into two categories: stop loss (denoted by L) and take profit (P).
 * A stop loss (L) is an exit condition, thus a set of logical rules which, if evaluated to true, result in the closing of the trade, resulting in a loss.
 * A take profit (P) is an exit condition, thus a set of logical rules which, if evaluated to true, result in the closing of the trade, resulting in a profit.
 
