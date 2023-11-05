@@ -1,8 +1,8 @@
 from exception_with_retry import exception_with_retry
 
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.send_email import send_email
-from Trading.config.config import USERNAME, PASSWORD, MODE, ETF_PATH
+from Trading.config.config import USERNAME, PASSWORD, MODE
+from Trading.symbols.constants import XTB_ETF_SYMBOLS
 
 from Trading.utils.write_to_file import read_json_file
 from Trading.utils.time import get_date_now_cet
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # read etf symbols
-    etf_symbols = read_json_file(ETF_PATH)
+    etf_symbols = read_json_file(XTB_ETF_SYMBOLS)
     etf_instruments = [Instrument(symbol, TIMEFRAME) for symbol in etf_symbols]
 
     for etf_instrument in etf_instruments:
