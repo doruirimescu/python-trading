@@ -3,8 +3,8 @@ In this paper, we will attempt to categorize trades and their risk scores by ana
 
 * A trade's entry condition is a set of logical rules, which, if evaluated to true, result in the execution of the trade.
 * A trade's exit condition is a set of logical rules, which, if evaluated to true, result in the closing of the trade. We can further categorize the exit conditions into two categories: stop loss (denoted by L) and take profit (P).
-* A stop loss (L) is an exit condition, thus a set of logical rules which, if evaluated to true, result in the closing of the trade, resulting in a loss.
-* A take profit (P) is an exit condition, thus a set of logical rules which, if evaluated to true, result in the closing of the trade, resulting in a profit.
+* A stop loss (L) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a loss.
+* A take profit (P) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a profit.
 
 ### Unbounded trades
 Unbounded (U) trades do not have an exit condition for the loss, profit, or both. Trades which, once entered, have no predefined conditions for an exit.
