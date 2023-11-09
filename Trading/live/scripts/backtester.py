@@ -127,7 +127,7 @@ if __name__ == "__main__":
         history_days['low'] = np.array(history_days['low'], dtype=float)
         history_days['close'] = np.array(history_days['close'], dtype=float)
 
-        open_trade_dates = []
+        trade_entry_dates = []
         for i in range(5, N_DAYS):
             data=dict()
             data['open'] = history_days['open'][0:i]
@@ -137,9 +137,9 @@ if __name__ == "__main__":
             data['date'] = history_days['date'][0:i]
 
             if strategy_under_test.should_enter_trade(data):
-                open_trade_dates.append(history_days['date'][i])
+                trade_entry_dates.append(history_days['date'][i])
 
-        trades = strategy_under_test.get_trades(history_days, open_trade_dates)
+        trades = strategy_under_test.get_trades(history_days, trade_entry_dates)
         analyze_trades(trades, symbol)
 
     #strategy_under_test.plot_data(history_days)

@@ -36,14 +36,14 @@ def should_enter_trade(data):
         return True
     return False
 
-def get_trades(data, enter_dates: List[datetime]):
+def get_trades(data, entry_dates: List[datetime]):
 
     _, rsi = calculate_indicators(data)
     exit_dates = []
     trades = []
 
     for i, d in enumerate(data['date']):
-        if d in enter_dates:
+        if d in entry_dates:
             open_price = data['open'][i]
             for j in range(i + 1, len(data['date'])):
                 should_close_prematurely = False
