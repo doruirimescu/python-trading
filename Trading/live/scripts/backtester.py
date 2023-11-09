@@ -7,6 +7,7 @@ import os
 import logging
 import sys
 import Trading.algo.strategy.rsi_strategy as strategy_under_test
+from Trading.utils.timeseries import slice_data_np
 from typing import List
 import numpy as np
 
@@ -116,30 +117,18 @@ if __name__ == "__main__":
         print(f"Dealing with {symbol}...")
 
         try:
-            history_days = client.get_last_n_candles_history(Instrument(symbol, "1D"), N_DAYS)
+            history = client.get_last_n_candles_history(Instrument(symbol, "1D"), N_DAYS)
         except Exception as e:
             print(f"Failed to get history for {symbol}")
             continue
 
-        # arrange data
-        history_days['open'] = np.array(history_days['open'], dtype=float)
-        history_days['high'] = np.array(history_days['high'], dtype=float)
-        history_days['low'] = np.array(history_days['low'], dtype=float)
-        history_days['close'] = np.array(history_days['close'], dtype=float)
-
         trade_entry_dates = []
         for i in range(5, N_DAYS):
-            data=dict()
-            data['open'] = history_days['open'][0:i]
-            data['high'] = history_days['high'][0:i]
-            data['low'] = history_days['low'][0:i]
-            data['close'] = history_days['close'][0:i]
-            data['date'] = history_days['date'][0:i]
-
+            data=data = slice_data_np(history, i)
             if strategy_under_test.should_enter_trade(data):
-                trade_entry_dates.append(history_days['date'][i])
+                trade_entry_dates.append(history['date'][i])
 
-        trades = strategy_under_test.get_trades(history_days, trade_entry_dates)
+        trades = strategy_under_test.get_trades(data, trade_entry_dates)
         analyze_trades(trades, symbol)
 
     #strategy_under_test.plot_data(history_days)
