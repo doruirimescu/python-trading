@@ -8,19 +8,24 @@ import logging
 import sys
 import Trading.algo.strategy.rsi_strategy as strategy_under_test
 from Trading.utils.timeseries import slice_data_np
+import Trading.utils.visualize as visualize
 from typing import List
 import numpy as np
+from datetime import date
+
 
 def exit():
     sys.exit(0)
 
-SYMBOLS_TO_TEST = ['TUR.US_5']
+
+
+SYMBOLS_TO_TEST = ['TUR.US_5', 'US500']
 
 def setup_parameters():
     N_DAYS = 2000
     SHOULD_REINVEST = True
     DESIRED_CASH_INVESTED = 1000
-    PRINT_ANNUALIZED_RETURNS = True
+    PRINT_ANNUALIZED_RETURNS = False
 
     return (N_DAYS, SHOULD_REINVEST, DESIRED_CASH_INVESTED, PRINT_ANNUALIZED_RETURNS)
 
@@ -28,7 +33,7 @@ def n_days():
     (N_DAYS, _, _, _) = setup_parameters()
     return N_DAYS
 
-def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str):
+def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str, history):
     (N_DAYS, SHOULD_REINVEST, DESIRED_CASH_INVESTED, PRINT_ANNUALIZED_RETURNS) = setup_parameters()
     symbol_info = XTB_ALL_SYMBOLS_DICT[symbol]
     CONTRACT_SIZE = symbol_info['contractSize']
@@ -44,32 +49,32 @@ def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str):
     total_loss = 0
     total_profit = 0
     profits_list = []
+    average_trade_duration_days = 0
     for t in trades:
+        t.calculate_max_drawdown_price_diff(history)
+        average_trade_duration_days += t.duration_days()
         if SHOULD_REINVEST:
             cash_to_invest = DESIRED_CASH_INVESTED + total_profit
         else:
             cash_to_invest = DESIRED_CASH_INVESTED
 
+        volume = (cash_to_invest)/(t.open_price * CONTRACT_SIZE)
+
         if CATEGORY_NAME == 'IND':
-            volume = (cash_to_invest)/(t.open_price * CONTRACT_SIZE)
             volume = round(volume, 2)
             volume = max(0.01, volume)
-
-            actual_cash_invested = volume * t.open_price * CONTRACT_SIZE
-            p = CONTRACT_SIZE * volume * (t.close_price - t.open_price)
-
-        if CATEGORY_NAME == 'ETF':
-            volume = (cash_to_invest) / (t.open_price * CONTRACT_SIZE)
+        elif CATEGORY_NAME == 'ETF':
             volume = int(volume)
-            actual_cash_invested = volume * t.open_price * CONTRACT_SIZE
-            p = volume * (t.close_price - t.open_price)
+
+        actual_cash_invested = volume * t.open_price * CONTRACT_SIZE
+        p = CONTRACT_SIZE * volume * (t.close_price - t.open_price)
 
         total_cash_invested += actual_cash_invested
 
         if p < max_loss:
             max_loss = p
         total_net_profit += p
-        max_drawdown = min(max_drawdown, total_net_profit)
+        max_drawdown = min(max_drawdown, t.max_drawdown.value)
         profits_list.append(total_net_profit)
         if p < 0:
             n_loss_trades += 1
@@ -78,13 +83,20 @@ def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str):
             n_profit_trades += 1
             total_profit += p
     average_cash_per_trade = total_cash_invested/len(trades)
+    average_trade_duration_days = average_trade_duration_days/len(trades)
 
     print(f"Total net profit: {total_net_profit:.2f} {PROFIT_CURRENCY}")
     print(f"Average cash invested per trade: {average_cash_per_trade:.2f} {PROFIT_CURRENCY}")
-    print(f"Max drawdown: {max_drawdown:.2f} {PROFIT_CURRENCY} Max loss: {max_loss:.2f} {PROFIT_CURRENCY}")
+    for t in trades:
+        if t.max_drawdown.value == max_drawdown:
+            entry_date = t.entry_date.date()
+            drawdown_date = t.max_drawdown.date.date()
+            print(f"Max drawdown {max_drawdown:.2f} {PROFIT_CURRENCY} between {entry_date} and {drawdown_date}")
+
     print(f"A number of {len(trades)} trades were made during {N_DAYS} days")
     print(f"Profit trades: {n_profit_trades}, Loss trades: {n_loss_trades} Win ratio: {100*n_profit_trades/len(trades):.2f}%")
     print(f"Reward to risk ratio: {abs(total_profit/total_loss):.2f}")
+    print(f"Average trade duration: {average_trade_duration_days:.2f} days")
 
     n_years = N_DAYS/365.0
 
@@ -112,6 +124,7 @@ if __name__ == "__main__":
 
     N_DAYS = n_days()
     symbol_to_annualized_returns = dict()
+    all_trades = list()
 
     for symbol in SYMBOLS_TO_TEST:
         print("--------------------------------------------------")
@@ -131,9 +144,10 @@ if __name__ == "__main__":
                 trade_entry_dates.append(history['date'][i])
 
         trades = strategy_under_test.get_trades(data, trade_entry_dates)
+        all_trades.append(trades)
         for t in trades:
             t.symbol = symbol
-        analyze_trades(trades, symbol)
+        analyze_trades(trades, symbol, history)
 
-    strategy_under_test.plot_trades_timeline(trades)
+    visualize.plot_trades_gant(all_trades)
     #strategy_under_test.plot_data(history_days)

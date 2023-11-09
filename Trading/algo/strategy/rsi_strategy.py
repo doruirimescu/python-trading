@@ -8,6 +8,7 @@ from Trading.algo.strategy.trade import Trade
 from Trading.utils.timeseries import slice_data_np
 
 
+
 def _calculate_indicators(data):
     # Calculate 200-day SMA
     sma200 = talib.SMA(data['close'], timeperiod=200)
@@ -41,6 +42,14 @@ def should_exit_trade(data):
     _, rsi = _calculate_indicators(data)
     return rsi[-1] > 49
 
+def is_trade_ongoing(trade: Trade, date: datetime):
+    return date < trade.exit_date
+
+def can_place_nonoverlap_trade(trades: List[Trade], date: datetime):
+    for t in trades:
+        if is_trade_ongoing(t, date):
+            return False
+    return True
 
 def get_trades(data, entry_dates: List[datetime]):
     trades = []
