@@ -112,19 +112,21 @@ if __name__ == "__main__":
 
     N_DAYS = n_days()
     symbol_to_annualized_returns = dict()
+
     for symbol in SYMBOLS_TO_TEST:
         print("--------------------------------------------------")
         print(f"Dealing with {symbol}...")
 
         try:
             history = client.get_last_n_candles_history(Instrument(symbol, "1D"), N_DAYS)
+
         except Exception as e:
             print(f"Failed to get history for {symbol}")
             continue
 
         trade_entry_dates = []
-        for i in range(5, N_DAYS):
-            data=data = slice_data_np(history, i)
+        for i in range(5, N_DAYS + 1):
+            data = slice_data_np(history, i)
             if strategy_under_test.should_enter_trade(data):
                 trade_entry_dates.append(history['date'][i])
 

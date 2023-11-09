@@ -5,6 +5,7 @@ import mplfinance as mpf
 from typing import List
 from datetime import datetime
 from Trading.algo.strategy.trade import Trade
+from Trading.utils.timeseries import slice_data_np
 
 
 def calculate_indicators(data):
@@ -36,19 +37,21 @@ def should_enter_trade(data):
         return True
     return False
 
-def get_trades(data, entry_dates: List[datetime]):
+def should_exit_trade(data):
+    _, rsi = calculate_indicators(data)
+    return rsi[-1] > 49
 
+
+def get_trades(data, entry_dates: List[datetime]):
     _, rsi = calculate_indicators(data)
     exit_dates = []
     trades = []
-
+    n_days = len(data['date'])
     for i, d in enumerate(data['date']):
         if d in entry_dates:
             open_price = data['open'][i]
-            for j in range(i + 1, len(data['date'])):
-                should_close_prematurely = False
-
-                if rsi[j] > 49 or should_close_prematurely:
+            for j in range(i + 1, n_days):
+                if should_exit_trade(slice_data_np(data, j + 1)):
                     exit_dates.append(data['date'][j])
                     close_price = data['close'][j]
 
