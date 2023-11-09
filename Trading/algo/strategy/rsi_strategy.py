@@ -2,6 +2,8 @@
 import talib
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+from typing import List
+from datetime import datetime
 from Trading.algo.strategy.trade import Trade
 
 
@@ -34,13 +36,9 @@ def should_enter_trade(data):
         return True
     return False
 
-def get_trades(data, enter_dates, spread = 0.0):
-    total_profit = 0
-    loss = 0
-    profit = 0
-    n_loss = 0
-    n_profit = 0
-    sma200, rsi = calculate_indicators(data)
+def get_trades(data, enter_dates: List[datetime]):
+
+    _, rsi = calculate_indicators(data)
     exit_dates = []
     trades = []
 
@@ -56,15 +54,6 @@ def get_trades(data, enter_dates, spread = 0.0):
 
                     t = Trade(entry_date=d, exit_date=data['date'][j], open_price=open_price, close_price=close_price, cmd=0)
                     trades.append(t)
-                    trade_profit = close_price - open_price - spread
-
-                    if trade_profit < 0:
-                        n_loss += 1
-                        loss += trade_profit
-                    else:
-                        n_profit += 1
-                        profit += trade_profit
-                    total_profit += (trade_profit)
                     break
     return trades
 
