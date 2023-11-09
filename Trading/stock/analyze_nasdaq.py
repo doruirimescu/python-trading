@@ -38,7 +38,7 @@ def analyze(filename):
         if should_continue:
             continue
 
-        url = url_getter(symbol)
+        url = get_alphaspread_nasdaq_url(symbol)
         try:
             analysis = analyze_url(url, symbol)
             undervalued_symbols.append(analysis)

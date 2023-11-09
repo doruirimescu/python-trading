@@ -13,6 +13,8 @@ XTB_SYMBOLS_PATH = CURRENT_FILE_PATH.joinpath("xtb/")
 XTB_ALL_SYMBOLS_PATH = XTB_SYMBOLS_PATH.joinpath("all_symbols.json")
 XTB_STOCK_SYMBOLS_PATH = XTB_SYMBOLS_PATH.joinpath("stocks.json")
 XTB_ETF_SYMBOLS_PATH = XTB_SYMBOLS_PATH.joinpath("etf.json")
+XTB_INDEX_SYMBOLS_PATH = XTB_SYMBOLS_PATH.joinpath("index.json")
+
 with open(XTB_ALL_SYMBOLS_PATH, "r") as f:
     XTB_ALL_SYMBOLS_DICT = json.load(f)
     XTB_ALL_SYMBOLS = [symbol for symbol in XTB_ALL_SYMBOLS_DICT]
@@ -27,6 +29,10 @@ with open(XTB_STOCK_SYMBOLS_PATH, "r") as f:
 with open(XTB_ETF_SYMBOLS_PATH, "r") as f:
     XTB_ETF_SYMBOLS_DICT = json.load(f)
     XTB_ETF_SYMBOLS = [symbol for symbol in XTB_ETF_SYMBOLS_DICT]
+
+with open(XTB_INDEX_SYMBOLS_PATH, "r") as f:
+    XTB_INDEX_SYMBOLS_DICT = json.load(f)
+    XTB_INDEX_SYMBOLS = [symbol for symbol in XTB_INDEX_SYMBOLS_DICT]
 
 # ALPHASPREAD
 ALPHASPREAD_PATH = CURRENT_FILE_PATH.joinpath("alphaspread/")

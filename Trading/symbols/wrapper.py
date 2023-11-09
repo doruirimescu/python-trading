@@ -17,6 +17,10 @@ def get_nasdaq_symbols() -> List:
         symbols.append(main_data[i]["symbol"])
     return symbols
 
+    # from pytickersymbols import PyTickerSymbols
+    # stock_data = PyTickerSymbols()
+    # return stock_data.get_sp_100_nyc_yahoo_tickers()
+
 
 def get_nasdaq_helsinki_symbols() -> List:
     headers = {
