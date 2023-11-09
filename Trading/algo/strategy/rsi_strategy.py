@@ -8,7 +8,7 @@ from Trading.algo.strategy.trade import Trade
 from Trading.utils.timeseries import slice_data_np
 
 
-def calculate_indicators(data):
+def _calculate_indicators(data):
     # Calculate 200-day SMA
     sma200 = talib.SMA(data['close'], timeperiod=200)
 
@@ -18,7 +18,7 @@ def calculate_indicators(data):
     return sma200, rsi
 
 def should_enter_trade(data):
-    sma200, rsi = calculate_indicators(data)
+    sma200, rsi = _calculate_indicators(data)
 
     # Get the last values
     last_close_price = data['close'][-1]
@@ -38,30 +38,28 @@ def should_enter_trade(data):
     return False
 
 def should_exit_trade(data):
-    _, rsi = calculate_indicators(data)
+    _, rsi = _calculate_indicators(data)
     return rsi[-1] > 49
 
 
 def get_trades(data, entry_dates: List[datetime]):
-    _, rsi = calculate_indicators(data)
     exit_dates = []
     trades = []
     n_days = len(data['date'])
     for i, d in enumerate(data['date']):
         if d in entry_dates:
             open_price = data['open'][i]
-            for j in range(i + 1, n_days):
+            for j in range(i + 1, n_days + 1):
                 if should_exit_trade(slice_data_np(data, j + 1)):
                     exit_dates.append(data['date'][j])
                     close_price = data['close'][j]
-
                     t = Trade(entry_date=d, exit_date=data['date'][j], open_price=open_price, close_price=close_price, cmd=0)
                     trades.append(t)
                     break
     return trades
 
 def plot_data(data):
-    ema200, rsi = calculate_indicators(data)
+    ema200, rsi = _calculate_indicators(data)
 
     addplot_ema200 = mpf.make_addplot(ema200, color='blue', width=0.7)
     addplot_rsi = mpf.make_addplot(rsi, panel='lower', color='purple', ylabel='RSI')
