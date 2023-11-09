@@ -1,20 +1,8 @@
 #implemented from https://youtu.be/XBcMiYK7qYY
 import talib
-import numpy as np
-
 import matplotlib.pyplot as plt
 import mplfinance as mpf
-import pandas as pd
-from dataclasses import dataclass
-from datetime import datetime
-
-@dataclass
-class Trade:
-    cmd: int #0 buy, 1 sell
-    entry_date: datetime
-    exit_date: datetime
-    open_price: float
-    close_price: float
+from Trading.algo.strategy.trade import Trade
 
 
 def calculate_indicators(data):

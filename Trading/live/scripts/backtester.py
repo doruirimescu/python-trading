@@ -23,6 +23,10 @@ def setup_parameters():
 
     return (N_DAYS, SHOULD_REINVEST, DESIRED_CASH_INVESTED, PRINT_ANNUALIZED_RETURNS)
 
+def n_days():
+    (N_DAYS, _, _, _) = setup_parameters()
+    return N_DAYS
+
 def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str):
     (N_DAYS, SHOULD_REINVEST, DESIRED_CASH_INVESTED, PRINT_ANNUALIZED_RETURNS) = setup_parameters()
     symbol_info = XTB_ALL_SYMBOLS_DICT[symbol]
@@ -105,7 +109,7 @@ if __name__ == "__main__":
     mode = os.getenv("XTB_MODE")
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
-    (N_DAYS, SHOULD_REINVEST, DESIRED_CASH_INVESTED) = setup_parameters()
+    N_DAYS = n_days()
     symbol_to_annualized_returns = dict()
     for symbol in SYMBOLS_TO_TEST:
         print("--------------------------------------------------")
@@ -139,4 +143,3 @@ if __name__ == "__main__":
         analyze_trades(trades, symbol)
 
     #strategy_under_test.plot_data(history_days)
-    #plot_data(history_days)
