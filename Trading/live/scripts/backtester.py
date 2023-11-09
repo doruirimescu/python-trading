@@ -131,6 +131,9 @@ if __name__ == "__main__":
                 trade_entry_dates.append(history['date'][i])
 
         trades = strategy_under_test.get_trades(data, trade_entry_dates)
+        for t in trades:
+            t.symbol = symbol
         analyze_trades(trades, symbol)
 
+    strategy_under_test.plot_trades_timeline(trades)
     #strategy_under_test.plot_data(history_days)

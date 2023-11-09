@@ -43,7 +43,6 @@ def should_exit_trade(data):
 
 
 def get_trades(data, entry_dates: List[datetime]):
-    exit_dates = []
     trades = []
     n_days = len(data['date'])
     for i, d in enumerate(data['date']):
@@ -51,7 +50,6 @@ def get_trades(data, entry_dates: List[datetime]):
             open_price = data['open'][i]
             for j in range(i + 1, n_days + 1):
                 if should_exit_trade(slice_data_np(data, j + 1)):
-                    exit_dates.append(data['date'][j])
                     close_price = data['close'][j]
                     t = Trade(entry_date=d, exit_date=data['date'][j], open_price=open_price, close_price=close_price, cmd=0)
                     trades.append(t)
