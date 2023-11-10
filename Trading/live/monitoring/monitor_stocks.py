@@ -17,6 +17,7 @@ from datetime import date
 import json
 import os
 import logging
+from time import sleep
 
 # open all symbols file
 # Monitor stock allocations
@@ -62,7 +63,8 @@ def get_data_from_broker(client):
 
 @exception_with_retry(n_retry=10, sleep_time_s=5.0)
 def monitor_once(client, should_plot=True):
-    data_loaded_from_file = False
+    is_data_loaded_from_file = False
+    stock_valuation = dict()
     if not os.path.isfile(TMP_FILENAME):
         stock_contract_value, stock_profits = get_data_from_broker(client)
     else:
@@ -72,7 +74,8 @@ def monitor_once(client, should_plot=True):
             stock_contract_value = file_data["stock_contract_value"]
             stock_profits = file_data["stock_profits"]
             stock_valuation = file_data["stock_valuation"]
-            data_loaded_from_file = True
+            is_data_loaded_from_file = True
+            print(f"Loaded data from file, stocks from xtb: {len(stock_contract_value)} stocks from file: {len(stock_valuation)}")
 
     total_portfolio_contract_value = sum(stock_contract_value.values())
     total_portfolio_profit = sum(stock_profits.values())
@@ -92,26 +95,46 @@ def monitor_once(client, should_plot=True):
     labels = [XTB_ALL_SYMBOLS_DICT[l]["description"].strip() for l in labels]
     sizes = list(stock_contract_value_percentage.values())
 
-    if not data_loaded_from_file:
-        stock_valuation = dict()
-        for stock_name in labels:
-            try:
-                symbol, url = get_alphaspread_symbol_url(stock_name)
-                analysis = analyze_url(url, symbol)
-                stock_valuation[stock_name] = (
-                    analysis.valuation_type,
-                    analysis.valuation_score,
-                    analysis.solvency_score,
-                )
-            except Exception as e:
-                print(f"Error analyzing {stock_name}: {e}")
+
+    stock_names_to_retry = []
+
+    for stock_name in labels:
+        if stock_name in stock_valuation:
+                print("Skipping")
+                continue
+        try:
+            symbol, url = get_alphaspread_symbol_url(stock_name)
+            analysis = analyze_url(url, symbol)
+            stock_valuation[stock_name] = (
+                analysis.valuation_type,
+                analysis.valuation_score,
+                analysis.solvency_score,
+            )
+        except Exception as e:
+            print(f"Error analyzing {stock_name}: {e}")
+            if "Too Many Requests for url" in str(e):
+                stock_names_to_retry.append(stock_name)
+                print(f"Added {stock_name} to retry list")
+
+    for stock_name in stock_names_to_retry:
+        try:
+            sleep(3)
+            print(f"Retrying {stock_name}")
+            symbol, url = get_alphaspread_symbol_url(stock_name)
+            analysis = analyze_url(url, symbol)
+            stock_valuation[stock_name] = (
+                analysis.valuation_type,
+                analysis.valuation_score,
+                analysis.solvency_score,
+            )
+        except Exception as e:
+            print(f"Error analyzing {stock_name}: {e}")
 
     # Sort the dictionary using the new sort order
     sorted_stock_valuation_new = sorted(
         stock_valuation.items(),
         key=lambda item: (
-            valuation_type_order[item[1][0]],
-            -item[1][1] if item[1][0] == ValuationType.OVERVALUED else item[1][1],
+            item[1][2] if item[1][2] is not None else 0,
         ),
     )
     for stock_name, valuation in sorted_stock_valuation_new:

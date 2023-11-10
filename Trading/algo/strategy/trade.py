@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 @dataclass
 class MaxDrawdown:
@@ -31,6 +31,15 @@ class Trade:
                     drawdown_date = d
         self.max_drawdown = MaxDrawdown(date=drawdown_date, value=max_drawdown)
 
-# class TradesWrapper:
-#     def __init__(self, trades: List[Trade]) -> None:
-#         pass
+class StrategySummary:
+    def __init__(self, trades: List[Trade], n_days: int, should_reinvest: bool,
+                 desired_cash_invested: int, contract_size: int, profit_currency: str,
+                 category_name: str) -> None:
+        #TODO: move all the analyze code here.
+        pass
+
+    def _calculate(self):
+        pass
+
+    def print(self):
+        pass

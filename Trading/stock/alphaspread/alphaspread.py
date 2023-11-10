@@ -32,7 +32,7 @@ class Analysis(BaseModel):
 
 
 def fetch_data_from_url(url) -> requests.Response:
-    response = requests.get(url, timeout=35)
+    response = requests.get(url, timeout=10)
     response.raise_for_status()  # Raise an error for failed requests
     return response
 

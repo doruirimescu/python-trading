@@ -188,7 +188,7 @@ class LoggingClient:
             volume = round(cash_amount / contract_size, 2)
         else:
             print(f"Calculating stock volume, with prices in {currency}")
-            volume = int(cash_amount/open_price)
+            volume = float(cash_amount/open_price)
         print(f"Calculated volume {volume} for symbol {symbol}")
         return Volume(open_price, volume)
 

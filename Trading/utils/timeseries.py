@@ -1,6 +1,7 @@
 import numpy as np
-from datetime import datetime
+
 def slice_data_np(history, i):
+    # i not included
     # Slice data
     data = dict()
     data['open'] = np.array(history['open'][:i], dtype=float)
