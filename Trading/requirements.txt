@@ -17,3 +17,12 @@ python-dotenv
 
 # For database
 PyMySQL
+
+
+# Technical analysis
+TA-Lib
+numpy
+
+# Visualizations
+matplotlib
+mpl-finance
