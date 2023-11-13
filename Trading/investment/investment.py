@@ -3,7 +3,6 @@ from datetime import date
 from typing import List, Optional
 from pydantic import BaseModel
 from pathlib import Path
-from pathlib import Path
 import os
 
 CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
