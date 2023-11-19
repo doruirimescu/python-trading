@@ -2,7 +2,7 @@ from typing import List, Tuple, Optional
 import logging
 import numpy as np
 import pandas as pd
-from Trading.utils.logging import get_logger
+from Trading.utils.custom_logging import get_logger
 
 MAIN_LOGGER = get_logger()
 

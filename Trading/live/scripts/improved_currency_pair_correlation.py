@@ -4,7 +4,7 @@ from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import (
     count_zero_crossings,
 )
-from Trading.utils.logging import get_logger
+from Trading.utils.custom_logging import get_logger
 from Trading.utils.time import get_datetime_now_cet
 from Trading.config.config import TIMEZONE
 from Trading.live.hedge.data import (
@@ -34,13 +34,13 @@ def exit():
 #! Use percentage of the initial price as return. In this way, both net profits are
 #! already normalized
 
-N_CANDLES = 300
+N_CANDLES = 600
 PAIR_1_SYMBOL = "NZDUSD"
 PAIR_2_SYMBOL = "AUDUSD"
 PAIR_1_POSITION = "BUY"
 PAIR_2_POSITION = "SELL"
-PAIR_1_VOLUME = 0.01
-PAIR_2_VOLUME = 0.01
+PAIR_1_VOLUME = 1
+PAIR_2_VOLUME = 1
 
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 1
@@ -73,20 +73,29 @@ positions = [
     #! Do not delete !
     # Fluctuate around 0
     # SHY.US_5 6 BUY, IEF.US_5 2 SELL
-    # IBTE.UK BUY 111, IEF.US_5 SELL 6
+    # IBTE.UK BUY 111, IEF.US_5 SELL 6 or BUY 77.7 with SELL 1.6
 
     # Perfect ascending trend:
     # IBTA.UK 15 BUY, IEF.US_5 1 SELL
     PositionInfo(
-        instrument=Instrument("IBTA.UK", "1D"),
-        volume=15,
+        instrument=Instrument("AUDUSD", "1D"),
+        volume=1,
         type="BUY",
         multiplier=1,
         open_prices=[],
         net_profits=[],
     ),
     PositionInfo(
-        instrument=Instrument("SHY.US_5", "1D"),
+        instrument=Instrument("NZDUSD", "1D"),
+        volume=1,
+        type="SELL",
+        multiplier=1,
+        open_prices=[],
+        net_profits=[],
+    ),
+
+    PositionInfo(
+        instrument=Instrument("AUDNZD", "1D"),
         volume=1,
         type="SELL",
         multiplier=1,
@@ -275,3 +284,7 @@ if __name__ == "__main__":
     # add slider for bollinger bands
     ax_bb = plt.axes([0.25, 0.1, 0.65, 0.03])
     plt.show()
+
+
+# ETFS:
+# wisdomtree industrial metals AIGI.UK

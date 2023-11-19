@@ -2,7 +2,7 @@ from Trading.utils.time import get_date_now_cet
 from Trading.config.config import DATA_STORAGE_PATH
 import os
 import json
-from Trading.utils.logging import get_logger
+from Trading.utils.custom_logging import get_logger
 
 MAIN_LOGGER = get_logger()
 

@@ -56,17 +56,22 @@ class Investments:
     def total_silver_ratio(self):
         return self.total_silver_weight_g() / self.total_weight_g()
 
-    def average_price_per_gram(self):
+    def average_market_price_per_gram(self):
         return sum([i.original_silver_price_eur for i in self.investments]) / len(self)
+
+    def average_paid_price_per_gram(self):
+        return self.total_invested_eur() / self.total_silver_weight_g()
 
     def __len__(self):
         return len(self.investments)
+
     def summarize(self):
         print(f"Total invested: {self.total_invested_eur():.2f} EUR",
               f"Total silver weight: {self.total_silver_weight_g():.2f} g",
               f"Total weight: {self.total_weight_g():.2f} g",
               f"Total silver ratio: {self.total_silver_ratio():.2f}",
-            f"Average price per gram: {self.average_price_per_gram():.3f} EUR/g",
+              f"Average market price per gram: {self.average_market_price_per_gram():.3f} EUR/g",
+              f"Average paid price per gram: {self.average_paid_price_per_gram():.3f} EUR/g",
               sep="\n")
 
 def parse_data(json_data: Optional[dict] = None) -> List[Investment]:
