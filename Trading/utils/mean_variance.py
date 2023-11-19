@@ -6,30 +6,14 @@ import numpy as np
 import math
 import random
 
-def generate_tuples(n, step=0.05):
-    """
-    Generate all n-tuples of numbers that sum up to 1, where each number is between 0 and 1
-    and the step size is 0.05.
-    """
-    # Helper function to generate tuples recursively
-    def helper(remaining, current_tuple):
-        if len(current_tuple) == n - 1:
-            final_value = round(1 - sum(current_tuple), 2)
-            if 0 <= final_value <= 1:
-                result.append(current_tuple + (final_value,))
-            return
+import itertools
 
-        for value in possible_values:
-            next_sum = sum(current_tuple) + value
-            # Only continue if the sum doesn't exceed 1
-            if next_sum <= 1:
-                helper(remaining - 1, current_tuple + (value,))
-
+def generate_tuples_itertools(n, step=0.05):
     possible_values = [round(i * step, 2) for i in range(int(1 / step) + 1)]
-    result = []
-    helper(n, ())
-    return result
+    all_combinations = itertools.product(possible_values, repeat=n)
 
+    # Filter tuples that sum to 1
+    return [t for t in all_combinations if round(sum(t), 2) == 1]
 
 @dataclass
 class AssetReturns:
@@ -69,7 +53,7 @@ class Portfolio:
 
     def plot(self):
         import matplotlib.pyplot as plt
-        possible_weights = generate_tuples(len(self.asset_returns))
+        possible_weights = generate_tuples_itertools(len(self.asset_returns))
         for weights in possible_weights:
             portfolio = Portfolio(
                 [
@@ -84,14 +68,14 @@ class Portfolio:
         plt.title(self.name)
         plt.show()
 
-# r1 = [0.5, 0.1, -0.1]
-# r2 = [0, 0.3, -0.3]
-# r3 = [0.1, 0.2, 0.7]
-# w1 = 0.1
-# w2 = 0.9
-# a1 = AssetReturns(r1, "a1")
-# a2 = AssetReturns(r2, "a2")
-# a3 = AssetReturns(r3, "a3")
+r1 = [0.5, 0.1, -0.1]
+r2 = [0, 0.3, -0.3]
+r3 = [0.1, 0.2, 0.7]
 
-# p = Portfolio([a1, a2, a3], [w1, w2, 0])
-# p.plot()
+
+a1 = AssetReturns(r1, "a1")
+a2 = AssetReturns(r2, "a2")
+a3 = AssetReturns(r3, "a3")
+
+p = Portfolio([a1, a2, a3], [0, 0, 0])
+p.plot()
