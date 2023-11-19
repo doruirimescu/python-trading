@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 import numpy as np
 import math
-import random
+import matplotlib.pyplot as plt
 
 import itertools
 
@@ -52,7 +52,6 @@ class Portfolio:
         return variance
 
     def plot(self):
-        import matplotlib.pyplot as plt
         possible_weights = generate_tuples_itertools(len(self.asset_returns))
         for weights in possible_weights:
             portfolio = Portfolio(
@@ -68,14 +67,13 @@ class Portfolio:
         plt.title(self.name)
         plt.show()
 
-r1 = [0.5, 0.1, -0.1]
-r2 = [0, 0.3, -0.3]
-r3 = [0.1, 0.2, 0.7]
+# r1 = [0.5, 0.1, -0.1]
+# r2 = [0, 0.3, -0.3]
+# r3 = [0.1, 0.2, 0.7]
 
+# a1 = AssetReturns(r1, "a1")
+# a2 = AssetReturns(r2, "a2")
+# a3 = AssetReturns(r3, "a3")
 
-a1 = AssetReturns(r1, "a1")
-a2 = AssetReturns(r2, "a2")
-a3 = AssetReturns(r3, "a3")
-
-p = Portfolio([a1, a2, a3], [0, 0, 0])
-p.plot()
+# p = Portfolio([a1, a2, a3], [0, 0, 0])
+# p.plot()
