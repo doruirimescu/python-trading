@@ -2,7 +2,7 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument.instrument import Instrument
 from dotenv import load_dotenv
-from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT, XTB_INDEX_SYMBOLS_DICT, XTB_ETF_SYMBOLS_DICT
+from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT, XTB_INDEX_SYMBOLS, XTB_ETF_SYMBOLS
 import os
 import logging
 import sys
@@ -17,9 +17,12 @@ from datetime import date
 def exit():
     sys.exit(0)
 
+FOUND_PROFITABLE_SYMBOLS = ['CH50cash', 'US100', 'SOXX.US_5', 'IBB.US_5', 'TUR.US_5', 'TQQQ.US_5', 'SSO.US_5',
+                            'SOXL.US_5', 'ITKY.NL', 'QLD.US_5', 'XME.US_5', 'ITB.US_5']
 
-
-SYMBOLS_TO_TEST = ['TUR.US_5', 'US500']
+SYMBOLS_TO_TEST = FOUND_PROFITABLE_SYMBOLS
+# SYMBOLS_TO_TEST.extend(XTB_INDEX_SYMBOLS)
+# SYMBOLS_TO_TEST.extend(XTB_ETF_SYMBOLS)
 
 def setup_parameters():
     N_DAYS = 2000
@@ -102,11 +105,14 @@ def analyze_trades(trades: List[strategy_under_test.Trade], symbol: str, history
 
     annualized_return = ((total_net_profit + average_cash_per_trade)/average_cash_per_trade) **(1/n_years) - 1
     print(f"Annualized returns: {100*annualized_return:.2f}%")
-    if 100*annualized_return > 10.0:
-        symbol_to_annualized_returns[symbol] = 100*annualized_return
 
     if PRINT_ANNUALIZED_RETURNS:
         print(symbol_to_annualized_returns)
+
+    if 100*annualized_return > 10.0:
+        return 100*annualized_return
+    else:
+        return None
 
 if __name__ == "__main__":
     FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -147,7 +153,13 @@ if __name__ == "__main__":
         all_trades.append(trades)
         for t in trades:
             t.symbol = symbol
-        analyze_trades(trades, symbol, history)
+        r = analyze_trades(trades, symbol, history)
+        if r:
+            symbol_to_annualized_returns[symbol] = r
 
+        print(trades[-1])
+
+    print("--------------------------------------------------")
+    print(f"Profitable symbols: {symbol_to_annualized_returns}")
     visualize.plot_trades_gant(all_trades)
-    #strategy_under_test.plot_data(history_days)
+    # strategy_under_test.plot_data(data)
