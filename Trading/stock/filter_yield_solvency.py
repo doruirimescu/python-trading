@@ -6,8 +6,8 @@ with open("dividend_yield.json", "r") as f:
     import json
     yields_per_symbol = json.load(f)
 
-YIELD_FILTER = 7.0
-SOLVENCY_FILTER = 55
+YIELD_FILTER = 6.0
+SOLVENCY_FILTER = 60
 
 # Filter
 symbols = [symbol for symbol in yields_per_symbol]
@@ -40,4 +40,4 @@ for symbol in yields_per_symbol:
     # except Exception as e:
     #     print(f"Could not get url for {symbol}")
     #     continue
-print(f"Curated dividend yields: {yields_per_symbol}")
+print(f"Raw dividend yields: {yields_per_symbol}")
