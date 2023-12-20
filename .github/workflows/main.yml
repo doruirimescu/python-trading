@@ -18,6 +18,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        echo $GH_USERNAME
+        echo $CLONE_TOKEN
         cd deps/
         tar -xzf ta-lib-0.4.0-src.tar.gz
         cd ta-lib/
@@ -37,8 +39,7 @@ jobs:
         python3 -m venv env
         . env/bin/activate
         pip install .
-        echo $GH_USERNAME
-        echo $GH_TOKEN
+
     - name: Test with pytest
       run: |
         python3 -m pytest
