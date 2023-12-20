@@ -53,4 +53,6 @@ jobs:
 
     - name: Test with pytest
       run: |
+        find . -name \*.pyc -delete
+        find . -name __pycache__ -delete
         python3 -m pytest
