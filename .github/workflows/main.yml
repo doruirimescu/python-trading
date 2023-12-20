@@ -18,8 +18,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: ECHO VARIABLES
       run: |
-        echo $(GH_USERNAME)
-        echo $(CLONE_TOKEN)
+        echo ${GH_USERNAME}
+        echo ${CLONE_TOKEN}
     - name: Install dependencies
       run: |
         cd deps/
