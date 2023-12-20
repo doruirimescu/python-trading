@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-import json
 import os
 
 load_dotenv()
@@ -17,7 +16,7 @@ EMAIL_RECIPIENTS=os.getenv("EMAIL_RECIPIENTS")
 
 # Program configurations
 MONITOR_FOREX_TRADE_SWAPS_ONCE=os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE")
-DATA_STORAGE_PATH=os.getenv("DATA_STORAGE_PATH")
+DATA_STORAGE_PATH=os.getenv("DATA_STORAGE_PATH", "./Trading/live/scripts/data/")
 SYMBOLS_PATH = DATA_STORAGE_PATH + "symbols/"
 ETF_PATH = SYMBOLS_PATH + "/etf.json"
 
