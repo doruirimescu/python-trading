@@ -47,7 +47,9 @@ jobs:
         git clone https://${GH_USERNAME}:${CLONE_TOKEN}@github.com/doruirimescu/XTBApi.git
         cd XTBApi/
         pip install .
+        cd ..
 
     - name: Test with pytest
       run: |
+        cd Trading
         python3 -m pytest
