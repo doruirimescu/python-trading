@@ -31,6 +31,12 @@ jobs:
         pwd
         ls
         pip install -r Trading/requirements.txt
+
+        git clone git@github.com:doruirimescu/XTBApi.git
+        cd XTBApi/
+        python3 -m venv env
+        . env/bin/activate
+        pip install .
     - name: Test with pytest
       run: |
         python3 -m pytest
