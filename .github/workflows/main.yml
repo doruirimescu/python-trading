@@ -43,6 +43,9 @@ jobs:
         pwd
         ls
         pip install -r Trading/requirements.txt
+        cd Trading
+        pip install .
+        cd ..
 
         git clone https://${GH_USERNAME}:${CLONE_TOKEN}@github.com/doruirimescu/XTBApi.git
         cd XTBApi/
