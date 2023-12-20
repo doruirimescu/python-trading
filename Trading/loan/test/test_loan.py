@@ -1,6 +1,6 @@
 import unittest
 import json
-import loan
+import Trading.loan.loan as loan
 from pathlib import Path
 import os
 # get current file path
