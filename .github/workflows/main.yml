@@ -37,6 +37,8 @@ jobs:
         python3 -m venv env
         . env/bin/activate
         pip install .
+        echo $GH_USERNAME
+        echo $GH_TOKEN
     - name: Test with pytest
       run: |
         python3 -m pytest
