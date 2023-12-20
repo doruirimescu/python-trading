@@ -16,10 +16,12 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: ECHO VARIABLES
       run: |
         echo $GH_USERNAME
         echo $CLONE_TOKEN
+    - name: Install dependencies
+      run: |
         cd deps/
         tar -xzf ta-lib-0.4.0-src.tar.gz
         cd ta-lib/
