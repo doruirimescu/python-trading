@@ -12,7 +12,7 @@ jobs:
   test-email:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
+      image: ghcr.io/doruirimescu/python-trading:master
 
     steps:
       - name: Create .env file
