@@ -23,4 +23,6 @@ jobs:
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' > Trading/config/.env
 
       - name: Run test script
-        run: python3 script/test_email.py
+        run: |
+        ls -la
+        python3 script/test_email.py
