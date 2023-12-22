@@ -1,0 +1,26 @@
+name: Run Email Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Branch name to pull the image from'
+        required: true
+        default: 'main'
+
+jobs:
+  test-email:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
+
+    steps:
+      - name: Create .env file
+        run: |
+          mkdir -p Trading/config
+          echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' > Trading/config/.env
+          echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' > Trading/config/.env
+          echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' > Trading/config/.env
+
+      - name: Run test script
+        run: python3 script/test_email.py
