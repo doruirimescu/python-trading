@@ -28,6 +28,9 @@ jobs:
         tags: ghcr.io/doruirimescu/python-trading:latest
         cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:latest
         cache-to: type=inline
+        build-args: |
+          GH_USERNAME=${{ secrets.GH_USERNAME }}
+          CLONE_TOKEN=${{ secrets.CLONE_TOKEN }}
   test:
     runs-on: ubuntu-latest
     needs: build-and-push
