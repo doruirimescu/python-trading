@@ -23,5 +23,5 @@ jobs:
 
       - name: Run test script
         run: |
-          ls -la
-          python3 script/email.py
+        cd Trading
+        python3 script/email.py
