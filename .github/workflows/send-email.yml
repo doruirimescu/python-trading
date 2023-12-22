@@ -14,6 +14,11 @@ jobs:
       image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          path: 'app' # Checkout the repository into the 'app' directory
+
       - name: Create .env file
         run: |
           cd /usr/src/app
