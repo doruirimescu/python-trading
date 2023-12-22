@@ -24,4 +24,4 @@ RUN pip install --no-cache-dir -r Trading/requirements.txt
 ENV PYTHONPATH "${PYTHONPATH}:/usr/src/app"
 
 # Run your application
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["./script/entrypoint.sh"]
