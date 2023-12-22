@@ -1,62 +1,10 @@
 # Loan management tool with REST API
 You will need to first create a loan.json file described in the section below. This is the ground truth and the main source of data for this application.
+The json format is described [here](./json_format.md).
 
-## JSON format
+Visualize your loan repayment progress by connecting Grafana to the [REST API](../api).
 
-```json
-{
-    "total": 100000,
-    "history":[
-            {
-                "date": "2022-05-02",
-                "principal": 100.99,
-                "interest": 47.24,
-                "cost": 2.5
-            },
-            {
-                "date": "2022-06-02",
-                "principal": 124.01,
-                "interest": 50.21,
-                "cost": 3.5
-            }
-    ]
-}
-```
-#### Key Fields
+You can use my Grafana [dashboard template](./grafana-loan.json), or you can make your own.
 
-- `total`: The total loan amount to be repaid.
-- `history`: An array of transaction records.
-
-#### Schema Details
-
-##### `total`
-- **Type**: Number
-- **Description**: Represents the overall amount of the loan to be repaid.
-
-##### `history`
-- **Type**: Array of Objects
-- **Description**: Contains a list of individual repayment transaction records.
-
-#### Transaction Record Schema
-
-Each object in the `history` array represents a single transaction and contains the following fields:
-
-1. **date**
-   - **Type**: String
-   - **Format**: YYYY-MM-DD
-   - **Description**: The date when the transaction occurred.
-
-2. **principal**
-   - **Type**: Number
-   - **Description**: The amount of the loan principal that was paid in this transaction.
-
-3. **interest**
-   - **Type**: Number
-   - **Description**: The amount of interest paid in this transaction.
-
-4. **cost**
-   - **Type**: Number
-   - **Description**: Any additional costs incurred in this transaction.
-
-
-Visualize your loan repayment progress 
+Here is one example:
+![Selection_1514](https://github.com/doruirimescu/python-trading/assets/7363000/86b2e563-4219-42aa-b61e-014c441563b4)
