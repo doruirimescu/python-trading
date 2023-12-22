@@ -7,6 +7,7 @@
 - Stock monitoring and analysis (fusing data from different vendors, such as XTB, yahoo finance, alphaspread)
 - Loan monitoring and analysis, for keeping track of your loans, as well as informed decision making between a loan an an investment
 - Investment monitoring and analysis, for keeping track of your investments and other assets (precious metals)
+- Symbols and constants management (investing.com, alphaspread, XTB). yfinance coming soon
 
 This framework is made to work with an [XTB client](https://github.com/doruirimescu/XTBApi). However, you can implement your own platform's client and use it with [my wrapper](https://github.com/doruirimescu/python-trading/tree/master/Trading/live/client)
 
