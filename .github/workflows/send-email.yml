@@ -33,3 +33,14 @@ jobs:
           cd /usr/src/app
           ls -la
           python3 script/daily_workflow.py
+          touch test.txt
+          echo "generated text" >> test.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name '${{ github.actor }}'
+          git add test.txt
+          git commit -m "Add generated workflow files"
+          git push origin HEAD:${{ github.event.inputs.branchName }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
