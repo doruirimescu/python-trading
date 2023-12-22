@@ -21,6 +21,10 @@ jobs:
           echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' > Trading/config/.env
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' > Trading/config/.env
 
+          echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' > Trading/utils/.env
+          echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' > Trading/utils/.env
+          echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' > Trading/utils/.env
+
       - name: Run test script
         run: |
           cd /usr/src/app
