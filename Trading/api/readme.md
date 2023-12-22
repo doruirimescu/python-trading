@@ -1,4 +1,7 @@
 # How to run the REST API
+
+Currently, the API supports one user, as it was intended for personal use.
+
 Assuming that you have properly installed this framework, following the instructions [here](../../README.md):
 
 Run the following command from this folder: `uvicorn api.main:app --reload`
