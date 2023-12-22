@@ -16,7 +16,10 @@ jobs:
     steps:
       - name: Create .env file
         run: |
-          mkdir -p Trading/config
+          cd /usr/src/app
+          touch Trading/config/.env
+          touch Trading/utils/.env
+
           echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' > Trading/config/.env
           echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' > Trading/config/.env
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' > Trading/config/.env
