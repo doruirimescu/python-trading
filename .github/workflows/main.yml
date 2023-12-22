@@ -3,7 +3,7 @@ name: Python package
 on: [push]
 
 jobs:
-  build:
+  build-and-push:
 
     runs-on: ubuntu-latest
     strategy:
@@ -12,46 +12,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
       with:
-        python-version: ${{ matrix.python-version }}
-        
-    - name: ECHO VARIABLES
-      env:
-        GH_USERNAME: ${{ secrets.GH_USERNAME }}
-        CLONE_TOKEN: ${{ secrets.CLONE_TOKEN }}
-      run: |
-        echo "GH_USERNAME: $GH_USERNAME"
-        echo "CLONE_TOKEN: $CLONE_TOKEN"
-        
-    - name: Install dependencies
-      env:
-        GH_USERNAME: ${{ secrets.GH_USERNAME }}
-        CLONE_TOKEN: ${{ secrets.CLONE_TOKEN }}
-      run: |
-        cd deps/
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib/
-        ./configure --prefix=/usr
-        sudo make
-        sudo make install
-        cd ../../
-        
-        python -m pip install --upgrade pip
-        pip install flake8 pytest requests bs4 lxml dataclasses
-        pwd
-        ls
-        pip install -r Trading/requirements.txt
-
-        git clone https://${GH_USERNAME}:${CLONE_TOKEN}@github.com/doruirimescu/XTBApi.git
-        cd XTBApi/
-        pip install .
-        sudo rm -rf XTBApi
-        cd ..
-
-        export PYTHONPATH=$PYTHONPATH:~/.
-
-    - name: Test with pytest
+        context: .
+        file: ./scripts/Dockerfile
+        push: true
+        tags: ghcr.io/doruirimescu/python-trading:latest
       run: |
         python3 -m pytest
