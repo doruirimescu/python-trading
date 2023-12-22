@@ -6,13 +6,13 @@ on:
       branchName:
         description: 'Branch name to pull the image from'
         required: true
-        default: 'main'
+        default: 'master'
 
 jobs:
   test-email:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/doruirimescu/python-trading:master
+      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
 
     steps:
       - name: Create .env file
