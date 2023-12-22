@@ -26,7 +26,7 @@ jobs:
         file: ./script/Dockerfile
         push: true
         tags: ghcr.io/doruirimescu/python-trading:${{ github.ref_name }}
-        cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:latest
+        cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:main
         cache-to: type=inline
         build-args: |
           GH_USERNAME=${{ secrets.GH_USERNAME }}
@@ -48,4 +48,4 @@ jobs:
       run: docker pull ghcr.io/doruirimescu/python-trading:${{ github.ref_name }}
 
     - name: Run pytest
-      run: docker run --rm ghcr.io/doruirimescu/python-trading:latest python3 -m pytest
+      run: docker run --rm ghcr.io/doruirimescu/python-trading:${{ github.ref_name }} python3 -m pytest
