@@ -12,8 +12,8 @@ Visualize your loan repayment progress by connecting Grafana to the [REST API](.
 
 You can use my Grafana [dashboard template](./grafana-loan.json), or you can make your own.
 
-Here is one example:
+Here is one example (concrete numbers are blurred out in paint):
 ![Selection_1514](https://github.com/doruirimescu/python-trading/assets/7363000/86b2e563-4219-42aa-b61e-014c441563b4)
 
 ## 2. Loan vs investment analysis
-Should I repay my loan, or should I invest my cash this month ?
+Should I repay my loan, or should I invest my cash this month?
