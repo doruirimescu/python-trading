@@ -25,7 +25,7 @@ jobs:
         context: .
         file: ./script/Dockerfile
         push: true
-        tags: ghcr.io/doruirimescu/python-trading:latest
+        tags: ghcr.io/doruirimescu/python-trading:${{ github.ref_name }}
         cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:latest
         cache-to: type=inline
         build-args: |
@@ -45,7 +45,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Pull the latest Docker image
-      run: docker pull ghcr.io/doruirimescu/python-trading:latest
+      run: docker pull ghcr.io/doruirimescu/python-trading:${{ github.ref_name }}
 
     - name: Run pytest
       run: docker run --rm ghcr.io/doruirimescu/python-trading:latest python3 -m pytest
