@@ -4,6 +4,12 @@ on: [push]
 
 jobs:
   build-and-push:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+
     steps:
     - uses: actions/checkout@v2
     - name: Build and push Docker image
@@ -13,5 +19,3 @@ jobs:
         file: ./scripts/Dockerfile
         push: true
         tags: ghcr.io/doruirimescu/python-trading:latest
-      run: |
-        python3 -m pytest
