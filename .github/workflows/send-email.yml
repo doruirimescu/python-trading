@@ -14,10 +14,10 @@ jobs:
       image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
 
     steps:
-      - name: Checkout repository
+    - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          path: 'app' # Checkout the repository into the 'app' directory
+          path: '/usr/src/app' # Checkout the repository into the 'app' directory
 
       - name: Create .env file
         run: |
@@ -43,6 +43,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
+          cd /usr/src/app
           git config --global user.name '${{ github.actor }}'
           git add test.txt
           git commit -m "Add generated workflow files"
