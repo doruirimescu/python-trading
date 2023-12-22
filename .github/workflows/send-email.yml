@@ -7,7 +7,6 @@ on:
         description: 'Branch name to pull the image from'
         required: true
         default: 'master'
-
 jobs:
   test-email:
     runs-on: ubuntu-latest
