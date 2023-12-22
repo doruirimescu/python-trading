@@ -25,4 +25,4 @@ jobs:
         run: |
           cd /usr/src/app
           ls -la
-          python3 script/email.py
+          python3 script/daily_workflow.py
