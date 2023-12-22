@@ -5,7 +5,7 @@ FROM python:3.10
 WORKDIR /usr/src/app
 
 # Copy the dependencies file to the working directory
-COPY requirements.txt ./
+COPY Trading/requirements.txt ./
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
