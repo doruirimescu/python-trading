@@ -12,6 +12,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
@@ -19,3 +27,5 @@ jobs:
         file: ./script/Dockerfile
         push: true
         tags: ghcr.io/doruirimescu/python-trading:latest
+        cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:latest
+        cache-to: type=inline
