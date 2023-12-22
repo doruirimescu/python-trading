@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build-and-push:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,3 +28,21 @@ jobs:
         tags: ghcr.io/doruirimescu/python-trading:latest
         cache-from: type=registry,ref=ghcr.io/doruirimescu/python-trading:latest
         cache-to: type=inline
+  test:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pull the latest Docker image
+      run: docker pull ghcr.io/doruirimescu/python-trading:latest
+
+    - name: Run pytest
+      run: docker run --rm ghcr.io/doruirimescu/python-trading:latest python3 -m pytest
