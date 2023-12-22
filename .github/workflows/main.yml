@@ -16,6 +16,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./scripts/Dockerfile
+        file: ./script/Dockerfile
         push: true
         tags: ghcr.io/doruirimescu/python-trading:latest
