@@ -19,6 +19,16 @@ RUN cd deps/ && \
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r Trading/requirements.txt
 
+# Arguments that will be passed during the build
+ARG GH_USERNAME
+ARG CLONE_TOKEN
+
+# Run git clone using the build arguments
+RUN git clone https://${GH_USERNAME}:${CLONE_TOKEN}@github.com/doruirimescu/XTBApi.git
+RUN cd XTBApi/ && \
+    pip install . && \
+    sudo rm -rf XTBApi && \
+    cd ..
 
 # Define environment variable
 ENV PYTHONPATH "${PYTHONPATH}:/usr/src/app"
