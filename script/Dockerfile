@@ -27,7 +27,7 @@ ARG CLONE_TOKEN
 RUN git clone https://${GH_USERNAME}:${CLONE_TOKEN}@github.com/doruirimescu/XTBApi.git
 RUN cd XTBApi/ && \
     pip install . && \
-    sudo rm -rf XTBApi && \
+    rm -rf XTBApi && \
     cd ..
 
 # Define environment variable
