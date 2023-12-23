@@ -17,11 +17,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          path: '/usr/src/app' # Checkout the repository into the 'app' directory
+          path: 'python-trading' # Checkout the repository into the 'app' directory
 
       - name: Create .env file
         run: |
-          cd /usr/src/app
+          cd python-trading
           touch Trading/config/.env
           touch Trading/utils/.env
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Run test script
         run: |
-          cd /usr/src/app
+          cd python-trading
           ls -la
           python3 script/daily_workflow.py
           touch test.txt
@@ -43,8 +43,10 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          cd /usr/src/app
+          cd python-trading
+          ls -la
           git config --global user.name '${{ github.actor }}'
+          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
           git add test.txt
           git commit -m "Add generated workflow files"
           git push origin HEAD:${{ github.event.inputs.branchName }}
