@@ -28,3 +28,4 @@ numpy
 # Visualizations
 matplotlib
 mpl-finance
+kaleido

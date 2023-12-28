@@ -38,8 +38,6 @@ jobs:
           cd python-trading
           ls -la
           python3 script/daily_workflow.py
-          touch test.txt
-          echo "generated text" >> test.txt
 
       - name: Commit and push changes
         run: |
@@ -47,7 +45,7 @@ jobs:
           ls -la
           git config --global user.name '${{ github.actor }}'
           git config --global user.email '${{ github.actor }}@users.noreply.github.com'
-          git add test.txt
+          git add .
           git commit -m "Add generated workflow files"
           git push origin HEAD:${{ github.event.inputs.branchName }}
         env:
