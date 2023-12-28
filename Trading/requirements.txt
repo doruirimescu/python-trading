@@ -29,3 +29,5 @@ numpy
 matplotlib
 mpl-finance
 kaleido
+
+googlesearch-python
