@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - 'papers/**'
+      - '.github/workflows/daily-workflow.yml'
 
 jobs:
   build-and-push:

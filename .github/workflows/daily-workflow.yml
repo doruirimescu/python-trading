@@ -1,4 +1,4 @@
-name: Run Email Test
+name: Daily Workflow
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       branchName:
         description: 'Branch name to pull the image from'
         required: true
-        default: 'master'
+        default: 'latest'
 jobs:
   test-email:
     runs-on: ubuntu-latest
