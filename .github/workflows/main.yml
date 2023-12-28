@@ -11,14 +11,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
@@ -49,3 +49,26 @@ jobs:
 
     - name: Run pytest
       run: docker run --rm ghcr.io/doruirimescu/python-trading:${{ github.ref_name }} python3 -m pytest
+
+  tag:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, test]
+    if: github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pull the Docker image
+      run: docker pull ghcr.io/doruirimescu/python-trading:${{ github.ref_name }}
+
+    - name: Tag the Docker image as 'latest'
+      run: docker tag ghcr.io/doruirimescu/python-trading:${{ github.ref_name }} ghcr.io/doruirimescu/python-trading:latest
+
+    - name: Push the 'latest' tag to GitHub Container Registry
+      run: docker push ghcr.io/doruirimescu/python-trading:latest
