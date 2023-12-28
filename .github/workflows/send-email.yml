@@ -37,6 +37,7 @@ jobs:
         run: |
           cd python-trading
           ls -la
+          bash script/daily_workflow.sh
           python3 script/daily_workflow.py
 
       - name: Commit and push changes
