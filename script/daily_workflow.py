@@ -7,4 +7,8 @@ attachments = []
 for file in GENERATED_PATH.iterdir():
     attachments.append(file)
 
-send_email(subject="Email from github action", body="This e-mail was generated from a python test", attachments)
+send_email(
+    subject="Email from github action",
+    body="This e-mail was generated from a python test",
+    attachments=attachments,
+)
