@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
 load_dotenv()
+
+CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
 
 # XTB configurations
 USERNAME = os.getenv("XTB_USERNAME")
@@ -19,6 +22,7 @@ MONITOR_FOREX_TRADE_SWAPS_ONCE=os.getenv("MONITOR_FOREX_TRADE_SWAPS_ONCE")
 DATA_STORAGE_PATH=os.getenv("DATA_STORAGE_PATH", "./Trading/live/scripts/data/")
 SYMBOLS_PATH = DATA_STORAGE_PATH + "symbols/"
 ETF_PATH = SYMBOLS_PATH + "/etf.json"
+GENERATED_PATH = CURRENT_FILE_PATH.joinpath("../generated/")
 
 # ALL_SYMBOLS_PATH = SYMBOLS_PATH + "all_symbols.json"
 # ALL_SYMBOLS = None
