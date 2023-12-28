@@ -6,7 +6,18 @@ from datetime import datetime
 from typing import Optional, Tuple, List
 
 
-# We should create one main daily report, which aggregates all the alerts
+def get_top_ten_biggest_swaps_report(client: LoggingClient) -> Tuple[str, List]:
+    biggest_swaps = client.get_top_ten_biggest_swaps()
+    report = "Top 10 biggest swaps:\n\n"
+    report += "|{:^15}|{:^15}|{:^15}|\n".format("Pair", "Swap Long", "Swap Short")
+    report += "-------------------------------------------------\n"
+    for sym, sl, ss in biggest_swaps:
+        report += f"|{sym:^15}|{sl:^15}|{ss:^15}|"
+        report += "\n"
+    print(report)
+    return report, biggest_swaps
+
+
 def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> Tuple[str, List]:
     open_trade_swaps = client.get_swaps_of_forex_open_trades()
     print(open_trade_swaps)
@@ -14,7 +25,7 @@ def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> Tuple[s
     for symbol, swap in open_trade_swaps:
         if swap < 0.0:
             date_now = str(datetime.now().date())
-            report +f"Open trade swap gone negative, symbol: {symbol} swap: {str(swap)} date:{date_now}\n"
+            report + f"Open trade swap gone negative, symbol: {symbol} swap: {str(swap)} date:{date_now}\n"
 
     total_profit, total_swap, text_message, data = client.get_total_forex_open_trades_profit_and_swap()
     report += text_message

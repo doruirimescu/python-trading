@@ -1,11 +1,9 @@
 from exception_with_retry import exception_with_retry
 
-from Trading.live.client.client import XTBTradingClient
+from Trading.live.client.client import XTBLoggingClient
 from Trading.utils.send_email import send_email
-from Trading.config.config import USERNAME, PASSWORD, MODE, MONITOR_FOREX_TRADE_SWAPS_ONCE
-from Trading.live.alert.alert import get_total_swap_of_open_forex_trades_report, is_symbol_price_below_value, is_symbol_price_below_last_n_intervals_low
-from Trading.database.add_swaps_to_database import add_swap
-from dotenv import load_dotenv
+from Trading.config.config import USERNAME, PASSWORD, MODE
+from Trading.live.alert.alert import get_top_ten_biggest_swaps_report
 from datetime import datetime
 import os
 import logging
@@ -21,28 +19,12 @@ if __name__ == '__main__':
     MAIN_LOGGER.setLevel(logging.DEBUG)
     MAIN_LOGGER.propagate = True
 
-    load_dotenv()
-    username = os.getenv("XTB_USERNAME")
-    password = os.getenv("XTB_PASSWORD")
-    mode = os.getenv("XTB_MODE")
-    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
+    client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
 
-    @exception_with_retry(n_retry=10, sleep_time_s=5.0)
     def monitor_once():
         subject = "Daily swap report " + str(datetime.now())
-        body, data = get_total_swap_of_open_forex_trades_report(client)
-        send_email(subject, body)
+        body, data = get_top_ten_biggest_swaps_report(client)
+        # send_email(subject, body)
         MAIN_LOGGER.info(body)
-        for symbol, swap in data:
-            print("ADD SWAPS")
-            add_swap(symbol, swap)
-    if MONITOR_FOREX_TRADE_SWAPS_ONCE == "True":
-        monitor_once()
-    else:
-        while True:
-            hour_now = datetime.now().hour
-            minute_now = datetime.now(). minute
-            if hour_now == 7:
-                # Each morning at 7 am
-                monitor_once()
-            sleep(3600)
+
+    monitor_once()
