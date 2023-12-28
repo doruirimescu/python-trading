@@ -4,22 +4,26 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-from typing import List
+from typing import List, Optional
 import functools
 import json
 
 
-def send_email(subject: str, body: str, attachments: List[str] = None):
+def send_email(subject: str, body: str, attachments: Optional[List[str]] = None):
     load_dotenv()
     sender = os.environ["EMAIL_SENDER"]
     password = os.environ["EMAIL_PASSWORD"]
     recipients = json.loads(os.environ["EMAIL_RECIPIENTS"])
 
-    msg = MIMEMultipart(body)
+    msg = MIMEMultipart()
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = ', '.join(recipients)
-    msg.attach(MIMEText(body, 'plain'))
+
+    # Format the body with pre tags to ensure monospaced font
+    formatted_body = f"<pre style='font-family: \"Courier New\", Courier, monospace;'>{body}</pre>"
+
+    msg.attach(MIMEText(formatted_body, 'html'))
 
     # Attach attachments
     if attachments:
