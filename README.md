@@ -21,5 +21,10 @@ Second step: read [this](https://github.com/doruirimescu/python-trading/tree/mas
 
 The main pipeline consists of two parts: main and other workflows.
 
-
+# TODO
+* Add GitHub pages, use and integrate generated html codes
+* Add alerts, that monitor prices
+* Add weekly workflow, that emails at least the swaps
+* In weekly workflow, add dividend analysis
+* In daily workflow, monitor the youtube strategy instruments
 
