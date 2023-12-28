@@ -8,7 +8,7 @@ on:
         required: true
         default: 'latest'
 jobs:
-  test-email:
+  daily-workflow:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
