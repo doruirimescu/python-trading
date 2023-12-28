@@ -17,10 +17,9 @@ Second step: read [this](https://github.com/doruirimescu/python-trading/tree/mas
 
 
 # Pipeline structure
-The main pipeline consists of two parts: main and other workflows
-## Main
-Consists of:
-1. `build-and-push`: generates the docker image and pushes it to container registry, with branch name as a tag
-2. `test`: pulls this docker image, and runs pytests
-## Other workflows
-- TBD
+![automation_flow drawio](https://github.com/doruirimescu/python-trading/assets/7363000/55932dd9-2ee0-4db0-8eb5-d13c99252ced)
+
+The main pipeline consists of two parts: main and other workflows.
+
+
+
