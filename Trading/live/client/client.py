@@ -208,8 +208,10 @@ class LoggingClient:
         for symbol in all_symbols:
             if symbol['categoryName'] == 'FX':
                 sym = symbol['symbol']
-                sl = symbol['swapLong']
-                ss = symbol['swapShort']
+                sl = float(symbol['swapLong']) * 10
+                sl = round(sl, 2)
+                ss = float(symbol['swapShort']) * 10
+                ss = round(ss, 2)
                 symbol_list.append((sym, sl, ss,))
         import operator
         sorted_list = sorted(symbol_list, key=operator.itemgetter(2, 1), reverse=True)
@@ -218,7 +220,7 @@ class LoggingClient:
         #     print("Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}".format(
         #                         sym, sl, ss))
         self._client.logout()
-        return sorted_list
+        return sorted_list[0:10]
 
 
 class TradingClient(LoggingClient):
@@ -284,7 +286,7 @@ class TradingClient(LoggingClient):
             symbol_info = self._client.get_symbol(symbol)
             if symbol_info['categoryName'] == 'FX':
                 pair_profit = float(trade['profit'])
-                pair_swap = float(trade['storage'])
+                pair_swap = round(float(trade['storage']), 3)
                 if pair_swap == 0.0:
                     continue
                 data.append((symbol, pair_swap))
