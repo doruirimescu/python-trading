@@ -33,7 +33,7 @@ jobs:
           echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' >> Trading/utils/.env
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' >> Trading/utils/.env
 
-      - name: Run test script
+      - name: Run daily scripts
         run: |
           cd python-trading
           ls -la
@@ -48,6 +48,6 @@ jobs:
           git config --global user.email '${{ github.actor }}@users.noreply.github.com'
           git add .
           git commit -m "Add generated workflow files"
-          git push origin HEAD:${{ github.event.inputs.branchName }}
+          git push https://${{ secrets.MY_PAT }}@github.com/doruirimescu/python-trading HEAD:${{ github.event.inputs.branchName }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
