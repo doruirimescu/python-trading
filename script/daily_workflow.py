@@ -5,8 +5,10 @@ from Trading.config.config import GENERATED_PATH
 # For each file in GENERATED_PATH, add them to attachments list
 attachments = []
 for file in GENERATED_PATH.iterdir():
-    attachments.append(str(file))
-
+    # only .png files
+    if file.suffix == ".png":
+        attachments.append(str(file))
+print(attachments)
 send_email(
     subject="Email from github action",
     body="This e-mail was generated from a python test",
