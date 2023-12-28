@@ -17,7 +17,7 @@ Second step: read [this](https://github.com/doruirimescu/python-trading/tree/mas
 
 
 # Pipeline structure
-![automation_flow drawio](https://github.com/doruirimescu/python-trading/assets/7363000/55932dd9-2ee0-4db0-8eb5-d13c99252ced)
+![automation_flow drawio](papers/automation-flow.png)
 
 The main pipeline consists of two parts: main and other workflows.
 
