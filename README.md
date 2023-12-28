@@ -15,3 +15,12 @@ First step after cloning: `./install_requirements.sh`
 
 Second step: read [this](https://github.com/doruirimescu/python-trading/tree/master/Trading/live/scripts#readme)
 
+
+# Pipeline structure
+The main pipeline consists of two parts: main and other workflows
+## Main
+Consists of:
+1. `build-and-push`: generates the docker image and pushes it to container registry, with branch name as a tag
+2. `test`: pulls this docker image, and runs pytests
+## Other workflows
+- TBD
