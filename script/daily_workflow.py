@@ -5,7 +5,7 @@ from Trading.config.config import GENERATED_PATH
 # For each file in GENERATED_PATH, add them to attachments list
 attachments = []
 for file in GENERATED_PATH.iterdir():
-    attachments.append(file)
+    attachments.append(str(file))
 
 send_email(
     subject="Email from github action",
