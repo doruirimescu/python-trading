@@ -16,6 +16,10 @@ jobs:
       image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
 
     steps:
+      - name: Set default branch name
+        id: vars
+        run: echo "::set-output name=branchName::${{ github.event.inputs.branchName || 'master' }}"
+
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
