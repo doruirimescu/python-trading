@@ -13,7 +13,7 @@ jobs:
   daily-workflow:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName }}
+      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName || 'master' }}
 
     steps:
       - name: Set default branch name
