@@ -54,6 +54,6 @@ jobs:
           git config --global user.email '${{ github.actor }}@users.noreply.github.com'
           git add .
           git commit -m "Add generated workflow files"
-          git push https://${{ secrets.MY_PAT }}@github.com/doruirimescu/python-trading HEAD:${{ github.event.inputs.branchName }}
+          git push https://${{ secrets.MY_PAT }}@github.com/doruirimescu/python-trading HEAD:${{ github.event.inputs.branchName || 'master' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
