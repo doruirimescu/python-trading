@@ -1,0 +1,450 @@
+[
+    {
+        "symbol": "CPRT",
+        "valuation_type": "Overvalued",
+        "valuation_score": 54,
+        "solvency_score": 99,
+        "profitability_score": 72
+    },
+    {
+        "symbol": "CMCSA",
+        "valuation_type": "Undervalued",
+        "valuation_score": 37,
+        "solvency_score": 37,
+        "profitability_score": 58
+    },
+    {
+        "symbol": "KLAC",
+        "valuation_type": "Overvalued",
+        "valuation_score": 26,
+        "solvency_score": 64,
+        "profitability_score": 84
+    },
+    {
+        "symbol": "CTAS",
+        "valuation_type": "Overvalued",
+        "valuation_score": 49,
+        "solvency_score": 60,
+        "profitability_score": 68
+    },
+    {
+        "symbol": "PAYX",
+        "valuation_type": "Overvalued",
+        "valuation_score": 15,
+        "solvency_score": 66,
+        "profitability_score": 73
+    },
+    {
+        "symbol": "ROST",
+        "valuation_type": "Overvalued",
+        "valuation_score": 29,
+        "solvency_score": 79,
+        "profitability_score": 67
+    },
+    {
+        "symbol": "MNST",
+        "valuation_type": "Overvalued",
+        "valuation_score": 30,
+        "solvency_score": 100,
+        "profitability_score": 69
+    },
+    {
+        "symbol": "MSFT",
+        "valuation_type": "Overvalued",
+        "valuation_score": 32,
+        "solvency_score": 70,
+        "profitability_score": 79
+    },
+    {
+        "symbol": "ADBE",
+        "valuation_type": "Overvalued",
+        "valuation_score": 34,
+        "solvency_score": 72,
+        "profitability_score": 75
+    },
+    {
+        "symbol": "EA",
+        "valuation_type": "Overvalued",
+        "valuation_score": 9,
+        "solvency_score": 82,
+        "profitability_score": 60
+    },
+    {
+        "symbol": "CSCO",
+        "valuation_type": "Undervalued",
+        "valuation_score": 5,
+        "solvency_score": 80,
+        "profitability_score": 70
+    },
+    {
+        "symbol": "REGN",
+        "valuation_type": "Overvalued",
+        "valuation_score": 51,
+        "solvency_score": 86,
+        "profitability_score": 73
+    },
+    {
+        "symbol": "IDXX",
+        "valuation_type": "Overvalued",
+        "valuation_score": 56,
+        "solvency_score": 63,
+        "profitability_score": 75
+    },
+    {
+        "symbol": "ODFL",
+        "valuation_type": "Overvalued",
+        "valuation_score": 40,
+        "solvency_score": 81,
+        "profitability_score": 71
+    },
+    {
+        "symbol": "QCOM",
+        "valuation_type": "Undervalued",
+        "valuation_score": 4,
+        "solvency_score": 64,
+        "profitability_score": 73
+    },
+    {
+        "symbol": "GILD",
+        "valuation_type": "Undervalued",
+        "valuation_score": 1,
+        "solvency_score": 50,
+        "profitability_score": 68
+    },
+    {
+        "symbol": "SNPS",
+        "valuation_type": "Overvalued",
+        "valuation_score": 34,
+        "solvency_score": 89,
+        "profitability_score": 66
+    },
+    {
+        "symbol": "SIRI",
+        "valuation_type": "Undervalued",
+        "valuation_score": 27,
+        "solvency_score": 33,
+        "profitability_score": 50
+    },
+    {
+        "symbol": "INTU",
+        "valuation_type": "Overvalued",
+        "valuation_score": 23,
+        "solvency_score": 66,
+        "profitability_score": 66
+    },
+    {
+        "symbol": "ORLY",
+        "valuation_type": "Overvalued",
+        "valuation_score": 39,
+        "solvency_score": 59,
+        "profitability_score": 68
+    },
+    {
+        "symbol": "ANSS",
+        "valuation_type": "Overvalued",
+        "valuation_score": 34,
+        "solvency_score": 80,
+        "profitability_score": 63
+    },
+    {
+        "symbol": "TTWO",
+        "valuation_type": "Overvalued",
+        "valuation_score": 22,
+        "solvency_score": 52,
+        "profitability_score": 47
+    },
+    {
+        "symbol": "CTSH",
+        "valuation_type": "Undervalued",
+        "valuation_score": 7,
+        "solvency_score": 82,
+        "profitability_score": 58
+    },
+    {
+        "symbol": "CSGP",
+        "valuation_type": "Overvalued",
+        "valuation_score": 72,
+        "solvency_score": 87,
+        "profitability_score": 59
+    },
+    {
+        "symbol": "ISRG",
+        "valuation_type": "Overvalued",
+        "valuation_score": 59,
+        "solvency_score": 81,
+        "profitability_score": 67
+    },
+    {
+        "symbol": "ILMN",
+        "valuation_type": "Overvalued",
+        "valuation_score": 32,
+        "solvency_score": 64,
+        "profitability_score": 41
+    },
+    {
+        "symbol": "ADI",
+        "valuation_type": "Overvalued",
+        "valuation_score": 5,
+        "solvency_score": 68,
+        "profitability_score": 64
+    },
+    {
+        "symbol": "AEP",
+        "valuation_type": "Undervalued",
+        "valuation_score": 39,
+        "solvency_score": 24,
+        "profitability_score": 50
+    },
+    {
+        "symbol": "CDNS",
+        "valuation_type": "Overvalued",
+        "valuation_score": 56,
+        "solvency_score": 83,
+        "profitability_score": 76
+    },
+    {
+        "symbol": "CSX",
+        "valuation_type": "Overvalued",
+        "valuation_score": 16,
+        "solvency_score": 43,
+        "profitability_score": 69
+    },
+    {
+        "symbol": "MU",
+        "valuation_type": "Undervalued",
+        "valuation_score": 21,
+        "solvency_score": 69,
+        "profitability_score": 39
+    },
+    {
+        "symbol": "XEL",
+        "valuation_type": "Undervalued",
+        "valuation_score": 35,
+        "solvency_score": 27,
+        "profitability_score": 49
+    },
+    {
+        "symbol": "EXC",
+        "valuation_type": "Undervalued",
+        "valuation_score": 11,
+        "solvency_score": 35,
+        "profitability_score": 45
+    },
+    {
+        "symbol": "ROP",
+        "valuation_type": "Overvalued",
+        "valuation_score": 32,
+        "solvency_score": 53,
+        "profitability_score": 66
+    },
+    {
+        "symbol": "WBA",
+        "valuation_type": "Undervalued",
+        "valuation_score": 56,
+        "solvency_score": 35,
+        "profitability_score": 46
+    },
+    {
+        "symbol": "NFLX",
+        "valuation_type": "Overvalued",
+        "valuation_score": 42,
+        "solvency_score": 63,
+        "profitability_score": 62
+    },
+    {
+        "symbol": "DXCM",
+        "valuation_type": "Overvalued",
+        "valuation_score": 65,
+        "solvency_score": 66,
+        "profitability_score": 62
+    },
+    {
+        "symbol": "MELI",
+        "valuation_type": "Overvalued",
+        "valuation_score": 49,
+        "solvency_score": 62,
+        "profitability_score": 69
+    },
+    {
+        "symbol": "AVGO",
+        "valuation_type": "Overvalued",
+        "valuation_score": 20,
+        "solvency_score": 62,
+        "profitability_score": 80
+    },
+    {
+        "symbol": "VRSK",
+        "valuation_type": "Overvalued",
+        "valuation_score": 50,
+        "solvency_score": 47,
+        "profitability_score": 72
+    },
+    {
+        "symbol": "FTNT",
+        "valuation_type": "Overvalued",
+        "valuation_score": 30,
+        "solvency_score": 56,
+        "profitability_score": 58
+    },
+    {
+        "symbol": "CHTR",
+        "valuation_type": "Undervalued",
+        "valuation_score": 55,
+        "solvency_score": 14,
+        "profitability_score": 63
+    },
+    {
+        "symbol": "SPLK",
+        "valuation_type": "Overvalued",
+        "valuation_score": 26,
+        "solvency_score": 35,
+        "profitability_score": 37
+    },
+    {
+        "symbol": "META",
+        "valuation_type": "Overvalued",
+        "valuation_score": 25,
+        "solvency_score": 91,
+        "profitability_score": 71
+    },
+    {
+        "symbol": "PANW",
+        "valuation_type": "Overvalued",
+        "valuation_score": 51,
+        "solvency_score": 61,
+        "profitability_score": 54
+    },
+    {
+        "symbol": "WDAY",
+        "valuation_type": "Overvalued",
+        "valuation_score": 42,
+        "solvency_score": 58,
+        "profitability_score": 50
+    },
+    {
+        "symbol": "CDW",
+        "valuation_type": "Overvalued",
+        "valuation_score": 22,
+        "solvency_score": 41,
+        "profitability_score": 61
+    },
+    {
+        "symbol": "GOOG",
+        "valuation_type": "Overvalued",
+        "valuation_score": 15,
+        "solvency_score": 81,
+        "profitability_score": 73
+    },
+    {
+        "symbol": "TEAM",
+        "valuation_type": "Overvalued",
+        "valuation_score": 74,
+        "solvency_score": 51,
+        "profitability_score": 44
+    },
+    {
+        "symbol": "CCEP",
+        "valuation_type": "Undervalued",
+        "valuation_score": 27,
+        "solvency_score": 53,
+        "profitability_score": 58
+    },
+    {
+        "symbol": "BKR",
+        "valuation_type": "Undervalued",
+        "valuation_score": 37,
+        "solvency_score": 51,
+        "profitability_score": 46
+    },
+    {
+        "symbol": "MDB",
+        "valuation_type": "Overvalued",
+        "valuation_score": 74,
+        "solvency_score": 58,
+        "profitability_score": 38
+    },
+    {
+        "symbol": "ZS",
+        "valuation_type": "Overvalued",
+        "valuation_score": 73,
+        "solvency_score": 63,
+        "profitability_score": 43
+    },
+    {
+        "symbol": "PDD",
+        "valuation_type": "Overvalued",
+        "valuation_score": 3,
+        "solvency_score": 64,
+        "profitability_score": 82
+    },
+    {
+        "symbol": "MRNA",
+        "valuation_type": "Overvalued",
+        "valuation_score": 59,
+        "solvency_score": 81,
+        "profitability_score": 68
+    },
+    {
+        "symbol": "DDOG",
+        "valuation_type": "Overvalued",
+        "valuation_score": 68,
+        "solvency_score": 77,
+        "profitability_score": 50
+    },
+    {
+        "symbol": "AZN",
+        "valuation_type": "Undervalued",
+        "valuation_score": 27,
+        "solvency_score": 46,
+        "profitability_score": 59
+    },
+    {
+        "symbol": "CEG",
+        "valuation_type": "Undervalued",
+        "valuation_score": 11,
+        "solvency_score": 47,
+        "profitability_score": 40
+    },
+    {
+        "symbol": "DASH",
+        "valuation_type": "Overvalued",
+        "valuation_score": 75,
+        "solvency_score": 73,
+        "profitability_score": 39
+    },
+    {
+        "symbol": "KDP",
+        "valuation_type": "Undervalued",
+        "valuation_score": 19,
+        "solvency_score": 38,
+        "profitability_score": 56
+    },
+    {
+        "symbol": "TTD",
+        "valuation_type": "Overvalued",
+        "valuation_score": 64,
+        "solvency_score": 71,
+        "profitability_score": 62
+    },
+    {
+        "symbol": "ADP",
+        "valuation_type": "Overvalued",
+        "valuation_score": 15,
+        "solvency_score": 58,
+        "profitability_score": 69
+    },
+    {
+        "symbol": "MAR",
+        "valuation_type": "Overvalued",
+        "valuation_score": 9,
+        "solvency_score": 50,
+        "profitability_score": 68
+    },
+    {
+        "symbol": "AMAT",
+        "valuation_type": "Overvalued",
+        "valuation_score": 16,
+        "solvency_score": 84,
+        "profitability_score": 78
+    }
+]
