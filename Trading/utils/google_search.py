@@ -1,5 +1,8 @@
 from googlesearch import search
 
+class GoogleSearchFailed(Exception):
+    def __init__(self, query):
+        super().__init__(f"Google search failed. Query: {query}")
 
 def get_first_google_result(query):
     try:
@@ -7,4 +10,4 @@ def get_first_google_result(query):
         first_result = next(search_results)
         return first_result
     except StopIteration:
-        return None
+        raise GoogleSearchFailed(query)
