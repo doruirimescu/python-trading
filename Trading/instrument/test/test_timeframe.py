@@ -1,6 +1,6 @@
 from unittest import TestCase
 from Trading.instrument.timeframes import Timeframe, TIMEFRAMES
-
+from Trading.instrument import TIMEFRARME_ENUM
 
 class TestTimeframe(TestCase):
     def test_timeframe(self):
@@ -12,6 +12,10 @@ class TestTimeframe(TestCase):
         tf = Timeframe('1D')
         self.assertEqual(tf.get_minutes(), 1440)
         self.assertEqual(tf.get_name(), '1-day')
+
+        tf = Timeframe(TIMEFRARME_ENUM.ONE_MINUTE)
+        self.assertEqual(tf.get_minutes(), 1)
+        self.assertEqual(tf.get_name(), '1-min')
 
     def test_timeframe_invalid(self):
         with self.assertRaises(ValueError) as context:
