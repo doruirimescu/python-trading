@@ -5,7 +5,7 @@ from Trading.utils.time import (get_date_now_cet,
 from Trading.algo.strategy.strategy import DailyBuyStrategy, Action
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date,
                                         read_json_file)
@@ -100,7 +100,7 @@ def find_profitable_instruments(client: XTBTradingClient, last_n_days: int, take
     json_dict = read_json_from_file_named_with_today_date("profitable_symbols/")
     for symbol in symbols:
         try:
-            history = client.get_last_n_candles_history(Instrument(symbol, interval), last_n_days)
+            history = client.get_last_n_candles_history(Instrument(symbol, Timeframe(interval)), last_n_days)
             if history is None:
                 continue
         except Exception as e:
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     cp.add_contract_value()
 
     symbol, interval, contract_value = cp.parse_args()
-    history = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
+    history = client.get_last_n_candles_history(Instrument(symbol, Timeframe('1D')), 100)
     open_high_100 = list(zip(history['open'], history['high']))
     weighted_tp = calculate_weighted_mean_take_profit(open_high_100, 10, 2, MAIN_LOGGER)
 
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     # print(profitable_symbols)
     # N_DAYS = 100
     # for symbol in profitable_symbols:
-    #     history = client.get_last_n_candles_history(Instrument(symbol, '1D'), N_DAYS)
+    #     history = client.get_last_n_candles_history(Instrument(symbol, Timeframe('1D')), N_DAYS)
     #     ohc = list(zip(history['open'], history['high'], history['close']))
     #     calculate_potential_profits(client.get_profit_calculation, ohc, 0.1, contract_value, symbol, N_DAYS)
 

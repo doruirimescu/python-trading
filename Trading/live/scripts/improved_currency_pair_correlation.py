@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBLoggingClient, get_cmd
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import (
     count_zero_crossings,
@@ -34,7 +34,7 @@ def exit():
 #! Use percentage of the initial price as return. In this way, both net profits are
 #! already normalized
 
-N_CANDLES = 600
+N_CANDLES = 4000
 PAIR_1_SYMBOL = "NZDUSD"
 PAIR_2_SYMBOL = "AUDUSD"
 PAIR_1_POSITION = "BUY"
@@ -45,8 +45,8 @@ PAIR_2_VOLUME = 1
 PAIR_1_MULTIPLIER = 1
 PAIR_2_MULTIPLIER = 1
 
-SLIDER_MIN = 0
-SLIDER_MAX = 2
+SLIDER_MIN = 1
+SLIDER_MAX = 5
 SLIDER_STEP = 0.1
 
 FILENAME = get_filename(PAIR_1_SYMBOL, PAIR_2_SYMBOL)
@@ -78,7 +78,7 @@ positions = [
     # Perfect ascending trend:
     # IBTA.UK 15 BUY, IEF.US_5 1 SELL
     PositionInfo(
-        instrument=Instrument("AUDUSD", "1D"),
+        instrument=Instrument("INTC.US_9", Timeframe("1D")),
         volume=1,
         type="BUY",
         multiplier=1,
@@ -86,7 +86,7 @@ positions = [
         net_profits=[],
     ),
     PositionInfo(
-        instrument=Instrument("NZDUSD", "1D"),
+        instrument=Instrument("AMD.US_9", Timeframe("1D")),
         volume=1,
         type="SELL",
         multiplier=1,
@@ -94,14 +94,14 @@ positions = [
         net_profits=[],
     ),
 
-    PositionInfo(
-        instrument=Instrument("AUDNZD", "1D"),
-        volume=1,
-        type="SELL",
-        multiplier=1,
-        open_prices=[],
-        net_profits=[],
-    ),
+    # PositionInfo(
+    #     instrument=Instrument("AUDNZD", "1D"),
+    #     volume=1,
+    #     type="SELL",
+    #     multiplier=1,
+    #     open_prices=[],
+    #     net_profits=[],
+    # ),
 ]
 
 
@@ -122,10 +122,10 @@ def add_missing_candles_to_existing_json():
         return
 
     pair_1 = client.get_last_n_candles_history(
-        Instrument(PAIR_1_SYMBOL, "1D"), days_behind
+        Instrument(PAIR_1_SYMBOL, Timeframe("1D")), days_behind
     )
     pair_2 = client.get_last_n_candles_history(
-        Instrument(PAIR_2_SYMBOL, "1D"), days_behind
+        Instrument(PAIR_2_SYMBOL, Timeframe("1D")), days_behind
     )
 
     pair_1_open_price = json_dict[PAIR_1_SYMBOL][0]

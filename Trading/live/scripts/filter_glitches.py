@@ -4,7 +4,7 @@ from Trading.utils.time import (get_date_now_cet,
                                 get_seconds_to_next_date)
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date,
                                         read_json_file)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     for symbol in SYMBOLS:
-        day_hist = client.get_last_n_candles_history(Instrument(symbol, '1D'), 100)
+        day_hist = client.get_last_n_candles_history(Instrument(symbol, Timeframe('1D')), 100)
         count = 0
         for o, l in zip(day_hist['open'], day_hist['low']):
             if o == l:

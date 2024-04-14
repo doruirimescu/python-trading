@@ -4,8 +4,7 @@ from Trading.utils.time import get_datetime_now_cet
 from Trading.utils.send_email import send_email_if_exception_occurs
 from Trading.config.config import TIMEZONE
 
-from Trading.instrument.instrument import Instrument
-from Trading.instrument.timeframes import TIMEFRAME_TO_MINUTES
+from Trading.instrument import Instrument
 
 
 from XTBApi.api import Client as XTBClient
@@ -42,7 +41,7 @@ class LoggingClient:
 
         self._client.login()
         hist = self._client.get_lastn_candle_history(
-            instrument.get_symbol_xtb(), TIMEFRAME_TO_MINUTES[instrument.timeframe] * 60, N)
+            instrument.get_symbol_xtb(), instrument.timeframe.get_minutes() * 60, N)
         self._client.logout()
 
         open = list()

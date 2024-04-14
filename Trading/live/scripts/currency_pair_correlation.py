@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBLoggingClient, get_cmd
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import calculate_correlation, calculate_rolling_correlation, count_zero_crossings
 from Trading.utils.time import get_datetime_now_cet
@@ -56,8 +56,8 @@ def add_missing_candles_to_existing_json():
     if days_behind <= 0:
         return
 
-    pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, '1D'), days_behind)
-    pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, '1D'), days_behind)
+    pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, Timeframe('1D')), days_behind)
+    pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, Timeframe('1D')), days_behind)
 
     pair_1_open_price = json_dict[PAIR_1_SYMBOL][0]
     pair_2_open_price = json_dict[PAIR_2_SYMBOL][0]
@@ -98,8 +98,8 @@ def add_missing_candles_to_existing_json():
 
 
 def get_prices_from_client(client):
-    pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, '1D'), N_CANDLES)
-    pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, '1D'), N_CANDLES)
+    pair_1 = client.get_last_n_candles_history(Instrument(PAIR_1_SYMBOL, Timeframe('1D')), N_CANDLES)
+    pair_2 = client.get_last_n_candles_history(Instrument(PAIR_2_SYMBOL, Timeframe('1D')), N_CANDLES)
 
     pair_1_open_price = pair_1['open'][0]
     print(f"{PAIR_1_SYMBOL} open price {pair_1_open_price}")

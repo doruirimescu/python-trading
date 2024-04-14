@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.live.trader.investing_trader import InvestingTrader
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.live.investing_api.investing_technical import InvestingTechnicalAnalyzer
 from dotenv import load_dotenv
 import time
@@ -20,7 +20,7 @@ def get_instrument():
     parser.add_argument('-s', dest='symbol', type=str, required=True)
     parser.add_argument('-t', dest='timeframe', type=str, required=True)
     args = parser.parse_args()
-    return Instrument(args.symbol, args.timeframe)
+    return Instrument(args.symbol, Timeframe(args.timeframe))
 
 
 if __name__ == '__main__':

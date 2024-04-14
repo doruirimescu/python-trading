@@ -1,5 +1,5 @@
 import argparse
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from typing import List, Tuple, Optional
 
 
@@ -13,7 +13,7 @@ def get_instrument():
     parser.add_argument('-s', dest='symbol', type=str, required=True)
     parser.add_argument('-t', dest='timeframe', type=str, required=True)
     args = parser.parse_args()
-    return Instrument(args.symbol, args.timeframe)
+    return Instrument(args.symbol, Timeframe(args.timeframe))
 
 
 class CustomParser:

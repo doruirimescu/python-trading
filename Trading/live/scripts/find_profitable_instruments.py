@@ -2,7 +2,7 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.utils.time import (get_date_now_cet,
                                 get_datetime_now_cet,
                                 get_seconds_to_next_date)
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date,
                                         read_json_file)
@@ -31,7 +31,7 @@ def find_profitable_instruments(client: XTBTradingClient, interval: str, last_n:
         if "_9" not in symbol:
             continue
         try:
-            history = client.get_last_n_candles_history(Instrument(symbol, interval), last_n)
+            history = client.get_last_n_candles_history(Instrument(symbol, Timeframe(interval)), last_n)
             if history is None:
                 continue
         except Exception as e:

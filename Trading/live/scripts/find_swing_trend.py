@@ -6,7 +6,7 @@ from Trading.symbols.constants import XTB_ETF_SYMBOLS
 
 from Trading.utils.write_to_file import read_json_file
 from Trading.utils.time import get_date_now_cet
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.live.scripts.data.symbols.failing_symbols import FAILING_SYMBOLS
 from dotenv import load_dotenv
 from datetime import datetime
@@ -14,7 +14,7 @@ import os
 import logging
 from time import sleep
 
-TIMEFRAME = '1M'
+TIMEFRAME = Timeframe('1M')
 N_CANDLES = 24
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from dotenv import load_dotenv
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
 from Trading.utils.calculations import calculate_net_profit_eur
@@ -45,8 +45,8 @@ if __name__ == '__main__':
 
     SYMBOL = 'NATGAS'
     N_DAYS = 200
-    history_days = client.get_last_n_candles_history(Instrument(SYMBOL, '1D'), N_DAYS)
-    history_hours = client.get_last_n_candles_history(Instrument(SYMBOL, '1h'), 24*N_DAYS)
+    history_days = client.get_last_n_candles_history(Instrument(SYMBOL, Timeframe('1D')), N_DAYS)
+    history_hours = client.get_last_n_candles_history(Instrument(SYMBOL, Timeframe('1h')), 24*N_DAYS)
 
 
     days_dict: Dict[date, DayResult] = dict()

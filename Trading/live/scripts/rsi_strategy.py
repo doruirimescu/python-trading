@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from dotenv import load_dotenv
 from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT, XTB_INDEX_SYMBOLS, XTB_ETF_SYMBOLS
 import os
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         print(f"Dealing with {symbol}...")
 
         try:
-            history = client.get_last_n_candles_history(Instrument(symbol, "1D"), N_DAYS)
+            history = client.get_last_n_candles_history(Instrument(symbol, Timeframe("1D")), N_DAYS)
 
         except Exception as e:
             print(f"Failed to get history for {symbol}")

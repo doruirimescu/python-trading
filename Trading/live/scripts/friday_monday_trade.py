@@ -1,6 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from dotenv import load_dotenv
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
 from Trading.utils.calculations import calculate_net_profit_eur
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     N_CANDLES = 100
     BUY_SELL = 1
     VOLUME = 0.15
-    history = client.get_last_n_candles_history(Instrument(SYMBOL, '1D'), N_CANDLES)
+    history = client.get_last_n_candles_history(Instrument(SYMBOL, Timeframe('1D')), N_CANDLES)
     info = client.get_symbol(SYMBOL)
     contract_value = VOLUME * info['contractSize']
     conversion_rate_eur = convert_currency_to_eur(info['currencyProfit'])

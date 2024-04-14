@@ -1,7 +1,7 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Timeframe, Instrument
 from Trading.algo.indicators.indicator import EMAIndicator, BollingerBandsIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis, TechnicalAnalysis
 from Trading.algo.strategy.strategy import Action, StrategyType, BollingerBandsStrategy
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(username, password, mode, False)
 
     N_CANDLES = 2000
-    history = client.get_last_n_candles_history(Instrument(symbol, timeframe), N_CANDLES)
+    history = client.get_last_n_candles_history(Instrument(symbol, Timeframe(timeframe)), N_CANDLES)
 
 
     TP = 0.05
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     while True:
         if client.is_market_open('GOLD'):
-            history = client.get_last_n_candles_history(Instrument('GOLD', '5m'), 200)
+            history = client.get_last_n_candles_history(Instrument('GOLD', Timeframe('5m')), 200)
             main_data = pd.DataFrame(history)
             bid, ask = client.get_current_price('GOLD')
 
