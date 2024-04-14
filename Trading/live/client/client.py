@@ -2,6 +2,7 @@ from datetime import datetime
 from exception_with_retry import exception_with_retry
 from Trading.utils.time import get_datetime_now_cet
 from Trading.utils.send_email import send_email_if_exception_occurs
+from Trading.live.client.exception import MarketClosedException, ServerNotUpException
 from Trading.config.config import TIMEZONE
 
 from Trading.instrument import Instrument
@@ -37,7 +38,7 @@ class LoggingClient:
     # @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_last_n_candles_history(self, instrument: Instrument, N: int):
         if (not self._is_server_up):
-            return None
+            raise ServerNotUpException()
 
         self._client.login()
         hist = self._client.get_lastn_candle_history(
@@ -80,7 +81,7 @@ class LoggingClient:
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=1)
-    def get_trading_hours_today_cet(self, symbol) -> Tuple[Optional[datetime], Optional[datetime]]:
+    def get_trading_hours_today_cet(self, symbol: str) -> Tuple[Optional[datetime], Optional[datetime]]:
         now = get_datetime_now_cet()
         weekday = now.weekday() + 1
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -118,11 +119,15 @@ class LoggingClient:
         return False
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=10, sleep_time_s=6)
-    def get_current_price(self, symbol):
+    @exception_with_retry(n_retry=2, sleep_time_s=1)
+    def get_current_price(self, symbol: str):
         now = datetime.now()
         ts = now.timestamp()
         self._client.login()
+        if not self._is_server_up():
+            raise ServerNotUpException()
+        if not self.is_market_open(symbol):
+            raise MarketClosedException(symbol)
         prices = self._client.get_tick_prices([symbol], ts)
         self._client.logout()
         return (prices['quotations'][0]['bid'], prices['quotations'][0]['ask'])
