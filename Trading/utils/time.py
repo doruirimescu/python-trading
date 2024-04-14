@@ -7,6 +7,15 @@ def get_datetime_now_cet() -> datetime.datetime:
     return datetime.datetime.now(pytz.timezone(TIMEZONE))
 
 
+def get_datetime_from_now_cet(
+    days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0
+) -> datetime.datetime:
+    return get_datetime_now_cet() + datetime.timedelta(
+        days=days, hours=hours, minutes=minutes, seconds=seconds
+    )
+# print(get_datetime_from_now_cet(days=-1, hours=-2))
+
+
 def get_date_now_cet() -> datetime.date:
     """Gets today's date in Central European Time
 
