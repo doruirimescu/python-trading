@@ -1,7 +1,6 @@
 from Trading.config.config import TIMEZONE
 import pytz
 import datetime
-import math
 
 
 def get_datetime_now_cet() -> datetime.datetime:
