@@ -4,7 +4,7 @@ import os
 import json
 from Trading.utils.custom_logging import get_logger
 
-MAIN_LOGGER = get_logger()
+LOGGER = get_logger(__file__)
 
 
 def write_to_json_file(file_name: str, data_dict: dict) -> None:
@@ -12,7 +12,7 @@ def write_to_json_file(file_name: str, data_dict: dict) -> None:
     json_object = json.dumps(data_dict, indent=4, sort_keys=True, default=str)
     f.write(json_object)
     f.close()
-    MAIN_LOGGER.info(f"Wrote to file {file_name}")
+    LOGGER.info(f"Wrote to file {file_name}")
 
 
 def read_json_file(file_name: str) -> dict:

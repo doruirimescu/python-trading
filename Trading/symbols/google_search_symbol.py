@@ -2,7 +2,7 @@ from Trading.utils.google_search import get_first_google_result, GoogleSearchFai
 from Trading.utils.custom_logging import get_logger
 from typing import Tuple
 
-LOGGER = get_logger(__name__)
+LOGGER = get_logger(__file__)
 
 class AlphaSpreadSymbolNotFound(Exception):
     def __init__(self, symbol: str):

@@ -1,7 +1,7 @@
 from googlesearch import search
 from Trading.utils.custom_logging import get_logger
 
-LOGGER = get_logger(__name__)
+LOGGER = get_logger(__file__)
 class GoogleSearchFailed(Exception):
     def __init__(self, query: str):
         message = f"Google search failed. Query: {query}"
