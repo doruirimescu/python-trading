@@ -1,0 +1,110 @@
+{
+    "ALUMINIUM": [
+        "ALI=F",
+        "https://finance.yahoo.com/quote/ALI=F/"
+    ],
+    "BUND10Y": [
+        "3BUS.L",
+        "https://finance.yahoo.com/quote/3BUS.L/"
+    ],
+    "CATTLE": [
+        "LE=F",
+        "https://finance.yahoo.com/quote/LE=F/"
+    ],
+    "COCOA": [
+        "CC=F",
+        "https://finance.yahoo.com/quote/CC=F/"
+    ],
+    "COFFEE": [
+        "KC=F",
+        "https://finance.yahoo.com/quote/KC=F/"
+    ],
+    "COPPER": [
+        "HG=F",
+        "https://finance.yahoo.com/quote/HG=F/"
+    ],
+    "CORN": [
+        "ZC%3DF",
+        "https://finance.yahoo.com/quote/ZC%3DF/"
+    ],
+    "COTTON": [
+        "CT=F",
+        "https://finance.yahoo.com/quote/CT=F/"
+    ],
+    "EMISS": [
+        "%5ESPGSCEET",
+        "https://finance.yahoo.com/quote/%5ESPGSCEET/"
+    ],
+    "GASOLINE": [
+        "RB=F",
+        "https://finance.yahoo.com/quote/RB=F/"
+    ],
+    "GOLD": [
+        "GC=F",
+        "https://finance.yahoo.com/quote/GC=F/"
+    ],
+    "LEANHOGS": [
+        "HE=F",
+        "https://finance.yahoo.com/quote/HE=F/"
+    ],
+    "LSGASOIL": [
+        "GXX16.NYM",
+        "https://finance.yahoo.com/quote/GXX16.NYM/"
+    ],
+    "NATGAS": [
+        "NG%3DF",
+        "https://finance.yahoo.com/quote/NG%3DF/"
+    ],
+    "NICKEL": [
+        "NIC.AX",
+        "https://finance.yahoo.com/quote/NIC.AX/"
+    ],
+    "OIL": [
+        "CL=F",
+        "https://finance.yahoo.com/quote/CL=F/"
+    ],
+    "OIL.WTI": [
+        "CL=F",
+        "https://finance.yahoo.com/quote/CL=F/"
+    ],
+    "PALLADIUM": [
+        "PA=F",
+        "https://finance.yahoo.com/quote/PA=F/"
+    ],
+    "PLATINUM": [
+        "PL=F",
+        "https://finance.yahoo.com/quote/PL=F/"
+    ],
+    "SCHATZ2Y": [
+        "holdings",
+        "https://finance.yahoo.com/quote/ES0105002002.BC/holdings/"
+    ],
+    "SILVER": [
+        "SI=F",
+        "https://finance.yahoo.com/quote/SI=F/"
+    ],
+    "SOYBEAN": [
+        "ZS=F",
+        "https://finance.yahoo.com/quote/ZS=F/"
+    ],
+    "SOYOIL": [
+        "ZL=F",
+        "https://finance.yahoo.com/quote/ZL=F/"
+    ],
+    "SUGAR": [
+        "SB=F",
+        "https://finance.yahoo.com/quote/SB=F/"
+    ],
+    "TNOTE": [
+        "ZN=F",
+        "https://finance.yahoo.com/quote/ZN=F/"
+    ],
+    "WHEAT": [
+        "ZW=F",
+        "https://finance.yahoo.com/quote/ZW=F/"
+    ],
+    "ZINC": [
+        "ZINC-USD",
+        "https://finance.yahoo.com/quote/ZINC-USD/"
+    ]
+}

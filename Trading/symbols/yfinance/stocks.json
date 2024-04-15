@@ -1,0 +1,3562 @@
+{
+    "1COV.DE_9": [
+        "1COV.DE",
+        "https://finance.yahoo.com/quote/1COV.DE/"
+    ],
+    "AA.US_9": [
+        "AA",
+        "https://finance.yahoo.com/quote/AA/"
+    ],
+    "AAD.DE_9": [
+        "AAD.DE",
+        "https://finance.yahoo.com/quote/AAD.DE/"
+    ],
+    "AAP.US_9": [
+        "AAP",
+        "https://finance.yahoo.com/quote/AAP/"
+    ],
+    "ABB.SE_9": [
+        "ABB.ST",
+        "https://finance.yahoo.com/quote/ABB.ST/"
+    ],
+    "ABBV.US_9": [
+        "ABBV",
+        "https://finance.yahoo.com/quote/ABBV/"
+    ],
+    "ABCL.US": [
+        "ABCL",
+        "https://finance.yahoo.com/quote/ABCL/"
+    ],
+    "ABNB.US_9": [
+        "ABNB",
+        "https://finance.yahoo.com/quote/ABNB/"
+    ],
+    "ABVX.FR": [
+        "ABVX.PA",
+        "https://finance.yahoo.com/quote/ABVX.PA/"
+    ],
+    "ACA.FR_9": [
+        "ACA.PA",
+        "https://uk.finance.yahoo.com/quote/ACA.PA/"
+    ],
+    "ACKB.BE_9": [
+        "ACKB.BR",
+        "https://finance.yahoo.com/quote/ACKB.BR/"
+    ],
+    "ACM.US_9": [
+        "ACM",
+        "https://finance.yahoo.com/quote/ACM/"
+    ],
+    "ACN.US_9": [
+        "ACN",
+        "https://finance.yahoo.com/quote/ACN/"
+    ],
+    "ADEA.US_9": [
+        "ADEA",
+        "https://finance.yahoo.com/quote/ADEA/"
+    ],
+    "ADJ.DE": [
+        "ADJ.DE",
+        "https://finance.yahoo.com/quote/ADJ.DE/"
+    ],
+    "ADS.DE_9": [
+        "ADS.DE",
+        "https://finance.yahoo.com/quote/ADS.DE/"
+    ],
+    "ADYEN.NL": [
+        "ADYEN.AS",
+        "https://finance.yahoo.com/quote/ADYEN.AS/"
+    ],
+    "AEE.US_9": [
+        "AEE",
+        "https://finance.yahoo.com/quote/AEE/"
+    ],
+    "AEO.US_9": [
+        "AEO",
+        "https://finance.yahoo.com/quote/AEO/"
+    ],
+    "AEP.US_9": [
+        "AEP",
+        "https://finance.yahoo.com/quote/AEP/"
+    ],
+    "AES.US": [
+        "AES",
+        "https://finance.yahoo.com/quote/AES/"
+    ],
+    "AG.US_9": [
+        "AG",
+        "https://finance.yahoo.com/quote/AG/"
+    ],
+    "AGCO.US_9": [
+        "AGCO",
+        "https://finance.yahoo.com/quote/AGCO/"
+    ],
+    "AGIO.US_9": [
+        "AGIO",
+        "https://finance.yahoo.com/quote/AGIO/"
+    ],
+    "AGL.IT_9": [
+        "quote",
+        "https://finance.yahoo.com/quote/AUL.DE"
+    ],
+    "AGRO.US_9": [
+        "AGRO",
+        "https://finance.yahoo.com/quote/AGRO/"
+    ],
+    "AI.FR_9": [
+        "AI.PA",
+        "https://finance.yahoo.com/quote/AI.PA/"
+    ],
+    "AIG.US_9": [
+        "AIG",
+        "https://finance.yahoo.com/quote/AIG/"
+    ],
+    "AIR.ES_9": [
+        "AIR.PA",
+        "https://finance.yahoo.com/quote/AIR.PA/"
+    ],
+    "AIV.US_9": [
+        "AIV",
+        "https://finance.yahoo.com/quote/AIV/"
+    ],
+    "AIXA.DE_9": [
+        "AIXA.DE",
+        "https://finance.yahoo.com/quote/AIXA.DE/"
+    ],
+    "AIZ.US_9": [
+        "AIZ",
+        "https://finance.yahoo.com/quote/AIZ/"
+    ],
+    "AJG.US_9": [
+        "AJG",
+        "https://finance.yahoo.com/quote/AJG/"
+    ],
+    "AKTS.US": [
+        "AKTS",
+        "https://finance.yahoo.com/quote/AKTS/"
+    ],
+    "ALB.US_9": [
+        "ALB",
+        "https://finance.yahoo.com/quote/ALB/"
+    ],
+    "ALC.CH_9": [
+        "ALC",
+        "https://finance.yahoo.com/quote/ALC/"
+    ],
+    "ALD.FR_9": [
+        "ALD.PA",
+        "https://finance.yahoo.com/quote/ALD.PA/"
+    ],
+    "ALGN.US_9": [
+        "ALGN",
+        "https://finance.yahoo.com/quote/ALGN/"
+    ],
+    "ALGT.US_9": [
+        "ALGT",
+        "https://finance.yahoo.com/quote/ALGT/"
+    ],
+    "ALHPI.FR": [
+        "ALHPI.PA",
+        "https://finance.yahoo.com/quote/ALHPI.PA/"
+    ],
+    "ALNY.US_9": [
+        "ALNY",
+        "https://finance.yahoo.com/quote/ALNY/"
+    ],
+    "ALO.FR_9": [
+        "ALO.PA",
+        "https://finance.yahoo.com/quote/ALO.PA/"
+    ],
+    "ALT.US": [
+        "ALT",
+        "https://finance.yahoo.com/quote/ALT/"
+    ],
+    "ALTR.US_9": [
+        "ALTR",
+        "https://finance.yahoo.com/quote/ALTR/"
+    ],
+    "ALV.DE_9": [
+        "ALV.DE",
+        "https://finance.yahoo.com/quote/ALV.DE/"
+    ],
+    "AMAT.US_9": [
+        "AMAT",
+        "https://finance.yahoo.com/quote/AMAT/"
+    ],
+    "AMBUB.DK": [
+        "AMBU-B.CO",
+        "https://finance.yahoo.com/quote/AMBU-B.CO/"
+    ],
+    "AMC.US_9": [
+        "AMC",
+        "https://finance.yahoo.com/quote/AMC/"
+    ],
+    "AMCR.US_9": [
+        "AMCR",
+        "https://finance.yahoo.com/quote/AMCR/"
+    ],
+    "AMG.US_9": [
+        "AMG",
+        "https://finance.yahoo.com/quote/AMG/"
+    ],
+    "AMGN.US_9": [
+        "AMGN",
+        "https://finance.yahoo.com/quote/AMGN/"
+    ],
+    "AMN.US": [
+        "AMN",
+        "https://finance.yahoo.com/quote/AMN/"
+    ],
+    "AMP.IT_9": [
+        "AMP.MI",
+        "https://finance.yahoo.com/quote/AMP.MI/"
+    ],
+    "AMT.US_9": [
+        "AMT",
+        "https://finance.yahoo.com/quote/AMT/"
+    ],
+    "AMUN.FR_9": [
+        "AMUN.PA",
+        "https://finance.yahoo.com/quote/AMUN.PA/"
+    ],
+    "AMX.US_9": [
+        "AMX",
+        "https://finance.yahoo.com/quote/AMX/"
+    ],
+    "ANET.US": [
+        "ANET",
+        "https://finance.yahoo.com/quote/ANET/"
+    ],
+    "ANSS.US_9": [
+        "ANSS",
+        "https://finance.yahoo.com/quote/ANSS/"
+    ],
+    "AO.UK_9": [
+        "AO.L",
+        "https://finance.yahoo.com/quote/AO.L/"
+    ],
+    "AOS.US_9": [
+        "AOS",
+        "https://finance.yahoo.com/quote/AOS/"
+    ],
+    "APA.US_9": [
+        "APA",
+        "https://finance.yahoo.com/quote/APA/"
+    ],
+    "APLE.US_9": [
+        "APLE",
+        "https://finance.yahoo.com/quote/APLE/"
+    ],
+    "APLS.US_9": [
+        "APLS",
+        "https://finance.yahoo.com/quote/APLS/"
+    ],
+    "APP.US_9": [
+        "APP",
+        "https://finance.yahoo.com/quote/APP/"
+    ],
+    "APPH.US": [
+        "APPHW",
+        "https://finance.yahoo.com/quote/APPHW/"
+    ],
+    "APTV.US_9": [
+        "APTV",
+        "https://finance.yahoo.com/quote/APTV/"
+    ],
+    "AQB.US": [
+        "AQB",
+        "https://finance.yahoo.com/quote/AQB/"
+    ],
+    "AR.US": [
+        "AR",
+        "https://finance.yahoo.com/quote/AR/"
+    ],
+    "AR4.DE_9": [
+        "AULRF",
+        "https://finance.yahoo.com/quote/AULRF/"
+    ],
+    "ARCO.US_9": [
+        "ARCO",
+        "https://finance.yahoo.com/quote/ARCO/"
+    ],
+    "ARL.DE_9": [
+        "AAALY",
+        "https://finance.yahoo.com/quote/AAALY/"
+    ],
+    "ARNC1.US": [
+        "ALU.F",
+        "https://finance.yahoo.com/quote/ALU.F/"
+    ],
+    "ARR.US": [
+        "ARR",
+        "https://finance.yahoo.com/quote/ARR/"
+    ],
+    "ARRY.US_9": [
+        "ARRY",
+        "https://finance.yahoo.com/quote/ARRY/"
+    ],
+    "ASC.UK_9": [
+        "ASC.L",
+        "https://finance.yahoo.com/quote/ASC.L/"
+    ],
+    "ASH.US_9": [
+        "ASH",
+        "https://finance.yahoo.com/quote/ASH/"
+    ],
+    "ASRNL.NL_9": [
+        "ASRNL.AS",
+        "https://finance.yahoo.com/quote/ASRNL.AS/"
+    ],
+    "ASTL.US": [
+        "ASTL",
+        "https://finance.yahoo.com/quote/ASTL/"
+    ],
+    "ASTS.US": [
+        "ASTS",
+        "https://finance.yahoo.com/quote/ASTS/"
+    ],
+    "AT1.DE_9": [
+        "AT1.DE",
+        "https://finance.yahoo.com/quote/AT1.DE/"
+    ],
+    "ATAD.UK_9": [
+        "OAOFY",
+        "https://finance.yahoo.com/quote/OAOFY/"
+    ],
+    "ATRY.ES": [
+        "ATRY.MC",
+        "https://finance.yahoo.com/quote/ATRY.MC/"
+    ],
+    "AU.US_9": [
+        "company-insights",
+        "https://finance.yahoo.com/quote/ANG.JO/company-insights/"
+    ],
+    "AV.UK_9": [
+        "AV.L",
+        "https://finance.yahoo.com/quote/AV.L/"
+    ],
+    "AVB.US_9": [
+        "AVB",
+        "https://finance.yahoo.com/quote/AVB/"
+    ],
+    "AVT.US_9": [
+        "AVT",
+        "https://finance.yahoo.com/quote/AVT/"
+    ],
+    "AY.US_9": [
+        "AY",
+        "https://finance.yahoo.com/quote/AY/"
+    ],
+    "AYI.US_9": [
+        "AYI",
+        "https://finance.yahoo.com/quote/AYI/"
+    ],
+    "AYRO.US": [
+        "AYRO",
+        "https://finance.yahoo.com/quote/AYRO/"
+    ],
+    "B4B.DE_9": [
+        "B4B.DE",
+        "https://finance.yahoo.com/quote/B4B.DE/"
+    ],
+    "BA.UK_9": [
+        "BA.L",
+        "https://uk.finance.yahoo.com/quote/BA.L/"
+    ],
+    "BA.US_9": [
+        "BA",
+        "https://finance.yahoo.com/quote/BA/"
+    ],
+    "BAM.US_9": [
+        "BAM",
+        "https://finance.yahoo.com/quote/BAM/"
+    ],
+    "BAMI.IT_9": [
+        "BAMI.MI",
+        "https://finance.yahoo.com/quote/BAMI.MI/"
+    ],
+    "BAP.US_9": [
+        "BAP",
+        "https://finance.yahoo.com/quote/BAP/"
+    ],
+    "BAR.BE_9": [
+        "BAR.BR",
+        "https://finance.yahoo.com/quote/BAR.BR/"
+    ],
+    "BAVA.DK_9": [
+        "BAVA.CO",
+        "https://finance.yahoo.com/quote/BAVA.CO/"
+    ],
+    "BAYN.DE_9": [
+        "BAYN.DE",
+        "https://finance.yahoo.com/quote/BAYN.DE/"
+    ],
+    "BBBY.US_9": [
+        "BBBY.VI",
+        "https://finance.yahoo.com/quote/BBBY.VI/"
+    ],
+    "BBOX.UK_9": [
+        "BBOX.L",
+        "https://finance.yahoo.com/quote/BBOX.L/"
+    ],
+    "BBY.UK_9": [
+        "BBY.L",
+        "https://finance.yahoo.com/quote/BBY.L/"
+    ],
+    "BBY.US_9": [
+        "BBY",
+        "https://finance.yahoo.com/quote/BBY/"
+    ],
+    "BC8.DE_9": [
+        "BC8.DE",
+        "https://finance.yahoo.com/quote/BC8.DE/"
+    ],
+    "BDEV.UK_9": [
+        "BDEV.L",
+        "https://uk.finance.yahoo.com/quote/BDEV.L/"
+    ],
+    "BEKB.BE_9": [
+        "BEKB.BR",
+        "https://finance.yahoo.com/quote/BEKB.BR/"
+    ],
+    "BEKE.US": [
+        "BEKE",
+        "https://finance.yahoo.com/quote/BEKE/"
+    ],
+    "BEZ.UK_9": [
+        "BEZ.L",
+        "https://finance.yahoo.com/quote/BEZ.L/"
+    ],
+    "BFB.US_9": [
+        "BF-B",
+        "https://finance.yahoo.com/quote/BF-B/"
+    ],
+    "BGNE.US_9": [
+        "BGNE",
+        "https://finance.yahoo.com/quote/BGNE/"
+    ],
+    "BHC.US_9": [
+        "BHC",
+        "https://finance.yahoo.com/quote/BHC/"
+    ],
+    "BIIB.US_9": [
+        "BIIB",
+        "https://finance.yahoo.com/quote/BIIB/"
+    ],
+    "BILL.US_9": [
+        "BILL",
+        "https://finance.yahoo.com/quote/BILL/"
+    ],
+    "BIM.FR_9": [
+        "BIM.PA",
+        "https://finance.yahoo.com/quote/BIM.PA/"
+    ],
+    "BIO.US_9": [
+        "BIO",
+        "https://finance.yahoo.com/quote/BIO/"
+    ],
+    "BJRI.US_9": [
+        "BJRI",
+        "https://finance.yahoo.com/quote/BJRI/"
+    ],
+    "BKG.UK_9": [
+        "BKG.L",
+        "https://finance.yahoo.com/quote/BKG.L/"
+    ],
+    "BKSY.US": [
+        "BKSY",
+        "https://finance.yahoo.com/quote/BKSY/"
+    ],
+    "BL.US_9": [
+        "BL",
+        "https://finance.yahoo.com/quote/BL/"
+    ],
+    "BLDR.US": [
+        "BLDR",
+        "https://finance.yahoo.com/quote/BLDR/"
+    ],
+    "BLK.US_9": [
+        "BLK",
+        "https://finance.yahoo.com/quote/BLK/"
+    ],
+    "BLND.UK_9": [
+        "BLND.L",
+        "https://finance.yahoo.com/quote/BLND.L/"
+    ],
+    "BLNK.US_9": [
+        "BLNK",
+        "https://finance.yahoo.com/quote/BLNK/"
+    ],
+    "BLUE.US_9": [
+        "BLUE",
+        "https://finance.yahoo.com/quote/BLUE/"
+    ],
+    "BMA.US_9": [
+        "BMA",
+        "https://finance.yahoo.com/quote/BMA/"
+    ],
+    "BMED.IT_9": [
+        "BMED.MI",
+        "https://finance.yahoo.com/quote/BMED.MI/"
+    ],
+    "BMRN.US_9": [
+        "BMRN",
+        "https://finance.yahoo.com/quote/BMRN/"
+    ],
+    "BMW.DE_9": [
+        "BMW.DE",
+        "https://finance.yahoo.com/quote/BMW.DE/"
+    ],
+    "BMY.US_9": [
+        "BMY",
+        "https://finance.yahoo.com/quote/BMY/"
+    ],
+    "BNP.FR_9": [
+        "BNP.PA",
+        "https://finance.yahoo.com/quote/BNP.PA/"
+    ],
+    "BNR.DE_9": [
+        "BNR.DE",
+        "https://finance.yahoo.com/quote/BNR.DE/"
+    ],
+    "BOL.SE_9": [
+        "BOL.ST",
+        "https://finance.yahoo.com/quote/BOL.ST/"
+    ],
+    "BOOT.US_9": [
+        "BOOT",
+        "https://finance.yahoo.com/quote/BOOT/"
+    ],
+    "BP.UK_9": [
+        "BP",
+        "https://finance.yahoo.com/quote/BP/"
+    ],
+    "BP.US_9": [
+        "BP",
+        "https://finance.yahoo.com/quote/BP/"
+    ],
+    "BPOST.BE_9": [
+        "BPOST.BR",
+        "https://finance.yahoo.com/quote/BPOST.BR/"
+    ],
+    "BR.US_9": [
+        "BR",
+        "https://finance.yahoo.com/quote/BR/"
+    ],
+    "BRE.IT_9": [
+        "BRE.MI",
+        "https://finance.yahoo.com/quote/BRE.MI/"
+    ],
+    "BRFS.US_9": [
+        "BRFS",
+        "https://finance.yahoo.com/quote/BRFS/"
+    ],
+    "BRKS.US_9": [
+        "BA3.DE",
+        "https://finance.yahoo.com/quote/BA3.DE/"
+    ],
+    "BRYN.DE": [
+        "BRK-B",
+        "https://finance.yahoo.com/quote/BRK-B/"
+    ],
+    "BTI.US_9": [
+        "BTI",
+        "https://finance.yahoo.com/quote/BTI/"
+    ],
+    "BVIC.UK_9": [
+        "BVIC.L",
+        "https://finance.yahoo.com/quote/BVIC.L/"
+    ],
+    "BVN.US": [
+        "BVN",
+        "https://finance.yahoo.com/quote/BVN/"
+    ],
+    "BWLPG.NO_9": [
+        "BWLPG.OL",
+        "https://finance.yahoo.com/quote/BWLPG.OL/"
+    ],
+    "BWO.NO_9": [
+        "BWO.OL",
+        "https://finance.yahoo.com/quote/BWO.OL/"
+    ],
+    "BWY.UK_9": [
+        "BWY.L",
+        "https://finance.yahoo.com/quote/BWY.L/"
+    ],
+    "BXMT.US_9": [
+        "BXMT",
+        "https://finance.yahoo.com/quote/BXMT/"
+    ],
+    "CACC.US_9": [
+        "CACC",
+        "https://finance.yahoo.com/quote/CACC/"
+    ],
+    "CAF.ES_9": [
+        "CAF.MC",
+        "https://finance.yahoo.com/quote/CAF.MC/"
+    ],
+    "CAN.US": [
+        "CAN",
+        "https://finance.yahoo.com/quote/CAN/"
+    ],
+    "CANO.US": [
+        "CANOQ",
+        "https://finance.yahoo.com/quote/CANOQ/"
+    ],
+    "CAPC.UK_9": [
+        "C20.BE",
+        "https://uk.finance.yahoo.com/quote/C20.BE/"
+    ],
+    "CARD.UK_9": [
+        "CARD.L",
+        "https://finance.yahoo.com/quote/CARD.L/"
+    ],
+    "CASY.US_9": [
+        "CASY",
+        "https://finance.yahoo.com/quote/CASY/"
+    ],
+    "CAT.US_9": [
+        "CAT",
+        "https://finance.yahoo.com/quote/CAT/"
+    ],
+    "CB.US_9": [
+        "CB",
+        "https://finance.yahoo.com/quote/CB/"
+    ],
+    "CBAT.US": [
+        "CBAT",
+        "https://finance.yahoo.com/quote/CBAT/"
+    ],
+    "CBD.US_9": [
+        "CBD",
+        "https://finance.yahoo.com/quote/CBD/"
+    ],
+    "CBG.UK_9": [
+        "CBG.L",
+        "https://uk.finance.yahoo.com/quote/CBG.L/"
+    ],
+    "CBRL.US_9": [
+        "CBRL",
+        "https://finance.yahoo.com/quote/CBRL/"
+    ],
+    "CBSH.US_9": [
+        "CBSH",
+        "https://finance.yahoo.com/quote/CBSH/"
+    ],
+    "CCEP.US_9": [
+        "CCEP",
+        "https://finance.yahoo.com/quote/CCEP/"
+    ],
+    "CCL.UK_9": [
+        "CCL",
+        "https://finance.yahoo.com/quote/CCL/"
+    ],
+    "CCL.US_9": [
+        "CCL",
+        "https://finance.yahoo.com/quote/CCL/"
+    ],
+    "CDAY.US_9": [
+        "CQL.MU",
+        "https://finance.yahoo.com/quote/CQL.MU/"
+    ],
+    "CDE.US_9": [
+        "CDE",
+        "https://finance.yahoo.com/quote/CDE/"
+    ],
+    "CDW.US": [
+        "CDW",
+        "https://finance.yahoo.com/quote/CDW/"
+    ],
+    "CE.US_9": [
+        "CE",
+        "https://finance.yahoo.com/quote/CE/"
+    ],
+    "CEC.DE_9": [
+        "CEC.DE",
+        "https://finance.yahoo.com/quote/CEC.DE/"
+    ],
+    "CEIX.US_9": [
+        "CEIX",
+        "https://finance.yahoo.com/quote/CEIX/"
+    ],
+    "CETX.US": [
+        "CETX",
+        "https://finance.yahoo.com/quote/CETX/"
+    ],
+    "CEVA.US_9": [
+        "CEVA",
+        "https://finance.yahoo.com/quote/CEVA/"
+    ],
+    "CFR.CH_9": [
+        "CFR.SW",
+        "https://finance.yahoo.com/quote/CFR.SW/"
+    ],
+    "CGNX.US_9": [
+        "CGNX",
+        "https://finance.yahoo.com/quote/CGNX/"
+    ],
+    "CHD.US_9": [
+        "CHD",
+        "https://finance.yahoo.com/quote/CHD/"
+    ],
+    "CHPT.US": [
+        "CHPT",
+        "https://finance.yahoo.com/quote/CHPT/"
+    ],
+    "CHRD.US_9": [
+        "CHRD",
+        "https://finance.yahoo.com/quote/CHRD/"
+    ],
+    "CI.US_9": [
+        "CI",
+        "https://finance.yahoo.com/quote/CI/"
+    ],
+    "CIE.ES_9": [
+        "CIE.MC",
+        "https://finance.yahoo.com/quote/CIE.MC/"
+    ],
+    "CINE.UK_9": [
+        "DQ6.DU",
+        "https://nz.finance.yahoo.com/quote/DQ6.DU/"
+    ],
+    "CL.US_9": [
+        "CL",
+        "https://finance.yahoo.com/quote/CL/"
+    ],
+    "CLDX.US_9": [
+        "CLDX",
+        "https://finance.yahoo.com/quote/CLDX/"
+    ],
+    "CM.US_9": [
+        "CM",
+        "https://finance.yahoo.com/quote/CM/"
+    ],
+    "CMA.US_9": [
+        "CMA",
+        "https://finance.yahoo.com/quote/CMA/"
+    ],
+    "CMCX.UK_9": [
+        "CMCX.L",
+        "https://finance.yahoo.com/quote/CMCX.L/"
+    ],
+    "CMPS.US_9": [
+        "CMPS",
+        "https://finance.yahoo.com/quote/CMPS/"
+    ],
+    "CNA.UK_9": [
+        "CNA.L",
+        "https://finance.yahoo.com/quote/CNA.L/"
+    ],
+    "CNI.US_9": [
+        "CNI",
+        "https://finance.yahoo.com/quote/CNI/"
+    ],
+    "CNO.US_9": [
+        "CNO",
+        "https://finance.yahoo.com/quote/CNO/"
+    ],
+    "COF.US_9": [
+        "COF",
+        "https://finance.yahoo.com/quote/COF/"
+    ],
+    "COL.ES_9": [
+        "COL.MC",
+        "https://finance.yahoo.com/quote/COL.MC/"
+    ],
+    "COLOB.DK_9": [
+        "COLO-B.CO",
+        "https://finance.yahoo.com/quote/COLO-B.CO/"
+    ],
+    "COOP.US_9": [
+        "COOP",
+        "https://finance.yahoo.com/quote/COOP/"
+    ],
+    "CP.US_9": [
+        "CP",
+        "https://uk.finance.yahoo.com/quote/CP/"
+    ],
+    "CPB.US_9": [
+        "CPB",
+        "https://finance.yahoo.com/quote/CPB/"
+    ],
+    "CPG.UK_9": [
+        "CPG.L",
+        "https://finance.yahoo.com/quote/CPG.L/"
+    ],
+    "CPR.IT_9": [
+        "CPR.MI",
+        "https://finance.yahoo.com/quote/CPR.MI/"
+    ],
+    "CRAYN.NO": [
+        "CRAYN.OL",
+        "https://finance.yahoo.com/quote/CRAYN.OL/"
+    ],
+    "CRDF.US": [
+        "CRDF",
+        "https://finance.yahoo.com/quote/CRDF/"
+    ],
+    "CRH.UK_9": [
+        "CRH",
+        "https://finance.yahoo.com/quote/CRH/"
+    ],
+    "CRI.FR_9": [
+        "CRI.PA",
+        "https://finance.yahoo.com/quote/CRI.PA/"
+    ],
+    "CRL.US_9": [
+        "CRL",
+        "https://finance.yahoo.com/quote/CRL/"
+    ],
+    "CRON.US_9": [
+        "CRON",
+        "https://finance.yahoo.com/quote/CRON/"
+    ],
+    "CSGP.US_9": [
+        "CSGP",
+        "https://finance.yahoo.com/quote/CSGP/"
+    ],
+    "CSL.US_9": [
+        "CSL",
+        "https://finance.yahoo.com/quote/CSL/"
+    ],
+    "CTAS.US_9": [
+        "CTAS",
+        "https://finance.yahoo.com/quote/CTAS/"
+    ],
+    "CTLT.US_9": [
+        "CTLT",
+        "https://finance.yahoo.com/quote/CTLT/"
+    ],
+    "CTSH.US_9": [
+        "CTSH",
+        "https://finance.yahoo.com/quote/CTSH/"
+    ],
+    "CTT.PT_9": [
+        "CTT.LS",
+        "https://finance.yahoo.com/quote/CTT.LS/"
+    ],
+    "CURY.UK_9": [
+        "CURY.L",
+        "https://finance.yahoo.com/quote/CURY.L/"
+    ],
+    "CVAC.US_9": [
+        "CVAC",
+        "https://finance.yahoo.com/quote/CVAC/"
+    ],
+    "CVNA.US_9": [
+        "CVNA",
+        "https://finance.yahoo.com/quote/CVNA/"
+    ],
+    "CVX.US_9": [
+        "CVX",
+        "https://finance.yahoo.com/quote/CVX/"
+    ],
+    "CXW.US_9": [
+        "CXW",
+        "https://finance.yahoo.com/quote/CXW/"
+    ],
+    "DADA.US": [
+        "DADA",
+        "https://finance.yahoo.com/quote/DADA/"
+    ],
+    "DAI.DE_9": [
+        "MBG.DE",
+        "https://finance.yahoo.com/quote/MBG.DE/"
+    ],
+    "DAO.US": [
+        "DAO",
+        "https://finance.yahoo.com/quote/DAO/"
+    ],
+    "DAR.US_9": [
+        "DAR",
+        "https://finance.yahoo.com/quote/DAR/"
+    ],
+    "DB1.DE_9": [
+        "DB1.DE",
+        "https://finance.yahoo.com/quote/DB1.DE/"
+    ],
+    "DBD.US": [
+        "DBD",
+        "https://finance.yahoo.com/quote/DBD/"
+    ],
+    "DEI.US_9": [
+        "DEI",
+        "https://finance.yahoo.com/quote/DEI/"
+    ],
+    "DELL.US_9": [
+        "DELL",
+        "https://finance.yahoo.com/quote/DELL/"
+    ],
+    "DEZ.DE": [
+        "DEZ.DE",
+        "https://finance.yahoo.com/quote/DEZ.DE/"
+    ],
+    "DG.FR_9": [
+        "DG.PA",
+        "https://finance.yahoo.com/quote/DG.PA/"
+    ],
+    "DGE.UK_9": [
+        "DEO",
+        "https://finance.yahoo.com/quote/DEO/"
+    ],
+    "DHR.US_9": [
+        "DHR",
+        "https://finance.yahoo.com/quote/DHR/"
+    ],
+    "DIA.ES_9": [
+        "DIA.MC",
+        "https://finance.yahoo.com/quote/DIA.MC/"
+    ],
+    "DIA.IT_9": [
+        "DIA.MI",
+        "https://finance.yahoo.com/quote/DIA.MI/"
+    ],
+    "DINO.US_9": [
+        "DINO",
+        "https://finance.yahoo.com/quote/DINO/"
+    ],
+    "DISH.US_9": [
+        "EOT.DU",
+        "https://finance.yahoo.com/quote/EOT.DU/"
+    ],
+    "DLG.UK_9": [
+        "DLG.L",
+        "https://finance.yahoo.com/quote/DLG.L/"
+    ],
+    "DLO.US": [
+        "DLO",
+        "https://finance.yahoo.com/quote/DLO/"
+    ],
+    "DLR.US_9": [
+        "DLR",
+        "https://finance.yahoo.com/quote/DLR/"
+    ],
+    "DM.US": [
+        "DM",
+        "https://finance.yahoo.com/quote/DM/"
+    ],
+    "DMTK.US": [
+        "DMTK",
+        "https://finance.yahoo.com/quote/DMTK/"
+    ],
+    "DNB.NO_9": [
+        "DNB.OL",
+        "https://finance.yahoo.com/quote/DNB.OL/"
+    ],
+    "DOCN.US": [
+        "DOCN",
+        "https://finance.yahoo.com/quote/DOCN/"
+    ],
+    "DOCU.US_9": [
+        "DOCU",
+        "https://finance.yahoo.com/quote/DOCU/"
+    ],
+    "DOM.UK_9": [
+        "DOM.L",
+        "https://finance.yahoo.com/quote/DOM.L/"
+    ],
+    "DOX.US_9": [
+        "DOX",
+        "https://finance.yahoo.com/quote/DOX/"
+    ],
+    "DPW.DE_9": [
+        "DHL.DE",
+        "https://finance.yahoo.com/quote/DHL.DE/"
+    ],
+    "DRW8.DE_9": [
+        "DRW3.DE",
+        "https://finance.yahoo.com/quote/DRW3.DE/"
+    ],
+    "DT.US": [
+        "DT",
+        "https://finance.yahoo.com/quote/DT/"
+    ],
+    "DTE.DE_9": [
+        "DTE.DE",
+        "https://finance.yahoo.com/quote/DTE.DE/"
+    ],
+    "DUE.DE_9": [
+        "DUE.DE",
+        "https://finance.yahoo.com/quote/DUE.DE/"
+    ],
+    "DUOL.US": [
+        "DUOL",
+        "https://finance.yahoo.com/quote/DUOL/"
+    ],
+    "DVAX.US": [
+        "DVAX",
+        "https://finance.yahoo.com/quote/DVAX/"
+    ],
+    "EB.US_9": [
+        "EB",
+        "https://finance.yahoo.com/quote/EB/"
+    ],
+    "EBS.US_9": [
+        "EBS",
+        "https://finance.yahoo.com/quote/EBS/"
+    ],
+    "ECM.UK_9": [
+        "ECN.F",
+        "https://uk.finance.yahoo.com/quote/ECN.F/"
+    ],
+    "ECR.ES_9": [
+        "ECR.MC",
+        "https://finance.yahoo.com/quote/ECR.MC/"
+    ],
+    "ECV.DE_9": [
+        "ECV.DE",
+        "https://finance.yahoo.com/quote/ECV.DE/"
+    ],
+    "ED.US_9": [
+        "ED",
+        "https://finance.yahoo.com/quote/ED/"
+    ],
+    "EDEN.FR_9": [
+        "EDEN.PA",
+        "https://finance.yahoo.com/quote/EDEN.PA/"
+    ],
+    "EDP.PT_9": [
+        "EDP.LS",
+        "https://finance.yahoo.com/quote/EDP.LS/"
+    ],
+    "EDU.US_9": [
+        "EDU",
+        "https://finance.yahoo.com/quote/EDU/"
+    ],
+    "EGHT.US_9": [
+        "EGHT",
+        "https://finance.yahoo.com/quote/EGHT/"
+    ],
+    "EIX.US_9": [
+        "EIX",
+        "https://finance.yahoo.com/quote/EIX/"
+    ],
+    "EKSO.US": [
+        "EKSO",
+        "https://finance.yahoo.com/quote/EKSO/"
+    ],
+    "EL.FR_9": [
+        "EL.PA",
+        "https://finance.yahoo.com/quote/EL.PA/"
+    ],
+    "ELAN.US_9": [
+        "ELAN",
+        "https://finance.yahoo.com/quote/ELAN/"
+    ],
+    "ELC.IT": [
+        "ELC.MI",
+        "https://finance.yahoo.com/quote/ELC.MI/"
+    ],
+    "ELI.BE_9": [
+        "ELI.BR",
+        "https://uk.finance.yahoo.com/quote/ELI.BR/"
+    ],
+    "ELK.NO": [
+        "ELK.OL",
+        "https://finance.yahoo.com/quote/ELK.OL/"
+    ],
+    "ELUXB.SE_9": [
+        "ELUX-B.ST",
+        "https://finance.yahoo.com/quote/ELUX-B.ST/"
+    ],
+    "ELV.US_9": [
+        "ELV",
+        "https://finance.yahoo.com/quote/ELV/"
+    ],
+    "ENEL.IT_9": [
+        "ENEL.MI",
+        "https://finance.yahoo.com/quote/ENEL.MI/"
+    ],
+    "ENT.UK_9": [
+        "ENT.L",
+        "https://finance.yahoo.com/quote/ENT.L/"
+    ],
+    "ENTA.US_9": [
+        "ENTA",
+        "https://finance.yahoo.com/quote/ENTA/"
+    ],
+    "ENX.FR_9": [
+        "ENX.PA",
+        "https://finance.yahoo.com/quote/ENX.PA/"
+    ],
+    "EO.FR_9": [
+        "FAU.F",
+        "https://uk.finance.yahoo.com/quote/FAU.F/"
+    ],
+    "EOAN.DE_9": [
+        "EOAN.DE",
+        "https://finance.yahoo.com/quote/EOAN.DE/"
+    ],
+    "EPAM.US_9": [
+        "EPAM",
+        "https://finance.yahoo.com/quote/EPAM/"
+    ],
+    "EPC.US_9": [
+        "EPC",
+        "https://finance.yahoo.com/quote/EPC/"
+    ],
+    "EPR.US": [
+        "EPR",
+        "https://finance.yahoo.com/quote/EPR/"
+    ],
+    "EQH.US_9": [
+        "EQH",
+        "https://finance.yahoo.com/quote/EQH/"
+    ],
+    "ERII.US_9": [
+        "ERII",
+        "https://finance.yahoo.com/quote/ERII/"
+    ],
+    "ESNT.UK_9": [
+        "ESNT.L",
+        "https://finance.yahoo.com/quote/ESNT.L/"
+    ],
+    "ESTC.US_9": [
+        "ESTC",
+        "https://finance.yahoo.com/quote/ESTC/"
+    ],
+    "ETH.IT_9": [
+        "ETH.MI",
+        "https://finance.yahoo.com/quote/ETH.MI/"
+    ],
+    "ETN.US_9": [
+        "ETN",
+        "https://finance.yahoo.com/quote/ETN/"
+    ],
+    "EVBG.US": [
+        "EVBG",
+        "https://finance.yahoo.com/quote/EVBG/"
+    ],
+    "EVO.SE_9": [
+        "EVO.ST",
+        "https://finance.yahoo.com/quote/EVO.ST/"
+    ],
+    "EVRG.US": [
+        "EVRG",
+        "https://finance.yahoo.com/quote/EVRG/"
+    ],
+    "EVT.DE": [
+        "EVT.DE",
+        "https://finance.yahoo.com/quote/EVT.DE/"
+    ],
+    "EWBC.US_9": [
+        "EWBC",
+        "https://finance.yahoo.com/quote/EWBC/"
+    ],
+    "EXC.US_9": [
+        "EXC",
+        "https://finance.yahoo.com/quote/EXC/"
+    ],
+    "EXEL.US_9": [
+        "EXEL",
+        "https://finance.yahoo.com/quote/EXEL/"
+    ],
+    "EXP.US_9": [
+        "EXP",
+        "https://finance.yahoo.com/quote/EXP/"
+    ],
+    "EXPI.US_9": [
+        "EXPI",
+        "https://finance.yahoo.com/quote/EXPI/"
+    ],
+    "F3C.DE": [
+        "F3C.DE",
+        "https://finance.yahoo.com/quote/F3C.DE/"
+    ],
+    "FAST.US_9": [
+        "FAST",
+        "https://finance.yahoo.com/quote/FAST/"
+    ],
+    "FBIN.US_9": [
+        "FBIN",
+        "https://finance.yahoo.com/quote/FBIN/"
+    ],
+    "FBK.IT_9": [
+        "FBK.MI",
+        "https://finance.yahoo.com/quote/FBK.MI/"
+    ],
+    "FBP.US_9": [
+        "FBP",
+        "https://finance.yahoo.com/quote/FBP/"
+    ],
+    "FCEL.US": [
+        "FCEL",
+        "https://finance.yahoo.com/quote/FCEL/"
+    ],
+    "FFP.FR_9": [
+        "FFP.F",
+        "https://finance.yahoo.com/quote/FFP.F/"
+    ],
+    "FGP.UK_9": [
+        "FGP.L",
+        "https://finance.yahoo.com/quote/FGP.L/"
+    ],
+    "FGR.FR_9": [
+        "FGR.PA",
+        "https://finance.yahoo.com/quote/FGR.PA/"
+    ],
+    "FHI.US_9": [
+        "FHI",
+        "https://finance.yahoo.com/quote/FHI/"
+    ],
+    "FHN.US_9": [
+        "FHN",
+        "https://finance.yahoo.com/quote/FHN/"
+    ],
+    "FIE.DE_9": [
+        "FIE.DE",
+        "https://finance.yahoo.com/quote/FIE.DE/"
+    ],
+    "FIGS.US": [
+        "FIGS",
+        "https://finance.yahoo.com/quote/FIGS/"
+    ],
+    "FINGB.SE_9": [
+        "FING-B.ST",
+        "https://finance.yahoo.com/quote/FING-B.ST/"
+    ],
+    "FIXX.US": [
+        "press-releases",
+        "https://finance.yahoo.com/quote/FIXX/press-releases/"
+    ],
+    "FIZZ.US_9": [
+        "FIZZ",
+        "https://finance.yahoo.com/quote/FIZZ/"
+    ],
+    "FLEX.US_9": [
+        "FLEX",
+        "https://finance.yahoo.com/quote/FLEX/"
+    ],
+    "FLT.US_9": [
+        "dividends",
+        "https://finance.yahoo.com/quote/FLT/dividends/"
+    ],
+    "FMC.US_9": [
+        "FMC",
+        "https://finance.yahoo.com/quote/FMC/"
+    ],
+    "FNF.US_9": [
+        "FNF",
+        "https://finance.yahoo.com/quote/FNF/"
+    ],
+    "FNKO.US": [
+        "FNKO",
+        "https://finance.yahoo.com/quote/FNKO/"
+    ],
+    "FORTUM.FI_9": [
+        "FORTUM.HE",
+        "https://finance.yahoo.com/quote/FORTUM.HE/"
+    ],
+    "FR.FR_9": [
+        "FR.PA",
+        "https://finance.yahoo.com/quote/FR.PA/"
+    ],
+    "FRA.DE_9": [
+        "FRA.DE",
+        "https://finance.yahoo.com/quote/FRA.DE/"
+    ],
+    "FRC.US_9": [
+        "FRCB",
+        "https://finance.yahoo.com/quote/FRCB/"
+    ],
+    "FRES.UK_9": [
+        "FRES.L",
+        "https://finance.yahoo.com/quote/FRES.L/"
+    ],
+    "FRSH.US": [
+        "FRSH",
+        "https://finance.yahoo.com/quote/FRSH/"
+    ],
+    "FRT.US_9": [
+        "FRT",
+        "https://finance.yahoo.com/quote/FRT/"
+    ],
+    "FSLR.US_9": [
+        "FSLR",
+        "https://finance.yahoo.com/quote/FSLR/"
+    ],
+    "FSLY.US_9": [
+        "FSLY",
+        "https://finance.yahoo.com/quote/FSLY/"
+    ],
+    "FTNT.US_9": [
+        "FTNT",
+        "https://finance.yahoo.com/quote/FTNT/"
+    ],
+    "FUBO.US_9": [
+        "FUBO",
+        "https://finance.yahoo.com/quote/FUBO/"
+    ],
+    "FUTU.US_9": [
+        "FUTU",
+        "https://finance.yahoo.com/quote/FUTU/"
+    ],
+    "G.IT_9": [
+        "G.MI",
+        "https://finance.yahoo.com/quote/G.MI/"
+    ],
+    "GAS.ES_9": [
+        "NTGY.MC",
+        "https://finance.yahoo.com/quote/NTGY.MC/"
+    ],
+    "GAW.UK_9": [
+        "GAW.L",
+        "https://finance.yahoo.com/quote/GAW.L/"
+    ],
+    "GBLB.BE_9": [
+        "GBLB.BR",
+        "https://finance.yahoo.com/quote/GBLB.BR/"
+    ],
+    "GD.US_9": [
+        "GD",
+        "https://finance.yahoo.com/quote/GD/"
+    ],
+    "GDDY.US_9": [
+        "GDDY",
+        "https://finance.yahoo.com/quote/GDDY/"
+    ],
+    "GDRX.US_9": [
+        "GDRX",
+        "https://finance.yahoo.com/quote/GDRX/"
+    ],
+    "GEO.US_9": [
+        "GEO",
+        "https://finance.yahoo.com/quote/GEO/"
+    ],
+    "GEST.ES": [
+        "GEST.MC",
+        "https://finance.yahoo.com/quote/GEST.MC/"
+    ],
+    "GET.FR_9": [
+        "GET.PA",
+        "https://finance.yahoo.com/quote/GET.PA/"
+    ],
+    "GETIB.SE_9": [
+        "GETI-B.ST",
+        "https://finance.yahoo.com/quote/GETI-B.ST/"
+    ],
+    "GFC.FR_9": [
+        "GFC.PA",
+        "https://finance.yahoo.com/quote/GFC.PA/"
+    ],
+    "GFI.US_9": [
+        "GFI",
+        "https://finance.yahoo.com/quote/GFI/"
+    ],
+    "GFRD.UK_9": [
+        "GFRD.L",
+        "https://uk.finance.yahoo.com/quote/GFRD.L/"
+    ],
+    "GFS.US": [
+        "GFS",
+        "https://finance.yahoo.com/quote/GFS/"
+    ],
+    "GH.US_9": [
+        "GH",
+        "https://finance.yahoo.com/quote/GH/"
+    ],
+    "GHC.US_9": [
+        "GHC",
+        "https://finance.yahoo.com/quote/GHC/"
+    ],
+    "GIII.US_9": [
+        "GIII",
+        "https://finance.yahoo.com/quote/GIII/"
+    ],
+    "GIL.DE_9": [
+        "GIL.DE",
+        "https://finance.yahoo.com/quote/GIL.DE/"
+    ],
+    "GILD.US_9": [
+        "GILD",
+        "https://finance.yahoo.com/quote/GILD/"
+    ],
+    "GOGL.NO_9": [
+        "GOGL",
+        "https://finance.yahoo.com/quote/GOGL/"
+    ],
+    "GOGO.US": [
+        "GOGO",
+        "https://finance.yahoo.com/quote/GOGO/"
+    ],
+    "GOOGC.US_9": [
+        "GOOG",
+        "https://finance.yahoo.com/quote/GOOG/"
+    ],
+    "GOOGL.US_9": [
+        "GOOG",
+        "https://finance.yahoo.com/quote/GOOG/"
+    ],
+    "GPE.UK_9": [
+        "GPE.L",
+        "https://finance.yahoo.com/quote/GPE.L/"
+    ],
+    "GPOR.UK_9": [
+        "GPE.L",
+        "https://finance.yahoo.com/quote/GPE.L/"
+    ],
+    "GPS.US_9": [
+        "GPS",
+        "https://finance.yahoo.com/quote/GPS/"
+    ],
+    "GRAB.US_9": [
+        "GRAB",
+        "https://finance.yahoo.com/quote/GRAB/"
+    ],
+    "GRE.ES": [
+        "GRE.MC",
+        "https://finance.yahoo.com/quote/GRE.MC/"
+    ],
+    "GRF.ES_9": [
+        "GRFS",
+        "https://finance.yahoo.com/quote/GRFS/"
+    ],
+    "GRG.UK_9": [
+        "GRG.L",
+        "https://uk.finance.yahoo.com/quote/GRG.L/"
+    ],
+    "GRMN.US_9": [
+        "GRMN",
+        "https://finance.yahoo.com/quote/GRMN/"
+    ],
+    "GS.US_9": [
+        "GS",
+        "https://finance.yahoo.com/quote/GS/"
+    ],
+    "GSJ.ES": [
+        "GSJ.MC",
+        "https://finance.yahoo.com/quote/GSJ.MC/"
+    ],
+    "GSK.UK_9": [
+        "GSK",
+        "https://finance.yahoo.com/quote/GSK/"
+    ],
+    "GTT.FR_9": [
+        "GTT.PA",
+        "https://finance.yahoo.com/quote/GTT.PA/"
+    ],
+    "GVOLT.PT": [
+        "GVOLT.LS",
+        "https://finance.yahoo.com/quote/GVOLT.LS/"
+    ],
+    "GXI.DE_9": [
+        "GXI.DE",
+        "https://finance.yahoo.com/quote/GXI.DE/"
+    ],
+    "H.US_9": [
+        "H",
+        "https://finance.yahoo.com/quote/H/"
+    ],
+    "HA.US_9": [
+        "HA",
+        "https://finance.yahoo.com/quote/HA/"
+    ],
+    "HAE.US": [
+        "HAE",
+        "https://finance.yahoo.com/quote/HAE/"
+    ],
+    "HAL.US_9": [
+        "HAL",
+        "https://finance.yahoo.com/quote/HAL/"
+    ],
+    "HARVIA.FI": [
+        "HARVIA.HE",
+        "https://finance.yahoo.com/quote/HARVIA.HE/"
+    ],
+    "HBAN.US_9": [
+        "HBAN",
+        "https://finance.yahoo.com/quote/HBAN/"
+    ],
+    "HCA.US_9": [
+        "HCA",
+        "https://finance.yahoo.com/quote/HCA/"
+    ],
+    "HEN3.DE_9": [
+        "HEN3.DE",
+        "https://finance.yahoo.com/quote/HEN3.DE/"
+    ],
+    "HES.US_9": [
+        "HES",
+        "https://finance.yahoo.com/quote/HES/"
+    ],
+    "HFC.US_9": [
+        "HL80.F",
+        "https://finance.yahoo.com/quote/HL80.F/"
+    ],
+    "HIK.UK_9": [
+        "HIK.L",
+        "https://finance.yahoo.com/quote/HIK.L/"
+    ],
+    "HIMS.US": [
+        "HIMS",
+        "https://finance.yahoo.com/quote/HIMS/"
+    ],
+    "HIVE.US": [
+        "HIVE",
+        "https://finance.yahoo.com/quote/HIVE/"
+    ],
+    "HL.US_9": [
+        "HL",
+        "https://finance.yahoo.com/quote/HL/"
+    ],
+    "HLAG.DE_9": [
+        "HLAG.DE",
+        "https://finance.yahoo.com/quote/HLAG.DE/"
+    ],
+    "HLI.US": [
+        "HLI",
+        "https://finance.yahoo.com/quote/HLI/"
+    ],
+    "HLX.US": [
+        "HLX",
+        "https://finance.yahoo.com/quote/HLX/"
+    ],
+    "HMY.US": [
+        "HMY",
+        "https://finance.yahoo.com/quote/HMY/"
+    ],
+    "HOT.DE_9": [
+        "HOT.DE",
+        "https://finance.yahoo.com/quote/HOT.DE/"
+    ],
+    "HP.US_9": [
+        "HP",
+        "https://finance.yahoo.com/quote/HP/"
+    ],
+    "HPE.US_9": [
+        "HPE",
+        "https://finance.yahoo.com/quote/HPE/"
+    ],
+    "HPP.US_9": [
+        "HPP",
+        "https://finance.yahoo.com/quote/HPP/"
+    ],
+    "HSY.US_9": [
+        "HSY",
+        "https://finance.yahoo.com/quote/HSY/"
+    ],
+    "HTZ1.US": [
+        "HTZ",
+        "https://finance.yahoo.com/quote/HTZ/"
+    ],
+    "HUM.US_9": [
+        "HUM",
+        "https://finance.yahoo.com/quote/HUM/"
+    ],
+    "HVT.US": [
+        "HVT",
+        "https://finance.yahoo.com/quote/HVT/"
+    ],
+    "HYMC.US": [
+        "HYMC",
+        "https://finance.yahoo.com/quote/HYMC/"
+    ],
+    "HYQ.DE_9": [
+        "HYQ.DE",
+        "https://finance.yahoo.com/quote/HYQ.DE/"
+    ],
+    "HYUD.DE_9": [
+        "HYMTF",
+        "https://finance.yahoo.com/quote/HYMTF/"
+    ],
+    "HZNP.US_9": [
+        "HZNP",
+        "https://finance.yahoo.com/quote/HZNP/"
+    ],
+    "IAC.US_9": [
+        "IAC",
+        "https://finance.yahoo.com/quote/IAC/"
+    ],
+    "IBM.US_9": [
+        "IBM",
+        "https://finance.yahoo.com/quote/IBM/"
+    ],
+    "ICAD.FR_9": [
+        "ICAD.PA",
+        "https://finance.yahoo.com/quote/ICAD.PA/"
+    ],
+    "ICE.US_9": [
+        "ICE",
+        "https://finance.yahoo.com/quote/ICE/"
+    ],
+    "ICUI.US": [
+        "ICUI",
+        "https://finance.yahoo.com/quote/ICUI/"
+    ],
+    "IDEX.US": [
+        "IDEX",
+        "https://finance.yahoo.com/quote/IDEX/"
+    ],
+    "IDR.ES_9": [
+        "IDR.MC",
+        "https://finance.yahoo.com/quote/IDR.MC/"
+    ],
+    "IDS.UK_9": [
+        "IDS.L",
+        "https://finance.yahoo.com/quote/IDS.L/"
+    ],
+    "IFF.US_9": [
+        "IFF",
+        "https://finance.yahoo.com/quote/IFF/"
+    ],
+    "IG.IT_9": [
+        "IG.MI",
+        "https://finance.yahoo.com/quote/IG.MI/"
+    ],
+    "IGG.UK_9": [
+        "IGG.L",
+        "https://finance.yahoo.com/quote/IGG.L/"
+    ],
+    "IHG.UK_9": [
+        "IHG",
+        "https://finance.yahoo.com/quote/IHG/"
+    ],
+    "III.UK_9": [
+        "III.L",
+        "https://finance.yahoo.com/quote/III.L/"
+    ],
+    "INCY.US_9": [
+        "INCY",
+        "https://finance.yahoo.com/quote/INCY/"
+    ],
+    "INDV.UK_9": [
+        "INDV",
+        "https://finance.yahoo.com/quote/INDV/"
+    ],
+    "INO.US_9": [
+        "INO",
+        "https://finance.yahoo.com/quote/INO/"
+    ],
+    "IONS.US_9": [
+        "IONS",
+        "https://finance.yahoo.com/quote/IONS/"
+    ],
+    "IOT.US_9": [
+        "IOT",
+        "https://finance.yahoo.com/quote/IOT/"
+    ],
+    "IP.US_9": [
+        "IP",
+        "https://finance.yahoo.com/quote/IP/"
+    ],
+    "IPF.UK_9": [
+        "IPF.L",
+        "https://finance.yahoo.com/quote/IPF.L/"
+    ],
+    "IPG.US_9": [
+        "IPG",
+        "https://finance.yahoo.com/quote/IPG/"
+    ],
+    "IPH.FR_9": [
+        "IPHA",
+        "https://finance.yahoo.com/quote/IPHA/"
+    ],
+    "IPN.FR_9": [
+        "IPN.PA",
+        "https://finance.yahoo.com/quote/IPN.PA/"
+    ],
+    "IT.US_9": [
+        "IT",
+        "https://finance.yahoo.com/quote/IT/"
+    ],
+    "ITRK.UK_9": [
+        "ITRK.L",
+        "https://finance.yahoo.com/quote/ITRK.L/"
+    ],
+    "ITRM.US": [
+        "ITRM",
+        "https://finance.yahoo.com/quote/ITRM/"
+    ],
+    "ITUB.US_9": [
+        "ITUB",
+        "https://finance.yahoo.com/quote/ITUB/"
+    ],
+    "ITW.US_9": [
+        "ITW",
+        "https://finance.yahoo.com/quote/ITW/"
+    ],
+    "JAGX.US": [
+        "JAGX",
+        "https://finance.yahoo.com/quote/JAGX/"
+    ],
+    "JAZZ.US": [
+        "JAZZ",
+        "https://finance.yahoo.com/quote/JAZZ/"
+    ],
+    "JBHT.US_9": [
+        "JBHT",
+        "https://finance.yahoo.com/quote/JBHT/"
+    ],
+    "JBLU.US_9": [
+        "JBLU",
+        "https://finance.yahoo.com/quote/JBLU/"
+    ],
+    "JCI.US_9": [
+        "JCI",
+        "https://finance.yahoo.com/quote/JCI/"
+    ],
+    "JCQ.FR_9": [
+        "JCQ.PA",
+        "https://finance.yahoo.com/quote/JCQ.PA/"
+    ],
+    "JEF.US_9": [
+        "JEF",
+        "https://finance.yahoo.com/quote/JEF/"
+    ],
+    "JKHY.US_9": [
+        "JKHY",
+        "https://finance.yahoo.com/quote/JKHY/"
+    ],
+    "JLL.US_9": [
+        "JLL",
+        "https://finance.yahoo.com/quote/JLL/"
+    ],
+    "JNJ.US_9": [
+        "JNJ",
+        "https://finance.yahoo.com/quote/JNJ/"
+    ],
+    "KBH.US_9": [
+        "KBH",
+        "https://finance.yahoo.com/quote/KBH/"
+    ],
+    "KCO.DE_9": [
+        "KCO.DE",
+        "https://finance.yahoo.com/quote/KCO.DE/"
+    ],
+    "KD.US_9": [
+        "KD",
+        "https://finance.yahoo.com/quote/KD/"
+    ],
+    "KDP.US_9": [
+        "KDP",
+        "https://finance.yahoo.com/quote/KDP/"
+    ],
+    "KER.FR_9": [
+        "KER.PA",
+        "https://finance.yahoo.com/quote/KER.PA/"
+    ],
+    "KEX.US_9": [
+        "KEX",
+        "https://finance.yahoo.com/quote/KEX/"
+    ],
+    "KEYS.US": [
+        "KEYS",
+        "https://finance.yahoo.com/quote/KEYS/"
+    ],
+    "KGP.UK": [
+        "KRX.IR",
+        "https://finance.yahoo.com/quote/KRX.IR/"
+    ],
+    "KGX.DE_9": [
+        "KGX.DE",
+        "https://finance.yahoo.com/quote/KGX.DE/"
+    ],
+    "KIM.US_9": [
+        "KIM",
+        "https://finance.yahoo.com/quote/KIM/"
+    ],
+    "KKR.US_9": [
+        "KKR",
+        "https://finance.yahoo.com/quote/KKR/"
+    ],
+    "KLAC.US_9": [
+        "KLAC",
+        "https://finance.yahoo.com/quote/KLAC/"
+    ],
+    "KMB.US_9": [
+        "KMB",
+        "https://finance.yahoo.com/quote/KMB/"
+    ],
+    "KNDI.US": [
+        "KNDI",
+        "https://finance.yahoo.com/quote/KNDI/"
+    ],
+    "KNEBV.FI_9": [
+        "KNEBV.HE",
+        "https://finance.yahoo.com/quote/KNEBV.HE/"
+    ],
+    "KNX.US_9": [
+        "KNX",
+        "https://finance.yahoo.com/quote/KNX/"
+    ],
+    "KODK.US": [
+        "KODK",
+        "https://finance.yahoo.com/quote/KODK/"
+    ],
+    "KOG.NO": [
+        "KOG.OL",
+        "https://finance.yahoo.com/quote/KOG.OL/"
+    ],
+    "KOJAMO.FI": [
+        "KOJAMO.HE",
+        "https://finance.yahoo.com/quote/KOJAMO.HE/"
+    ],
+    "KPTI.US": [
+        "KPTI",
+        "https://finance.yahoo.com/quote/KPTI/"
+    ],
+    "KR.US_9": [
+        "KR",
+        "https://finance.yahoo.com/quote/KR/"
+    ],
+    "KRN.DE_9": [
+        "KRN.DE",
+        "https://finance.yahoo.com/quote/KRN.DE/"
+    ],
+    "LAGRB.SE": [
+        "LAGR-B.ST",
+        "https://finance.yahoo.com/quote/LAGR-B.ST/"
+    ],
+    "LAZR.US_9": [
+        "LAZR",
+        "https://finance.yahoo.com/quote/LAZR/"
+    ],
+    "LCID.US_9": [
+        "LCID",
+        "https://finance.yahoo.com/quote/LCID/"
+    ],
+    "LDOS.US_9": [
+        "LDOS",
+        "https://finance.yahoo.com/quote/LDOS/"
+    ],
+    "LEN.US_9": [
+        "LEN",
+        "https://finance.yahoo.com/quote/LEN/"
+    ],
+    "LFMD.US": [
+        "LFMD",
+        "https://finance.yahoo.com/quote/LFMD/"
+    ],
+    "LGEN.UK_9": [
+        "LGEN.L",
+        "https://finance.yahoo.com/quote/LGEN.L/"
+    ],
+    "LH.US_9": [
+        "LH",
+        "https://finance.yahoo.com/quote/LH/"
+    ],
+    "LI.FR_9": [
+        "LI.PA",
+        "https://finance.yahoo.com/quote/LI.PA/"
+    ],
+    "LIN.US_9": [
+        "LIN",
+        "https://finance.yahoo.com/quote/LIN/"
+    ],
+    "LMT.US_9": [
+        "LMT",
+        "https://finance.yahoo.com/quote/LMT/"
+    ],
+    "LNC.US_9": [
+        "LNC",
+        "https://finance.yahoo.com/quote/LNC/"
+    ],
+    "LNT.US_9": [
+        "LNT",
+        "https://finance.yahoo.com/quote/LNT/"
+    ],
+    "LOCAL.FR_9": [
+        "LOCAL.PA",
+        "https://finance.yahoo.com/quote/LOCAL.PA/"
+    ],
+    "LOG.ES": [
+        "LOG.MC",
+        "https://finance.yahoo.com/quote/LOG.MC/"
+    ],
+    "LOGI.US_9": [
+        "LOGI",
+        "https://finance.yahoo.com/quote/LOGI/"
+    ],
+    "LRE.ES_9": [
+        "LRE.MC",
+        "https://finance.yahoo.com/quote/LRE.MC/"
+    ],
+    "LRFC.US": [
+        "LRFC",
+        "https://finance.yahoo.com/quote/LRFC/"
+    ],
+    "LSG.NO_9": [
+        "LSG.OL",
+        "https://finance.yahoo.com/quote/LSG.OL/"
+    ],
+    "LTC.US_9": [
+        "LTC",
+        "https://finance.yahoo.com/quote/LTC/"
+    ],
+    "LTHM.US_9": [
+        "8lv.be",
+        "https://finance.yahoo.com/quote/8lv.be/"
+    ],
+    "LUMI.SE_9": [
+        "LUN.TO",
+        "https://finance.yahoo.com/quote/LUN.TO/"
+    ],
+    "LUV.US_9": [
+        "LUV",
+        "https://finance.yahoo.com/quote/LUV/"
+    ],
+    "LVS.US_9": [
+        "LVS",
+        "https://finance.yahoo.com/quote/LVS/"
+    ],
+    "LW.US": [
+        "LW",
+        "https://finance.yahoo.com/quote/LW/"
+    ],
+    "LYFT.US_9": [
+        "LYFT",
+        "https://finance.yahoo.com/quote/LYFT/"
+    ],
+    "LYV.US_9": [
+        "LYV",
+        "https://finance.yahoo.com/quote/LYV/"
+    ],
+    "M.US_9": [
+        "M",
+        "https://finance.yahoo.com/quote/M/"
+    ],
+    "MAA.US_9": [
+        "MAA",
+        "https://finance.yahoo.com/quote/MAA/"
+    ],
+    "MAERSKA.DK_9": [
+        "MAERSK-A.CO",
+        "https://finance.yahoo.com/quote/MAERSK-A.CO/"
+    ],
+    "MAERSKB.DK_9": [
+        "MAERSK-B.CO",
+        "https://finance.yahoo.com/quote/MAERSK-B.CO/"
+    ],
+    "MAIL.UK_9": [
+        "MLRYY",
+        "https://uk.finance.yahoo.com/quote/MLRYY/"
+    ],
+    "MARA.US_9": [
+        "MARA",
+        "https://finance.yahoo.com/quote/MARA/"
+    ],
+    "MAS.US_9": [
+        "MAS",
+        "https://finance.yahoo.com/quote/MAS/"
+    ],
+    "MASI.US_9": [
+        "MASI",
+        "https://finance.yahoo.com/quote/MASI/"
+    ],
+    "MAT.US_9": [
+        "MAT",
+        "https://finance.yahoo.com/quote/MAT/"
+    ],
+    "MBT.US": [
+        "MTSS.ME",
+        "https://finance.yahoo.com/quote/MTSS.ME/"
+    ],
+    "MBUU.US_9": [
+        "MBUU",
+        "https://finance.yahoo.com/quote/MBUU/"
+    ],
+    "MC.FR_9": [
+        "MC.PA",
+        "https://finance.yahoo.com/quote/MC.PA/"
+    ],
+    "MCHP.US_9": [
+        "MCHP",
+        "https://finance.yahoo.com/quote/MCHP/"
+    ],
+    "MCRB.US": [
+        "MCRB",
+        "https://finance.yahoo.com/quote/MCRB/"
+    ],
+    "MDC.US_9": [
+        "MDC",
+        "https://finance.yahoo.com/quote/MDC/"
+    ],
+    "MDU.US_9": [
+        "MDU",
+        "https://finance.yahoo.com/quote/MDU/"
+    ],
+    "MED.US_9": [
+        "MED",
+        "https://finance.yahoo.com/quote/MED/"
+    ],
+    "MELI.US_9": [
+        "MELI",
+        "https://finance.yahoo.com/quote/MELI/"
+    ],
+    "MERY.FR_9": [
+        "MERY.PA",
+        "https://finance.yahoo.com/quote/MERY.PA/"
+    ],
+    "MESA.US": [
+        "MESA",
+        "https://finance.yahoo.com/quote/MESA/"
+    ],
+    "META.US_9": [
+        "META",
+        "https://finance.yahoo.com/quote/META/"
+    ],
+    "MF.FR_9": [
+        "MF.PA",
+        "https://finance.yahoo.com/quote/MF.PA/"
+    ],
+    "MGA.US_9": [
+        "MGA",
+        "https://finance.yahoo.com/quote/MGA/"
+    ],
+    "MGNT.UK_9": [
+        "MGNT.ME",
+        "https://finance.yahoo.com/quote/MGNT.ME/"
+    ],
+    "MIPS.SE_9": [
+        "MIPS.ST",
+        "https://finance.yahoo.com/quote/MIPS.ST/"
+    ],
+    "MKL.US_9": [
+        "MKL",
+        "https://finance.yahoo.com/quote/MKL/"
+    ],
+    "MKS.UK_9": [
+        "MKS.L",
+        "https://finance.yahoo.com/quote/MKS.L/"
+    ],
+    "MLCO.US_9": [
+        "MLCO",
+        "https://finance.yahoo.com/quote/MLCO/"
+    ],
+    "MLHR.US_9": [
+        "MHR.F",
+        "https://uk.finance.yahoo.com/quote/MHR.F/"
+    ],
+    "MMC.US_9": [
+        "MMC",
+        "https://finance.yahoo.com/quote/MMC/"
+    ],
+    "MNDI.UK_9": [
+        "MNDI.L",
+        "https://finance.yahoo.com/quote/MNDI.L/"
+    ],
+    "MNG.UK_9": [
+        "MNG.L",
+        "https://finance.yahoo.com/quote/MNG.L/"
+    ],
+    "MNST.US_9": [
+        "MNST",
+        "https://finance.yahoo.com/quote/MNST/"
+    ],
+    "MOCORP.FI_9": [
+        "M6Q.BE",
+        "https://finance.yahoo.com/quote/M6Q.BE/"
+    ],
+    "MOMO.US_9": [
+        "MOMO",
+        "https://finance.yahoo.com/quote/MOMO/"
+    ],
+    "MOWI.NO_9": [
+        "MOWI.OL",
+        "https://finance.yahoo.com/quote/MOWI.OL/"
+    ],
+    "MP.US_9": [
+        "MP",
+        "https://finance.yahoo.com/quote/MP/"
+    ],
+    "MPW.US_9": [
+        "MPW",
+        "https://finance.yahoo.com/quote/MPW/"
+    ],
+    "MRN.FR": [
+        "MRN.PA",
+        "https://finance.yahoo.com/quote/MRN.PA/"
+    ],
+    "MRNA.US_9": [
+        "MRNA",
+        "https://finance.yahoo.com/quote/MRNA/"
+    ],
+    "MRVI.US": [
+        "MRVI",
+        "https://finance.yahoo.com/quote/MRVI/"
+    ],
+    "MS.US_9": [
+        "MS",
+        "https://finance.yahoo.com/quote/MS/"
+    ],
+    "MSFT.US_9": [
+        "MSFT",
+        "https://finance.yahoo.com/quote/MSFT/"
+    ],
+    "MTCH.US_9": [
+        "MTCH",
+        "https://finance.yahoo.com/quote/MTCH/"
+    ],
+    "MTO.UK_9": [
+        "MTO.L",
+        "https://finance.yahoo.com/quote/MTO.L/"
+    ],
+    "MTX.DE_9": [
+        "MTX.DE",
+        "https://finance.yahoo.com/quote/MTX.DE/"
+    ],
+    "MUR.US_9": [
+        "MUR",
+        "https://finance.yahoo.com/quote/MUR/"
+    ],
+    "MVST.US": [
+        "MVST",
+        "https://finance.yahoo.com/quote/MVST/"
+    ],
+    "NA9.DE": [
+        "NA9.DE",
+        "https://finance.yahoo.com/quote/NA9.DE/"
+    ],
+    "NAVYA.FR": [
+        "NVYAF",
+        "https://finance.yahoo.com/quote/NVYAF/"
+    ],
+    "NCLH.US_9": [
+        "NCLH",
+        "https://finance.yahoo.com/quote/NCLH/"
+    ],
+    "NCR.US_9": [
+        "NCRRP",
+        "https://finance.yahoo.com/quote/NCRRP/"
+    ],
+    "NDA.SE_9": [
+        "NDA-FI.HE",
+        "https://finance.yahoo.com/quote/NDA-FI.HE/"
+    ],
+    "NEE.US_9": [
+        "NEE",
+        "https://finance.yahoo.com/quote/NEE/"
+    ],
+    "NEL.NO_9": [
+        "NEL.OL",
+        "https://finance.yahoo.com/quote/NEL.OL/"
+    ],
+    "NEM.DE_9": [
+        "NEM.DE",
+        "https://finance.yahoo.com/quote/NEM.DE/"
+    ],
+    "NEO.US_9": [
+        "NEO",
+        "https://finance.yahoo.com/quote/NEO/"
+    ],
+    "NFLX.US_9": [
+        "NFLX",
+        "https://finance.yahoo.com/quote/NFLX/"
+    ],
+    "NG.UK_9": [
+        "NGG",
+        "https://finance.yahoo.com/quote/NGG/"
+    ],
+    "NGG.US_9": [
+        "NGG",
+        "https://finance.yahoo.com/quote/NGG/"
+    ],
+    "NGM.US": [
+        "NGM",
+        "https://finance.yahoo.com/quote/NGM/"
+    ],
+    "NHY.NO_9": [
+        "NHY.OL",
+        "https://finance.yahoo.com/quote/NHY.OL/"
+    ],
+    "NIBEB.SE": [
+        "NIBE-B.ST",
+        "https://finance.yahoo.com/quote/NIBE-B.ST/"
+    ],
+    "NICE.US_9": [
+        "NICE",
+        "https://finance.yahoo.com/quote/NICE/"
+    ],
+    "NIO.US_9": [
+        "NIO",
+        "https://finance.yahoo.com/quote/NIO/"
+    ],
+    "NIU.US": [
+        "NIU",
+        "https://finance.yahoo.com/quote/NIU/"
+    ],
+    "NKE.US_9": [
+        "history",
+        "https://finance.yahoo.com/quote/NKE/history/"
+    ],
+    "NKTR.US_9": [
+        "NKTR",
+        "https://finance.yahoo.com/quote/NKTR/"
+    ],
+    "NNOX.US_9": [
+        "NNOX",
+        "https://finance.yahoo.com/quote/NNOX/"
+    ],
+    "NOKIA.FI_9": [
+        "NOK",
+        "https://finance.yahoo.com/quote/NOK/"
+    ],
+    "NOLAB.SE": [
+        "NOLA-B.ST",
+        "https://finance.yahoo.com/quote/NOLA-B.ST/"
+    ],
+    "NOV.US_9": [
+        "NOV",
+        "https://finance.yahoo.com/quote/NOV/"
+    ],
+    "NRG.US_9": [
+        "NRG",
+        "https://finance.yahoo.com/quote/NRG/"
+    ],
+    "NTES.US_9": [
+        "NTES",
+        "https://finance.yahoo.com/quote/NTES/"
+    ],
+    "NUE.US_9": [
+        "NUE",
+        "https://finance.yahoo.com/quote/NUE/"
+    ],
+    "NVAX.US_9": [
+        "NVAX",
+        "https://finance.yahoo.com/quote/NVAX/"
+    ],
+    "NVTK.UK_9": [
+        "NVTK.ME",
+        "https://finance.yahoo.com/quote/NVTK.ME/"
+    ],
+    "NWG.UK_9": [
+        "NWG",
+        "https://finance.yahoo.com/quote/NWG/"
+    ],
+    "NXI.FR_9": [
+        "NXI.PA",
+        "https://finance.yahoo.com/quote/NXI.PA/"
+    ],
+    "NXPI.US_9": [
+        "NXPI",
+        "https://finance.yahoo.com/quote/NXPI/"
+    ],
+    "OBSV.US": [
+        "OBSN.SW",
+        "https://finance.yahoo.com/quote/OBSN.SW/"
+    ],
+    "OCDO.UK_9": [
+        "OCDO.L",
+        "https://finance.yahoo.com/quote/OCDO.L/"
+    ],
+    "OCGN.US": [
+        "OCGN",
+        "https://finance.yahoo.com/quote/OCGN/"
+    ],
+    "OGN.US_9": [
+        "OGN",
+        "https://finance.yahoo.com/quote/OGN/"
+    ],
+    "OII.US_9": [
+        "OII",
+        "https://finance.yahoo.com/quote/OII/"
+    ],
+    "OIS.US_9": [
+        "OIS",
+        "https://finance.yahoo.com/quote/OIS/"
+    ],
+    "OKE.US_9": [
+        "OKE",
+        "https://finance.yahoo.com/quote/OKE/"
+    ],
+    "OLED.US_9": [
+        "OLED",
+        "https://finance.yahoo.com/quote/OLED/"
+    ],
+    "OLN.US_9": [
+        "OLN",
+        "https://finance.yahoo.com/quote/OLN/"
+    ],
+    "OMC.US_9": [
+        "OMC",
+        "https://finance.yahoo.com/quote/OMC/"
+    ],
+    "ONTEX.BE": [
+        "ONTEX.BR",
+        "https://finance.yahoo.com/quote/ONTEX.BR/"
+    ],
+    "OPEN.US_9": [
+        "OPEN",
+        "https://finance.yahoo.com/quote/OPEN/"
+    ],
+    "OPRA.US": [
+        "OPRA",
+        "https://finance.yahoo.com/quote/OPRA/"
+    ],
+    "OR.FR_9": [
+        "OR.PA",
+        "https://finance.yahoo.com/quote/OR.PA/"
+    ],
+    "ORA.FR_9": [
+        "ORA.PA",
+        "https://finance.yahoo.com/quote/ORA.PA/"
+    ],
+    "ORK.NO_9": [
+        "ORK.OL",
+        "https://finance.yahoo.com/quote/ORK.OL/"
+    ],
+    "ORLY.US_9": [
+        "ORLY",
+        "https://finance.yahoo.com/quote/ORLY/"
+    ],
+    "ORNBV.FI_9": [
+        "ORNBV.HE",
+        "https://finance.yahoo.com/quote/ORNBV.HE/"
+    ],
+    "ORP.FR_9": [
+        "ORP.PA",
+        "https://finance.yahoo.com/quote/ORP.PA/"
+    ],
+    "OSK.US_9": [
+        "OSK",
+        "https://finance.yahoo.com/quote/OSK/"
+    ],
+    "OSTK.US": [
+        "OSTK",
+        "https://finance.yahoo.com/quote/OSTK/"
+    ],
+    "OTIS.US_9": [
+        "OTIS",
+        "https://finance.yahoo.com/quote/OTIS/"
+    ],
+    "OUT.US": [
+        "OUT",
+        "https://finance.yahoo.com/quote/OUT/"
+    ],
+    "OVH.FR_9": [
+        "OVH.PA",
+        "https://finance.yahoo.com/quote/OVH.PA/"
+    ],
+    "OXY.US_9": [
+        "OXY",
+        "https://ca.finance.yahoo.com/quote/OXY/"
+    ],
+    "PAAS.US_9": [
+        "PAAS",
+        "https://finance.yahoo.com/quote/PAAS/"
+    ],
+    "PAC.US_9": [
+        "PAC",
+        "https://finance.yahoo.com/quote/PAC/"
+    ],
+    "PAG.UK_9": [
+        "PAG.L",
+        "https://uk.finance.yahoo.com/quote/PAG.L/"
+    ],
+    "PAH3.DE_9": [
+        "PAH3.DE",
+        "https://finance.yahoo.com/quote/PAH3.DE/"
+    ],
+    "PARR.US": [
+        "PARR",
+        "https://finance.yahoo.com/quote/PARR/"
+    ],
+    "PATH.US_9": [
+        "PATH",
+        "https://finance.yahoo.com/quote/PATH/"
+    ],
+    "PAY.UK_9": [
+        "PAY.L",
+        "https://finance.yahoo.com/quote/PAY.L/"
+    ],
+    "PBR.US_9": [
+        "PBR",
+        "https://finance.yahoo.com/quote/PBR/"
+    ],
+    "PBYI.US_9": [
+        "PBYI",
+        "https://finance.yahoo.com/quote/PBYI/"
+    ],
+    "PCELL.SE": [
+        "PCELL.ST",
+        "https://finance.yahoo.com/quote/PCELL.ST/"
+    ],
+    "PCG.US_9": [
+        "PCG",
+        "https://finance.yahoo.com/quote/PCG/"
+    ],
+    "PCH.US_9": [
+        "PCH",
+        "https://finance.yahoo.com/quote/PCH/"
+    ],
+    "PD.US": [
+        "PD",
+        "https://finance.yahoo.com/quote/PD/"
+    ],
+    "PDCO.US_9": [
+        "news",
+        "https://finance.yahoo.com/quote/PDCO/news/"
+    ],
+    "PDL.UK_9": [
+        "PDL.L",
+        "https://finance.yahoo.com/quote/PDL.L/"
+    ],
+    "PEAK.US_9": [
+        "DOC",
+        "https://finance.yahoo.com/quote/DOC/"
+    ],
+    "PEI.US_9": [
+        "PRTLQ",
+        "https://finance.yahoo.com/quote/PRTLQ/"
+    ],
+    "PFC.UK_9": [
+        "PFC.L",
+        "https://finance.yahoo.com/quote/PFC.L/"
+    ],
+    "PFG.UK_9": [
+        "PRVA.SG",
+        "https://finance.yahoo.com/quote/PRVA.SG/"
+    ],
+    "PFSI.US_9": [
+        "PFSI",
+        "https://finance.yahoo.com/quote/PFSI/"
+    ],
+    "PG.US_9": [
+        "PG",
+        "https://finance.yahoo.com/quote/PG/"
+    ],
+    "PGHN.CH_9": [
+        "PGHN.SW",
+        "https://finance.yahoo.com/quote/PGHN.SW/"
+    ],
+    "PGR.US_9": [
+        "PGR",
+        "https://finance.yahoo.com/quote/PGR/"
+    ],
+    "PII.US_9": [
+        "PII",
+        "https://finance.yahoo.com/quote/PII/"
+    ],
+    "PK.US": [
+        "PK",
+        "https://finance.yahoo.com/quote/PK/"
+    ],
+    "PKX.US_9": [
+        "PKX",
+        "https://finance.yahoo.com/quote/PKX/"
+    ],
+    "PLAY.US": [
+        "PLAY",
+        "https://finance.yahoo.com/quote/PLAY/"
+    ],
+    "PLD.US_9": [
+        "PLD",
+        "https://finance.yahoo.com/quote/PLD/"
+    ],
+    "PLNT.US_9": [
+        "PLNT",
+        "https://finance.yahoo.com/quote/PLNT/"
+    ],
+    "PLTK.US": [
+        "PLTK",
+        "https://finance.yahoo.com/quote/PLTK/"
+    ],
+    "PLZL.UK_9": [
+        "PLZL.ME",
+        "https://finance.yahoo.com/quote/PLZL.ME/"
+    ],
+    "PNDORA.DK_9": [
+        "PNDORA.CO",
+        "https://finance.yahoo.com/quote/PNDORA.CO/"
+    ],
+    "PNW.US_9": [
+        "PNW",
+        "https://finance.yahoo.com/quote/PNW/"
+    ],
+    "POOL.US": [
+        "POOL",
+        "https://finance.yahoo.com/quote/POOL/"
+    ],
+    "PR.US_9": [
+        "PR",
+        "https://finance.yahoo.com/quote/PR/"
+    ],
+    "PRGO.US_9": [
+        "PRGO",
+        "https://finance.yahoo.com/quote/PRGO/"
+    ],
+    "PRX.NL_9": [
+        "PRX.AS",
+        "https://finance.yahoo.com/quote/PRX.AS/"
+    ],
+    "PSA.US_9": [
+        "PSA",
+        "https://finance.yahoo.com/quote/PSA/"
+    ],
+    "PSEC.US_9": [
+        "PSEC",
+        "https://finance.yahoo.com/quote/PSEC/"
+    ],
+    "PSG.ES_9": [
+        "PSG.MC",
+        "https://finance.yahoo.com/quote/PSG.MC/"
+    ],
+    "PSH.NL": [
+        "PSHZF",
+        "https://finance.yahoo.com/quote/PSHZF/"
+    ],
+    "PSON.UK_9": [
+        "PSO",
+        "https://finance.yahoo.com/quote/PSO/"
+    ],
+    "PSTG.US": [
+        "PSTG",
+        "https://finance.yahoo.com/quote/PSTG/"
+    ],
+    "PTCT.US": [
+        "PTCT",
+        "https://finance.yahoo.com/quote/PTCT/"
+    ],
+    "PTGX.US": [
+        "PTGX",
+        "https://finance.yahoo.com/quote/PTGX/"
+    ],
+    "PUBM.US": [
+        "PUBM",
+        "https://finance.yahoo.com/quote/PUBM/"
+    ],
+    "PWR.US_9": [
+        "PWR",
+        "https://finance.yahoo.com/quote/PWR/"
+    ],
+    "PXD.US_9": [
+        "PXD",
+        "https://finance.yahoo.com/quote/PXD/"
+    ],
+    "PYPL.US_9": [
+        "PYPL",
+        "https://finance.yahoo.com/quote/PYPL/"
+    ],
+    "PZC.UK_9": [
+        "PZC.L",
+        "https://finance.yahoo.com/quote/PZC.L/"
+    ],
+    "PZZA.US": [
+        "PZZA",
+        "https://finance.yahoo.com/quote/PZZA/"
+    ],
+    "QD.US": [
+        "QD",
+        "https://finance.yahoo.com/quote/QD/"
+    ],
+    "QDT.FR": [
+        "QDT.PA",
+        "https://finance.yahoo.com/quote/QDT.PA/"
+    ],
+    "QGEN.US_9": [
+        "QGEN",
+        "https://finance.yahoo.com/quote/QGEN/"
+    ],
+    "QS.US_9": [
+        "QS",
+        "https://finance.yahoo.com/quote/QS/"
+    ],
+    "QTCOM.FI": [
+        "QTCOM.HE",
+        "https://finance.yahoo.com/quote/QTCOM.HE/"
+    ],
+    "RACE.US_9": [
+        "RACE",
+        "https://finance.yahoo.com/quote/RACE/"
+    ],
+    "RAL.FR": [
+        "RAL.PA",
+        "https://finance.yahoo.com/quote/RAL.PA/"
+    ],
+    "RAND.NL_9": [
+        "RAND.AS",
+        "https://finance.yahoo.com/quote/RAND.AS/"
+    ],
+    "RATOB.SE": [
+        "RATO-B.ST",
+        "https://finance.yahoo.com/quote/RATO-B.ST/"
+    ],
+    "RB.UK_9": [
+        "RBGLY",
+        "https://finance.yahoo.com/quote/RBGLY/"
+    ],
+    "RCKT.US_9": [
+        "RCKT",
+        "https://finance.yahoo.com/quote/RCKT/"
+    ],
+    "RCUS.US_9": [
+        "RCUS",
+        "https://finance.yahoo.com/quote/RCUS/"
+    ],
+    "RDW.UK_9": [
+        "RDW.L",
+        "https://uk.finance.yahoo.com/quote/RDW.L/"
+    ],
+    "RDW.US": [
+        "RDW",
+        "https://finance.yahoo.com/quote/RDW/"
+    ],
+    "RE.US_9": [
+        "ERE.DU",
+        "https://finance.yahoo.com/quote/ERE.DU/"
+    ],
+    "REG.US_9": [
+        "REG",
+        "https://finance.yahoo.com/quote/REG/"
+    ],
+    "REGN.US_9": [
+        "REGN",
+        "https://finance.yahoo.com/quote/REGN/"
+    ],
+    "REP1.ES_9": [
+        "REP.MC",
+        "https://finance.yahoo.com/quote/REP.MC/"
+    ],
+    "REXR.US": [
+        "REXR",
+        "https://finance.yahoo.com/quote/REXR/"
+    ],
+    "RF.FR_9": [
+        "RF.PA",
+        "https://finance.yahoo.com/quote/RF.PA/"
+    ],
+    "RGEN.US_9": [
+        "RGEN",
+        "https://finance.yahoo.com/quote/RGEN/"
+    ],
+    "RGL.UK": [
+        "RGL.L",
+        "https://finance.yahoo.com/quote/RGL.L/"
+    ],
+    "RHP.US_9": [
+        "RHP",
+        "https://finance.yahoo.com/quote/RHP/"
+    ],
+    "RI.FR_9": [
+        "RI.PA",
+        "https://finance.yahoo.com/quote/RI.PA/"
+    ],
+    "RIGL.US": [
+        "RIGL",
+        "https://finance.yahoo.com/quote/RIGL/"
+    ],
+    "RIO1.DE": [
+        "RIO",
+        "https://finance.yahoo.com/quote/RIO/"
+    ],
+    "RJF.ES": [
+        "RJF.MC",
+        "https://finance.yahoo.com/quote/RJF.MC/"
+    ],
+    "RJF.US_9": [
+        "RJF",
+        "https://finance.yahoo.com/quote/RJF/"
+    ],
+    "RKLB.US": [
+        "RKLB",
+        "https://finance.yahoo.com/quote/RKLB/"
+    ],
+    "RLAY.US": [
+        "RLAY",
+        "https://finance.yahoo.com/quote/RLAY/"
+    ],
+    "RLF.CH": [
+        "RLFTF",
+        "https://finance.yahoo.com/quote/RLFTF/"
+    ],
+    "RMBS.US_9": [
+        "RMBS",
+        "https://finance.yahoo.com/quote/RMBS/"
+    ],
+    "RNO.FR_9": [
+        "RNO.PA",
+        "https://finance.yahoo.com/quote/RNO.PA/"
+    ],
+    "ROG.US": [
+        "ROG",
+        "https://finance.yahoo.com/quote/ROG/"
+    ],
+    "ROK.US_9": [
+        "ROK",
+        "https://finance.yahoo.com/quote/ROK/"
+    ],
+    "ROTH.FR": [
+        "0P00000MZD",
+        "https://finance.yahoo.com/quote/0P00000MZD/performance"
+    ],
+    "RPRX.US_9": [
+        "RPRX",
+        "https://finance.yahoo.com/quote/RPRX/"
+    ],
+    "RS.US_9": [
+        "RS",
+        "https://finance.yahoo.com/quote/RS/"
+    ],
+    "RS1.UK_9": [
+        "RS1.L",
+        "https://finance.yahoo.com/quote/RS1.L/"
+    ],
+    "RTN.UK_9": [
+        "company-insights",
+        "https://finance.yahoo.com/quote/RSTGF/company-insights/"
+    ],
+    "RUI.FR_9": [
+        "RUI.PA",
+        "https://finance.yahoo.com/quote/RUI.PA/"
+    ],
+    "RUN.US_9": [
+        "RUN",
+        "https://finance.yahoo.com/quote/RUN/"
+    ],
+    "RX.FR": [
+        "RXP.L",
+        "https://uk.finance.yahoo.com/quote/RXP.L/"
+    ],
+    "RYN.US": [
+        "RYN",
+        "https://finance.yahoo.com/quote/RYN/"
+    ],
+    "S92.DE_9": [
+        "S92.DE",
+        "https://finance.yahoo.com/quote/S92.DE/"
+    ],
+    "SABR.US": [
+        "SABR",
+        "https://finance.yahoo.com/quote/SABR/"
+    ],
+    "SAGA.UK_9": [
+        "SAGA.L",
+        "https://finance.yahoo.com/quote/SAGA.L/"
+    ],
+    "SAMPO.FI_9": [
+        "SAMPO.HE",
+        "https://finance.yahoo.com/quote/SAMPO.HE/"
+    ],
+    "SAN.FR_9": [
+        "SNY",
+        "https://finance.yahoo.com/quote/SNY/"
+    ],
+    "SAP.DE_9": [
+        "SAP",
+        "https://finance.yahoo.com/quote/SAP/"
+    ],
+    "SAS.SE_9": [
+        "SAS.ST",
+        "https://finance.yahoo.com/quote/SAS.ST/"
+    ],
+    "SAVA.US": [
+        "SAVA",
+        "https://finance.yahoo.com/quote/SAVA/"
+    ],
+    "SAVE.US_9": [
+        "SAVE",
+        "https://finance.yahoo.com/quote/SAVE/"
+    ],
+    "SBBB.SE": [
+        "SBB-B.ST",
+        "https://finance.yahoo.com/quote/SBB-B.ST/"
+    ],
+    "SBER.UK_9": [
+        "SBER.ME",
+        "https://finance.yahoo.com/quote/SBER.ME/"
+    ],
+    "SBMO.NL_9": [
+        "SBMO.AS",
+        "https://finance.yahoo.com/quote/SBMO.AS/"
+    ],
+    "SBS.DE_9": [
+        "SBS.DE",
+        "https://uk.finance.yahoo.com/quote/SBS.DE/"
+    ],
+    "SBUX.US_9": [
+        "SBUX",
+        "https://finance.yahoo.com/quote/SBUX/"
+    ],
+    "SCATC.NO": [
+        "SCATC.OL",
+        "https://finance.yahoo.com/quote/SCATC.OL/"
+    ],
+    "SCHW.US_9": [
+        "SCHW",
+        "https://finance.yahoo.com/quote/SCHW/"
+    ],
+    "SCR.FR_9": [
+        "SCR.PA",
+        "https://finance.yahoo.com/quote/SCR.PA/"
+    ],
+    "SDC.US": [
+        "SDCCQ",
+        "https://finance.yahoo.com/quote/SDCCQ/"
+    ],
+    "SDF.DE_9": [
+        "SDF.DE",
+        "https://finance.yahoo.com/quote/SDF.DE/"
+    ],
+    "SDY.UK": [
+        "SDY.L",
+        "https://finance.yahoo.com/quote/SDY.L/"
+    ],
+    "SEDG.US": [
+        "SEDG",
+        "https://finance.yahoo.com/quote/SEDG/"
+    ],
+    "SELB.US": [
+        "1S7.MU",
+        "https://finance.yahoo.com/quote/1S7.MU/"
+    ],
+    "SGH.US_9": [
+        "SGH",
+        "https://finance.yahoo.com/quote/SGH/"
+    ],
+    "SGMO.US": [
+        "SGMO",
+        "https://finance.yahoo.com/quote/SGMO/"
+    ],
+    "SGRO.UK_9": [
+        "SGRO.L",
+        "https://finance.yahoo.com/quote/SGRO.L/"
+    ],
+    "SHA.DE_9": [
+        "SHA.DE",
+        "https://finance.yahoo.com/quote/SHA.DE/"
+    ],
+    "SHBA.SE_9": [
+        "SHB-A.ST",
+        "https://finance.yahoo.com/quote/SHB-A.ST/"
+    ],
+    "SHI.UK_9": [
+        "SHI.L",
+        "https://finance.yahoo.com/quote/SHI.L/"
+    ],
+    "SHL.DE_9": [
+        "SMMNY",
+        "https://finance.yahoo.com/quote/SMMNY/"
+    ],
+    "SHLS.US": [
+        "SHLS",
+        "https://finance.yahoo.com/quote/SHLS/"
+    ],
+    "SHOP.US_9": [
+        "SHOP",
+        "https://finance.yahoo.com/quote/SHOP/"
+    ],
+    "SIE.DE_9": [
+        "SIE.DE",
+        "https://finance.yahoo.com/quote/SIE.DE/"
+    ],
+    "SIGA.US_9": [
+        "SIGA",
+        "https://finance.yahoo.com/quote/SIGA/"
+    ],
+    "SIK.CH": [
+        "SIKA.SW",
+        "https://finance.yahoo.com/quote/SIKA.SW/"
+    ],
+    "SIRI.US_9": [
+        "SIRI",
+        "https://finance.yahoo.com/quote/SIRI/"
+    ],
+    "SIVB.US_9": [
+        "SIVBQ",
+        "https://finance.yahoo.com/quote/SIVBQ/"
+    ],
+    "SKAB.SE_9": [
+        "SKA-B.ST",
+        "https://finance.yahoo.com/quote/SKA-B.ST/"
+    ],
+    "SKFB.SE_9": [
+        "SKF-B.ST",
+        "https://finance.yahoo.com/quote/SKF-B.ST/"
+    ],
+    "SLB.US_9": [
+        "SLB",
+        "https://finance.yahoo.com/quote/SLB/"
+    ],
+    "SLP.US_9": [
+        "SLP",
+        "https://finance.yahoo.com/quote/SLP/"
+    ],
+    "SM.US_9": [
+        "SM",
+        "https://finance.yahoo.com/quote/SM/"
+    ],
+    "SMCP.FR": [
+        "SMCP.PA",
+        "https://finance.yahoo.com/quote/SMCP.PA/"
+    ],
+    "SMDS.UK_9": [
+        "SMDS.L",
+        "https://finance.yahoo.com/quote/SMDS.L/"
+    ],
+    "SMG.US_9": [
+        "SMG",
+        "https://finance.yahoo.com/quote/SMG/"
+    ],
+    "SMWH.UK_9": [
+        "SMWH.L",
+        "https://finance.yahoo.com/quote/SMWH.L/"
+    ],
+    "SN.UK_9": [
+        "SNN",
+        "https://finance.yahoo.com/quote/SNN/"
+    ],
+    "SNBR.US": [
+        "SNBR",
+        "https://finance.yahoo.com/quote/SNBR/"
+    ],
+    "SNDL.US": [
+        "SNDL",
+        "https://finance.yahoo.com/quote/SNDL/"
+    ],
+    "SNOW.US_9": [
+        "SNOW",
+        "https://finance.yahoo.com/quote/SNOW/"
+    ],
+    "SNR.UK_9": [
+        "SNR.L",
+        "https://finance.yahoo.com/quote/SNR.L/"
+    ],
+    "SOLB.BE_9": [
+        "SOLB.BR",
+        "https://finance.yahoo.com/quote/SOLB.BR/"
+    ],
+    "SOLO.US": [
+        "SOLO",
+        "https://finance.yahoo.com/quote/SOLO/"
+    ],
+    "SON.PT_9": [
+        "SON.LS",
+        "https://finance.yahoo.com/quote/SON.LS/"
+    ],
+    "SON.US_9": [
+        "SON",
+        "https://finance.yahoo.com/quote/SON/"
+    ],
+    "SOON.CH_9": [
+        "SOON.SW",
+        "https://finance.yahoo.com/quote/SOON.SW/"
+    ],
+    "SOP.FR_9": [
+        "SOP.PA",
+        "https://uk.finance.yahoo.com/quote/SOP.PA/"
+    ],
+    "SOS.US": [
+        "SOS",
+        "https://finance.yahoo.com/quote/SOS/"
+    ],
+    "SPCE.US_9": [
+        "SPCE",
+        "https://finance.yahoo.com/quote/SPCE/"
+    ],
+    "SPI.UK_9": [
+        "SPI.L",
+        "https://finance.yahoo.com/quote/SPI.L/"
+    ],
+    "SPI.US": [
+        "SPI",
+        "https://finance.yahoo.com/quote/SPI/"
+    ],
+    "SPIR.US": [
+        "SPIR",
+        "https://finance.yahoo.com/quote/SPIR/"
+    ],
+    "SPK.ES": [
+        "SPZ.F",
+        "https://finance.yahoo.com/quote/SPZ.F/"
+    ],
+    "SPTN.US_9": [
+        "SPTN",
+        "https://finance.yahoo.com/quote/SPTN/"
+    ],
+    "SRC.US": [
+        "SRC",
+        "https://ca.finance.yahoo.com/quote/SRC/news?p=SRC&ncid=yahooproperties_stockrecom_g40boan2td8"
+    ],
+    "SRNE.US": [
+        "SRNEQ",
+        "https://finance.yahoo.com/quote/SRNEQ/"
+    ],
+    "SRP.UK_9": [
+        "SRP.L",
+        "https://finance.yahoo.com/quote/SRP.L/"
+    ],
+    "SSYS.US_9": [
+        "SSYS",
+        "https://finance.yahoo.com/quote/SSYS/"
+    ],
+    "STAN.UK_9": [
+        "STAN.L",
+        "https://finance.yahoo.com/quote/STAN.L/"
+    ],
+    "STE.US_9": [
+        "STE",
+        "https://finance.yahoo.com/quote/STE/"
+    ],
+    "STEM.US": [
+        "STEM",
+        "https://finance.yahoo.com/quote/STEM/"
+    ],
+    "STJ.UK_9": [
+        "STJ.L",
+        "https://finance.yahoo.com/quote/STJ.L/"
+    ],
+    "STM.FR_9": [
+        "STM",
+        "https://finance.yahoo.com/quote/STM/"
+    ],
+    "STNE.US_9": [
+        "STNE",
+        "https://finance.yahoo.com/quote/STNE/"
+    ],
+    "STZ.US_9": [
+        "STZ",
+        "https://finance.yahoo.com/quote/STZ/"
+    ],
+    "SU.FR_9": [
+        "SU.PA",
+        "https://finance.yahoo.com/quote/SU.PA/"
+    ],
+    "SUNW.US": [
+        "SUNWQ",
+        "https://finance.yahoo.com/quote/SUNWQ/"
+    ],
+    "SVT.UK_9": [
+        "SVT.L",
+        "https://finance.yahoo.com/quote/SVT.L/"
+    ],
+    "SWAV.US_9": [
+        "SWAV",
+        "https://finance.yahoo.com/quote/SWAV/"
+    ],
+    "SWBI.US_9": [
+        "SWBI",
+        "https://finance.yahoo.com/quote/SWBI/"
+    ],
+    "SWEDA.SE_9": [
+        "SWED-A.ST",
+        "https://finance.yahoo.com/quote/SWED-A.ST/"
+    ],
+    "SWI.US_9": [
+        "SWI",
+        "https://finance.yahoo.com/quote/SWI/"
+    ],
+    "SWKS.US_9": [
+        "SWKS",
+        "https://finance.yahoo.com/quote/SWKS/"
+    ],
+    "SWN.US_9": [
+        "SWN",
+        "https://finance.yahoo.com/quote/SWN/"
+    ],
+    "SYDB.DK_9": [
+        "SYDB.CO",
+        "https://finance.yahoo.com/quote/SYDB.CO/"
+    ],
+    "SYK.US_9": [
+        "SYK",
+        "https://finance.yahoo.com/quote/SYK/"
+    ],
+    "SYNA.US_9": [
+        "SYNA",
+        "https://finance.yahoo.com/quote/SYNA/"
+    ],
+    "SYY.US_9": [
+        "SYY",
+        "https://finance.yahoo.com/quote/SYY/"
+    ],
+    "SZU.DE_9": [
+        "SZU.DE",
+        "https://finance.yahoo.com/quote/SZU.DE/"
+    ],
+    "TAL.US_9": [
+        "TAL",
+        "https://finance.yahoo.com/quote/TAL/"
+    ],
+    "TATE.UK_9": [
+        "TATE.L",
+        "https://finance.yahoo.com/quote/TATE.L/"
+    ],
+    "TCMD.US_9": [
+        "TCMD",
+        "https://finance.yahoo.com/quote/TCMD/"
+    ],
+    "TCPC.US": [
+        "TCPC",
+        "https://finance.yahoo.com/quote/TCPC/"
+    ],
+    "TDC.US_9": [
+        "TDC",
+        "https://finance.yahoo.com/quote/TDC/"
+    ],
+    "TDG.US_9": [
+        "TDG",
+        "https://finance.yahoo.com/quote/TDG/"
+    ],
+    "TDY.US_9": [
+        "TDY",
+        "https://finance.yahoo.com/quote/TDY/"
+    ],
+    "TEG.DE_9": [
+        "TEG.DE",
+        "https://finance.yahoo.com/quote/TEG.DE/"
+    ],
+    "TEL.NO_9": [
+        "TEL.OL",
+        "https://finance.yahoo.com/quote/TEL.OL/"
+    ],
+    "TEL.US_9": [
+        "TEL",
+        "https://finance.yahoo.com/quote/TEL/"
+    ],
+    "TEL2B.SE_9": [
+        "TEL2-B.ST",
+        "https://finance.yahoo.com/quote/TEL2-B.ST/"
+    ],
+    "TEMN.CH_9": [
+        "TEMN.SW",
+        "https://finance.yahoo.com/quote/TEMN.SW/"
+    ],
+    "TEP.FR_9": [
+        "TEP.PA",
+        "https://finance.yahoo.com/quote/TEP.PA/"
+    ],
+    "TER.US_9": [
+        "TER",
+        "https://finance.yahoo.com/quote/TER/"
+    ],
+    "TFBANK.SE": [
+        "TFBANK.ST",
+        "https://finance.yahoo.com/quote/TFBANK.ST/"
+    ],
+    "TGI.US_9": [
+        "TGI",
+        "https://finance.yahoo.com/quote/TGI/"
+    ],
+    "TGNA.US_9": [
+        "TGNA",
+        "https://finance.yahoo.com/quote/TGNA/"
+    ],
+    "TGT.US_9": [
+        "TGT",
+        "https://finance.yahoo.com/quote/TGT/"
+    ],
+    "THC.US_9": [
+        "THC",
+        "https://finance.yahoo.com/quote/THC/"
+    ],
+    "THG.US_9": [
+        "THG",
+        "https://finance.yahoo.com/quote/THG/"
+    ],
+    "TIP.IT_9": [
+        "TIP.MI",
+        "https://finance.yahoo.com/quote/TIP.MI/"
+    ],
+    "TIT.IT_9": [
+        "TIT.MI",
+        "https://finance.yahoo.com/quote/TIT.MI/"
+    ],
+    "TLGO.ES_9": [
+        "TLGO.MC",
+        "https://finance.yahoo.com/quote/TLGO.MC/"
+    ],
+    "TLRY.US_9": [
+        "TLRY",
+        "https://finance.yahoo.com/quote/TLRY/"
+    ],
+    "TLS.US": [
+        "TLS",
+        "https://finance.yahoo.com/quote/TLS/"
+    ],
+    "TLYS.US": [
+        "TLYS",
+        "https://finance.yahoo.com/quote/TLYS/"
+    ],
+    "TM.US_9": [
+        "TM",
+        "https://finance.yahoo.com/quote/TM/"
+    ],
+    "TNDM.US": [
+        "TNDM",
+        "https://finance.yahoo.com/quote/TNDM/"
+    ],
+    "TOL.US_9": [
+        "TOL",
+        "https://finance.yahoo.com/quote/TOL/"
+    ],
+    "TOM2.NL_9": [
+        "TOM2.AS",
+        "https://finance.yahoo.com/quote/TOM2.AS/"
+    ],
+    "TPL.US_9": [
+        "TPL",
+        "https://finance.yahoo.com/quote/TPL/"
+    ],
+    "TRGP.US_9": [
+        "TRGP",
+        "https://finance.yahoo.com/quote/TRGP/"
+    ],
+    "TRMB.US_9": [
+        "TRMB",
+        "https://finance.yahoo.com/quote/TRMB/"
+    ],
+    "TRMDA.DK": [
+        "TRMD",
+        "https://finance.yahoo.com/quote/TRMD/"
+    ],
+    "TRU.US": [
+        "TRU",
+        "https://finance.yahoo.com/quote/TRU/"
+    ],
+    "TSLA.DE": [
+        "TSLA",
+        "https://finance.yahoo.com/quote/TSLA/"
+    ],
+    "TTD.US_9": [
+        "TTD",
+        "https://finance.yahoo.com/quote/TTD/"
+    ],
+    "TTWO.US_9": [
+        "TTWO",
+        "https://finance.yahoo.com/quote/TTWO/"
+    ],
+    "TU.US": [
+        "TU",
+        "https://finance.yahoo.com/quote/TU/"
+    ],
+    "TUI.UK_9": [
+        "TUI1.DE",
+        "https://finance.yahoo.com/quote/TUI1.DE/"
+    ],
+    "TUP.US_9": [
+        "TUP",
+        "https://finance.yahoo.com/quote/TUP/"
+    ],
+    "TWLO.US_9": [
+        "TWLO",
+        "https://finance.yahoo.com/quote/TWLO/"
+    ],
+    "TWOU.US_9": [
+        "TWOU",
+        "https://finance.yahoo.com/quote/TWOU/"
+    ],
+    "TWST.US": [
+        "TWST",
+        "https://finance.yahoo.com/quote/TWST/"
+    ],
+    "TX.US_9": [
+        "TX",
+        "https://finance.yahoo.com/quote/TX/"
+    ],
+    "TXG.US": [
+        "TXG",
+        "https://finance.yahoo.com/quote/TXG/"
+    ],
+    "UBX.US": [
+        "UBX",
+        "https://finance.yahoo.com/quote/UBX/"
+    ],
+    "UDR.US_9": [
+        "UDR",
+        "https://finance.yahoo.com/quote/UDR/"
+    ],
+    "UFPI.US_9": [
+        "UFPI",
+        "https://finance.yahoo.com/quote/UFPI/"
+    ],
+    "UGI.US_9": [
+        "UGI",
+        "https://finance.yahoo.com/quote/UGI/"
+    ],
+    "UHR.CH_9": [
+        "UHR.SW",
+        "https://finance.yahoo.com/quote/UHR.SW/"
+    ],
+    "ULTA.US_9": [
+        "ULTA",
+        "https://finance.yahoo.com/quote/ULTA/"
+    ],
+    "UMI.BE_9": [
+        "UMI.BR",
+        "https://finance.yahoo.com/quote/UMI.BR/"
+    ],
+    "UN01.DE_9": [
+        "UNPRF",
+        "https://finance.yahoo.com/quote/UNPRF/"
+    ],
+    "UNFI.US_9": [
+        "UNFI",
+        "https://finance.yahoo.com/quote/UNFI/"
+    ],
+    "UNH.US_9": [
+        "UNH",
+        "https://finance.yahoo.com/quote/UNH/"
+    ],
+    "UPM.FI_9": [
+        "UPM.HE",
+        "https://finance.yahoo.com/quote/UPM.HE/"
+    ],
+    "UPST.US_9": [
+        "UPST",
+        "https://finance.yahoo.com/quote/UPST/"
+    ],
+    "URW.NL_9": [
+        "UNBLF",
+        "https://finance.yahoo.com/quote/UNBLF/"
+    ],
+    "US.IT_9": [
+        "US.MI",
+        "https://finance.yahoo.com/quote/US.MI/"
+    ],
+    "USFD.US": [
+        "USFD",
+        "https://finance.yahoo.com/quote/USFD/"
+    ],
+    "UTDI.DE_9": [
+        "UTDI.DE",
+        "https://finance.yahoo.com/quote/UTDI.DE/"
+    ],
+    "UTHR.US_9": [
+        "UTHR",
+        "https://finance.yahoo.com/quote/UTHR/"
+    ],
+    "UUUU.US": [
+        "EFR.TO",
+        "https://ca.finance.yahoo.com/quote/EFR.TO/"
+    ],
+    "VAC.US_9": [
+        "VAC",
+        "https://finance.yahoo.com/quote/VAC/"
+    ],
+    "VALMT.FI_9": [
+        "VALMT.HE",
+        "https://finance.yahoo.com/quote/VALMT.HE/"
+    ],
+    "VANTI.FR_9": [
+        "VANTI.PA",
+        "https://finance.yahoo.com/quote/VANTI.PA/"
+    ],
+    "VERI.US": [
+        "VERI",
+        "https://finance.yahoo.com/quote/VERI/"
+    ],
+    "VET.US_9": [
+        "VET",
+        "https://finance.yahoo.com/quote/VET/"
+    ],
+    "VFC.US_9": [
+        "VFC",
+        "https://finance.yahoo.com/quote/VFC/"
+    ],
+    "VFF.US": [
+        "VFF",
+        "https://finance.yahoo.com/quote/VFF/"
+    ],
+    "VIAC.US_9": [
+        "PARA",
+        "https://finance.yahoo.com/quote/PARA/"
+    ],
+    "VID.ES_9": [
+        "VID.MC",
+        "https://finance.yahoo.com/quote/VID.MC/"
+    ],
+    "VIEW.US": [
+        "VIEW",
+        "https://ca.finance.yahoo.com/quote/VIEW/"
+    ],
+    "VIPS.US_9": [
+        "VIPS",
+        "https://finance.yahoo.com/quote/VIPS/"
+    ],
+    "VITL.US": [
+        "VITL",
+        "https://finance.yahoo.com/quote/VITL/"
+    ],
+    "VIV.US_9": [
+        "VIV",
+        "https://finance.yahoo.com/quote/VIV/"
+    ],
+    "VLA.FR": [
+        "VLA.PA",
+        "https://finance.yahoo.com/quote/VLA.PA/"
+    ],
+    "VLO.US_9": [
+        "VLO",
+        "https://finance.yahoo.com/quote/VLO/"
+    ],
+    "VMEO.US": [
+        "VMEO",
+        "https://finance.yahoo.com/quote/VMEO/"
+    ],
+    "VOLVB.SE_9": [
+        "VOLV-B.ST",
+        "https://finance.yahoo.com/quote/VOLV-B.ST/"
+    ],
+    "VOW1.DE_9": [
+        "VOW3.DE",
+        "https://finance.yahoo.com/quote/VOW3.DE/"
+    ],
+    "VOYA.US": [
+        "VOYA",
+        "https://finance.yahoo.com/quote/VOYA/"
+    ],
+    "VSH.US": [
+        "VSH",
+        "https://finance.yahoo.com/quote/VSH/"
+    ],
+    "VUZI.US": [
+        "VUZI",
+        "https://finance.yahoo.com/quote/VUZI/"
+    ],
+    "VWS.DK_9": [
+        "VWS.CO",
+        "https://finance.yahoo.com/quote/VWS.CO/"
+    ],
+    "W.US_9": [
+        "W",
+        "https://finance.yahoo.com/quote/W/"
+    ],
+    "WAF.DE": [
+        "WAF.DE",
+        "https://finance.yahoo.com/quote/WAF.DE/"
+    ],
+    "WB.US_9": [
+        "WB",
+        "https://finance.yahoo.com/quote/WB/"
+    ],
+    "WBA.US_9": [
+        "WBA",
+        "https://finance.yahoo.com/quote/WBA/"
+    ],
+    "WBD.US_9": [
+        "WBD",
+        "https://finance.yahoo.com/quote/WBD/"
+    ],
+    "WEBR.US": [
+        "BRK-A",
+        "https://finance.yahoo.com/quote/BRK-A/"
+    ],
+    "WEC.US_9": [
+        "WEC",
+        "https://finance.yahoo.com/quote/WEC/"
+    ],
+    "WETF.US_9": [
+        "WT",
+        "https://finance.yahoo.com/quote/WT/"
+    ],
+    "WEX.US": [
+        "WEX",
+        "https://finance.yahoo.com/quote/WEX/"
+    ],
+    "WFC.US_9": [
+        "WFC",
+        "https://finance.yahoo.com/quote/WFC/"
+    ],
+    "WFG.US": [
+        "WFG",
+        "https://finance.yahoo.com/quote/WFG/"
+    ],
+    "WGO.US_9": [
+        "WGO",
+        "https://finance.yahoo.com/quote/WGO/"
+    ],
+    "WHR.US_9": [
+        "WHR",
+        "https://finance.yahoo.com/quote/WHR/"
+    ],
+    "WISE.UK": [
+        "WISE.L",
+        "https://finance.yahoo.com/quote/WISE.L/"
+    ],
+    "WLK.US_9": [
+        "WLK",
+        "https://finance.yahoo.com/quote/WLK/"
+    ],
+    "WOLF.US_9": [
+        "WOLF",
+        "https://finance.yahoo.com/quote/WOLF/"
+    ],
+    "WPC.US": [
+        "WPC",
+        "https://finance.yahoo.com/quote/WPC/"
+    ],
+    "WPM.US_9": [
+        "WPM",
+        "https://finance.yahoo.com/quote/WPM/"
+    ],
+    "WRB.US_9": [
+        "WRB",
+        "https://finance.yahoo.com/quote/WRB/"
+    ],
+    "WRT1V.FI_9": [
+        "WRT1V.HE",
+        "https://finance.yahoo.com/quote/WRT1V.HE/"
+    ],
+    "WST.US_9": [
+        "WST",
+        "https://finance.yahoo.com/quote/WST/"
+    ],
+    "WSV2.DE": [
+        "VIG.VI",
+        "https://finance.yahoo.com/quote/VIG.VI/"
+    ],
+    "WT.US": [
+        "WT",
+        "https://finance.yahoo.com/quote/WT/"
+    ],
+    "WWD.US_9": [
+        "WWD",
+        "https://finance.yahoo.com/quote/WWD/"
+    ],
+    "WWR.US": [
+        "WWR",
+        "https://finance.yahoo.com/quote/WWR/"
+    ],
+    "X.US": [
+        "X",
+        "https://finance.yahoo.com/quote/X/"
+    ],
+    "XL.US_9": [
+        "history",
+        "https://finance.yahoo.com/quote/XLG.DE/history/"
+    ],
+    "XOM.US_9": [
+        "XOM",
+        "https://finance.yahoo.com/quote/XOM/"
+    ],
+    "XP.US_9": [
+        "XP",
+        "https://finance.yahoo.com/quote/XP/"
+    ],
+    "YELP.US": [
+        "YELP",
+        "https://finance.yahoo.com/quote/YELP/"
+    ],
+    "YQ.US": [
+        "YQ",
+        "https://finance.yahoo.com/quote/YQ/"
+    ],
+    "YY.US_9": [
+        "YY",
+        "https://finance.yahoo.com/quote/YY/"
+    ],
+    "ZBRA.US_9": [
+        "ZBRA",
+        "https://finance.yahoo.com/quote/ZBRA/"
+    ],
+    "ZIL2.DE_9": [
+        "ZIL2.DE",
+        "https://finance.yahoo.com/quote/ZIL2.DE/"
+    ],
+    "ZION.US_9": [
+        "ZION",
+        "https://finance.yahoo.com/quote/ZION/"
+    ],
+    "ZO1.DE_9": [
+        "ZO1.DE",
+        "https://finance.yahoo.com/quote/ZO1.DE/"
+    ],
+    "ZTO.US_9": [
+        "ZTO",
+        "https://finance.yahoo.com/quote/ZTO/"
+    ],
+    "ZUO.US_9": [
+        "ZUO",
+        "https://finance.yahoo.com/quote/ZUO/"
+    ]
+}

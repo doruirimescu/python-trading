@@ -1,5 +1,5 @@
 from Trading.symbols.google_search_symbol import get_yfinance_symbol_url
-from Trading.utils.write_to_file import write_to_json_file
+from Trading.utils.write_to_file import write_to_json_file, extend_json_file, read_json_file
 from Trading.utils.custom_logging import get_logger
 LOGGER = get_logger(__file__)
 
@@ -15,20 +15,24 @@ def parse_commodities():
 
 def parse_stocks():
     from Trading.symbols.constants import XTB_STOCK_SYMBOLS_DICT, YAHOO_STOCK_SYMBOLS_PATH
-    stocks = dict()
+
+    stocks = read_json_file(YAHOO_STOCK_SYMBOLS_PATH)
     try:
-        for symbol in XTB_STOCK_SYMBOLS_DICT:
+        for symbol in ["SHOP.US_9"]:
+            if symbol in stocks:
+                continue
             # It's easiest to get the yfinance symbol by searching for the xtb description
             description = XTB_STOCK_SYMBOLS_DICT[symbol]["description"]
             try:
                 yfinance_symbol = get_yfinance_symbol_url(description)
+                stocks[symbol] = yfinance_symbol
             except Exception as e:
-                LOGGER.error(e)
+                LOGGER.error(f"Could not process symbol for {symbol} {e}")
                 continue
-            stocks[symbol] = yfinance_symbol
-
         write_to_json_file(YAHOO_STOCK_SYMBOLS_PATH, stocks)
+
     except KeyboardInterrupt as e:
+        LOGGER.info(f"Last symbol: {symbol}")
         write_to_json_file(YAHOO_STOCK_SYMBOLS_PATH, stocks)
 
 parse_stocks()

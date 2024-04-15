@@ -23,6 +23,15 @@ def read_json_file(file_name: str) -> dict:
     except Exception as e:
         return None
 
+def extend_json_file(file_name: str, data_dict: dict) -> None:
+    try:
+        with open(file_name, 'r+') as f:
+            json_data = json.load(f)
+            json_data.update(data_dict)
+            f.seek(0)
+            json.dump(json_data, f, indent=4, sort_keys=True, default=str)
+    except Exception as e:
+        LOGGER.error(f"Error extending file {file_name}: {e}")
 
 def read_historical_data(file_name: str) -> dict:
     ohlc = read_json_file(file_name)
