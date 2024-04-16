@@ -12,6 +12,7 @@ __ETF_JSON = Path("etf.json")
 __FOREX_JSON = Path("forex.json")
 __STOCKS_JSON = Path("stocks.json")
 __INDEX_JSON = Path("index.json")
+__CRYPTO_JSON = Path("crypto.json")
 
 
 # XTB
@@ -22,6 +23,7 @@ XTB_FOREX_SYMBOLS_PATH = __XTB_SYMBOLS_PATH / __FOREX_JSON
 XTB_ETF_SYMBOLS_PATH = __XTB_SYMBOLS_PATH / __ETF_JSON
 XTB_INDEX_SYMBOLS_PATH = __XTB_SYMBOLS_PATH / __INDEX_JSON
 XTB_COMMODITY_SYMBOLS_PATH = __XTB_SYMBOLS_PATH / __COMMODITIES_JSON
+XTB_CRYPTO_SYMBOLS_PATH = __XTB_SYMBOLS_PATH / __CRYPTO_JSON
 
 with open(XTB_ALL_SYMBOLS_PATH, "r") as f:
     XTB_ALL_SYMBOLS_DICT = json.load(f)
@@ -49,6 +51,10 @@ with open(XTB_COMMODITY_SYMBOLS_PATH, "r") as f:
 with open(XTB_FOREX_SYMBOLS_PATH, "r") as f:
     XTB_FOREX_SYMBOLS_DICT = json.load(f)
     XTB_FOREX_SYMBOLS = [symbol for symbol in XTB_FOREX_SYMBOLS_DICT]
+
+with open(XTB_CRYPTO_SYMBOLS_PATH, "r") as f:
+    XTB_CRYPTO_SYMBOLS_DICT = json.load(f)
+    XTB_CRYPTO_SYMBOLS = [symbol for symbol in XTB_CRYPTO_SYMBOLS_DICT]
 
 # ALPHASPREAD
 ALPHASPREAD_PATH = __CURRENT_FILE_PATH.joinpath("alphaspread/")
