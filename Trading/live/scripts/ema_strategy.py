@@ -1,14 +1,13 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument.instrument import Instrument
+from Trading.instrument import Instrument, Timeframe
 from Trading.algo.indicators.indicator import EMAIndicator, BollingerBandsIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis, TechnicalAnalysis
 from Trading.algo.strategy.strategy import Action, StrategyType, BollingerBandsStrategy
 import matplotlib.pyplot as plt
 from Trading.algo.strategy.strategy import EmaBuyStrategy, EmaSellStrategy
 from time import sleep
-from Trading.utils.write_to_file import write_to_json_file, read_historical_data
 from Trading.utils.calculations import (calculate_sharpe_ratio,
                                         calculate_percentage_losers,
                                         calculate_max_consecutive_losers,
@@ -36,7 +35,7 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     N_CANDLES = 1000
-    history = client.get_last_n_candles_history(Instrument('SILVER', '15m'), N_CANDLES)
+    history = client.get_last_n_candles_history(Instrument('SILVER', Timeframe('15m')), N_CANDLES)
 
     # history = read_historical_data("data/historical/gold-15m.json")
     main_data = pd.DataFrame(history)

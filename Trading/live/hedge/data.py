@@ -1,6 +1,6 @@
 from Trading.instrument.instrument import Instrument
 from Trading.live.client.client import get_cmd, LoggingClient
-from Trading.utils.write_to_file import write_to_json_file, read_json_file
+from Trading.utils.write_to_file import read_json_file
 from Trading.utils.custom_logging import get_logger
 from Trading.config.config import DATA_STORAGE_PATH
 from Trading.utils.calculations import calculate_net_profit_eur

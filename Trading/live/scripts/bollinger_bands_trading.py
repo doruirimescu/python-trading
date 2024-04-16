@@ -8,7 +8,6 @@ from Trading.algo.strategy.strategy import Action, StrategyType, BollingerBandsS
 import matplotlib.pyplot as plt
 from Trading.algo.strategy.strategy import EmaBuyStrategy, EmaSellStrategy
 from time import sleep
-from Trading.utils.write_to_file import write_to_json_file, read_historical_data
 from Trading.utils.calculations import (calculate_sharpe_ratio,
                                        calculate_percentage_losers,
                                        calculate_max_consecutive_losers,

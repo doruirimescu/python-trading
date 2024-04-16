@@ -2,14 +2,9 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument import Instrument, Timeframe
 from dotenv import load_dotenv
-from Trading.utils.write_to_file import write_to_json_file, read_json_file
-from Trading.utils.calculations import calculate_net_profit_eur
-from Trading.live.hedge.fixed_conversion_rates import convert_currency_to_eur
-
 import time
 import os
 import logging
-from Trading.live.hedge.data import get_prices_from_client, get_filename
 import sys
 from dataclasses import dataclass
 from datetime import date
