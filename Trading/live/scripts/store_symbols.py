@@ -15,22 +15,20 @@ ETF_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/etf.json'
 IND_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/index.json'
 
 class AllSymbolsFromXTBStore(JsonDataProcessor):
-    def __init__(self, file_name: str):
-        self.new_data: Dict = dict()
-        super().__init__(file_name)
+    def __init__(self, file_name: str, logger):
+        super().__init__(file_name, logger)
 
     def _process_data(self, client: XTBTradingClient):
         all_xtb_symbols = client.get_all_symbols()
         self.iterate_items(all_xtb_symbols, client)
-        self.data = self.new_data
 
     def process_item(self, item, client: XTBTradingClient):
         info = client.get_symbol(item)
         symbol = info['symbol']
-        self.new_data[symbol], self.data[symbol] = info, info
+        self.data[symbol] = info
 
-def store_symbols_from_client(client: XTBTradingClient):
-    asf = AllSymbolsFromXTBStore(ALL_SYMBOLS_PATH)
+def store_symbols_from_client(client: XTBTradingClient, logger):
+    asf = AllSymbolsFromXTBStore(ALL_SYMBOLS_PATH, logger)
     asf.run(client=client)
 
 
@@ -64,7 +62,7 @@ def store_indices():
     filter_from_file('IND', IND_SYMBOLS_PATH)
 
 if __name__ == '__main__':
-    MAIN_LOGGER = get_logger(__file__)
+    MAIN_LOGGER = get_logger("store_symbols.py")
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
     all_xtb_symbols = client.get_all_symbols()
-    store_symbols_from_client(client)
+    store_symbols_from_client(client, MAIN_LOGGER)
