@@ -15,13 +15,17 @@ from typing import Optional
 
 
 class DataProcessor:
-    def __init__(self, file_rw: FileRW, logger: Logger, should_read: Optional[bool] = True):
+    def __init__(
+        self, file_rw: FileRW, logger: Logger, should_read: Optional[bool] = True
+    ):
         self.file_rw = file_rw
         self.logger = logger
 
         if should_read:
             self.data = file_rw.read()
-            self.logger.info(f"Read from file: {self.file_rw.file_name} data of len {len(self.data)}")
+            self.logger.info(
+                f"Read from file: {self.file_rw.file_name} data of len {len(self.data)}"
+            )
         else:
             self.data = {}
 
