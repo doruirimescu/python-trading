@@ -336,7 +336,13 @@ class XTBTradingClient(TradingClient):
         client = XTBClient(uname, pwd, mode, should_log)
         server_tester = ServerTester(client)
         super().__init__(client, server_tester)
-
+        if mode.lower() == "demo":
+            return
+        print("Trading with a live client. Do you wish to continue ? y/n")
+        should_continue = input().strip()
+        if should_continue.lower() != "y":
+            import sys
+            sys.exit(0)
 
 def get_cmd(position: str):
     if position.upper() == 'BUY':
