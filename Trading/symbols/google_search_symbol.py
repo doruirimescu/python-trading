@@ -1,4 +1,4 @@
-from Trading.utils.google_search import get_first_google_result, GoogleSearchFailed
+from Trading.utils.google_search import get_first_google_result, GoogleSearchFailed, GoogleSearcher
 from Trading.utils.custom_logging import get_logger
 from typing import Tuple
 
@@ -34,7 +34,8 @@ class YahooFinanceSymbolNotFound(Exception):
 
 def get_yfinance_symbol_url(symbol: str) -> Tuple[str, str]:
     try:
-        url = get_first_google_result("yahoo finance " + symbol)
+        gs = GoogleSearcher(0.1)
+        url = gs.get_first_google_result("yahoo finance " + symbol)
     except GoogleSearchFailed:
         raise YahooFinanceSymbolNotFound(symbol)
     if "finance.yahoo.com/quote" not in url:
