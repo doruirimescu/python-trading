@@ -1,8 +1,7 @@
 from abc import abstractmethod
 from logging import Logger
-import json
 import signal
-import os
+from utils.data_processor.file_rw import FileRW
 from typing import Optional
 
 
@@ -15,44 +14,16 @@ from typing import Optional
 """
 
 
-class JsonFileRW:
-    def __init__(self, file_name: str, logger: Logger, should_read: Optional[bool] = True):
-        self.file_name = file_name
+class DataProcessor:
+    def __init__(self, file_rw: FileRW, logger: Logger, should_read: Optional[bool] = True):
+        self.file_rw = file_rw
+        self.logger = logger
+
         if should_read:
-            self.data = self.read()
+            self.data = file_rw.read()
+            self.logger.info(f"Read from file: {self.file_rw.file_name} data of len {len(self.data)}")
         else:
             self.data = {}
-        self.logger = logger
-
-    def read(self) -> dict:
-        """Reads a JSON file and returns its contents as a dictionary."""
-        if not os.path.exists(self.file_name):
-            self.logger.info(f"File {self.file_name} does not exist.")
-            return {}
-        try:
-            with open(self.file_name, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            self.logger.error(f"Error reading file {self.file_name}: {e}")
-            raise e
-
-    def write(self) -> None:
-        """Writes the current data to a JSON file."""
-        try:
-            with open(self.file_name, "w") as f:
-                json.dump(self.data, f, indent=4, sort_keys=True, default=str)
-            self.logger.info(f"Wrote to file {self.file_name}")
-        except Exception as e:
-            self.logger.error(f"Error writing to file {self.file_name}: {e}")
-            raise e
-
-
-class JsonDataProcessor(JsonFileRW):  #! Replace inheritance with composition
-    def __init__(self, file_name: str, logger: Logger, should_read: Optional[bool] = True):
-        super().__init__(file_name, should_read)
-        self.logger = logger
-        self.logger.info(f"reading from file: {file_name} data of len {len(self.data)}")
-        # Incremental counter to keep track of the current step being processed
 
         # Setup the signal handler for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -76,7 +47,7 @@ class JsonDataProcessor(JsonFileRW):  #! Replace inheritance with composition
                 self.process_item(item, *args, **kwargs)
             except Exception as e:
                 self.logger.error(f"Error processing item {item}: {e}")
-                self.write()
+                self.file_rw.write(self.data)
             self.logger.info(f"Processed item {item} {len(self.data)} / {items_len}")
         self.logger.info("Finished processing all items.")
 
@@ -88,11 +59,11 @@ class JsonDataProcessor(JsonFileRW):  #! Replace inheritance with composition
     def _signal_handler(self, signum, frame):
         """Handles the SIGINT signal."""
         self.logger.info("Interrupt signal received, saving data...")
-        self.write()
+        self.file_rw()
         self.logger.info("Data saved, exiting.")
         exit(0)
 
     def run(self, *args, **kwargs):
         """Main method to run the processor."""
         self._process_data(*args, **kwargs)
-        self.write()
+        self.file_rw.write(self.data)

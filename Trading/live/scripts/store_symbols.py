@@ -1,8 +1,10 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
-from Trading.utils.data_processor import JsonDataProcessor
+from Trading.utils.data_processor import DataProcessor
+from Trading.utils.data_processor import JsonFileRW
 from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
 from Trading.utils.custom_logging import get_logger
+from logging import Logger
 from typing import Dict
 import sys
 
@@ -14,9 +16,9 @@ CRT_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/crypto.json'
 ETF_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/etf.json'
 IND_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/index.json'
 
-class AllSymbolsFromXTBStore(JsonDataProcessor):
-    def __init__(self, file_name: str, logger):
-        super().__init__(file_name, logger)
+class AllSymbolsFromXTBStore(DataProcessor):
+    def __init__(self, file_rw: JsonFileRW, logger: Logger):
+        super().__init__(file_rw, logger)
 
     def _process_data(self, client: XTBTradingClient):
         all_xtb_symbols = client.get_all_symbols()
@@ -28,7 +30,8 @@ class AllSymbolsFromXTBStore(JsonDataProcessor):
         self.data[symbol] = info
 
 def store_symbols_from_client(client: XTBTradingClient, logger):
-    asf = AllSymbolsFromXTBStore(ALL_SYMBOLS_PATH, logger)
+    file_rw = JsonFileRW(ALL_SYMBOLS_PATH, logger)
+    asf = AllSymbolsFromXTBStore(file_rw, logger)
     asf.run(client=client)
 
 
