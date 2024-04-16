@@ -14,12 +14,15 @@ LOGGER = get_logger(__file__)
     The processor is meant to be subclassed and the _process_data method should be implemented.
     The process_item method should be implemented to process a single item, if iterate_items is used.
 '''
-class JsonFileReadWriter:
-    def __init__(self, file_name: str):
+class JsonFileRW:
+    def __init__(self, file_name: str, should_read: Optional[bool] = True):
         self.file_name = file_name
-        self.data = self.read_json_file()
+        if should_read:
+            self.data = self.read()
+        else:
+            self.data = {}
 
-    def read_json_file(self) -> dict:
+    def read(self) -> dict:
         """Reads a JSON file and returns its contents as a dictionary."""
         if not os.path.exists(self.file_name):
             LOGGER.info(f"File {self.file_name} does not exist.")
@@ -32,7 +35,7 @@ class JsonFileReadWriter:
             raise e
 
 
-    def write_to_json_file(self) -> None:
+    def write(self) -> None:
         """Writes the current data to a JSON file."""
         try:
             with open(self.file_name, "w") as f:
@@ -42,16 +45,11 @@ class JsonFileReadWriter:
             LOGGER.error(f"Error writing to file {self.file_name}: {e}")
             raise e
 
-class JsonDataProcessor(JsonFileReadWriter):
-    def __init__(self, file_name: str, current_step: Optional[int] = None):
-        super().__init__(file_name)
-
+class JsonDataProcessor(JsonFileRW):  #! Replace inheritance with composition
+    def __init__(self, file_name: str, should_read: Optional[bool] = True):
+        super().__init__(file_name, should_read)
+        LOGGER.info(f"reading from file: {file_name} data of len {len(self.data)}")
         # Incremental counter to keep track of the current step being processed
-        if current_step is None:
-            self.current_step = len(self.data)
-        else:
-            self.current_step = current_step
-        LOGGER.info(f"Current step: {str(self.current_step)}")
 
         # Setup the signal handler for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -64,16 +62,18 @@ class JsonDataProcessor(JsonFileReadWriter):
 
     def iterate_items(self, items, *args, **kwargs):
         """General iteration method for processing items."""
+        items_len = len(items)
         for step, item in enumerate(items):
-            if step < self.current_step:
+            if item in self.data:
+                LOGGER.info(f"Item {item} already processed, skipping...")
                 continue
             try:
                 self.process_item(item, *args, **kwargs)
             except Exception as e:
                 LOGGER.error(f"Error processing item {item}: {e}")
-                self.write_to_json_file()
-            print(f"Processed item {item} at step: {self.current_step}")
-            self.current_step += 1
+                self.write()
+            LOGGER.info(f"Processed item {item} {len(self.data)} / {items_len}")
+        LOGGER.info("Finished processing all items.")
 
     @abstractmethod
     def process_item(self, item, *args, **kwargs):
@@ -83,12 +83,11 @@ class JsonDataProcessor(JsonFileReadWriter):
     def _signal_handler(self, signum, frame):
         """Handles the SIGINT signal."""
         LOGGER.info("Interrupt signal received, saving data...")
-        self.write_to_json_file()
-        LOGGER.info(f"Current step: {self.current_step}")
+        self.write()
         LOGGER.info("Data saved, exiting.")
         exit(0)
 
     def run(self, *args, **kwargs):
         """Main method to run the processor."""
         self._process_data(*args, **kwargs)
-        self.write_to_json_file()
+        self.write()
