@@ -1,12 +1,9 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
-from Trading.utils.data_processor import DataProcessor
-from Trading.utils.data_processor import JsonFileRW
+from Trading.utils.data_processor import DataProcessor, JsonFileRW
 from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
 from Trading.utils.custom_logging import get_logger
 from logging import Logger
-from typing import Dict
-import sys
 
 ALL_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/all_symbols.json'
 STC_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/stocks.json'
