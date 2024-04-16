@@ -39,15 +39,13 @@ class DataProcessor:
         if len(self.data) == items_len:
             self.logger.info("All items already processed, skipping...")
             return
+
         for step, item in enumerate(items):
             if item in self.data:
                 self.logger.info(f"Item {item} already processed, skipping...")
                 continue
-            try:
-                self.process_item(item, *args, **kwargs)
-            except Exception as e:
-                self.logger.error(f"Error processing item {item}: {e}")
-                self.file_rw.write(self.data)
+
+            self.process_item(item, *args, **kwargs)
             self.logger.info(f"Processed item {item} {len(self.data)} / {items_len}")
         self.logger.info("Finished processing all items.")
 
@@ -59,11 +57,14 @@ class DataProcessor:
     def _signal_handler(self, signum, frame):
         """Handles the SIGINT signal."""
         self.logger.info("Interrupt signal received, saving data...")
-        self.file_rw()
+        self.file_rw.write(self.data)
         self.logger.info("Data saved, exiting.")
         exit(0)
 
     def run(self, *args, **kwargs):
         """Main method to run the processor."""
-        self._process_data(*args, **kwargs)
+        try:
+            self._process_data(*args, **kwargs)
+        except Exception as e:
+            self.logger.error(f"Error in run: {e}")
         self.file_rw.write(self.data)

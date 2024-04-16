@@ -28,6 +28,9 @@ class JsonFileRW(FileRW):
             return {}
         try:
             with open(self.file_name, "r") as f:
+                # if file is empty, return empty dict
+                if os.stat(self.file_name).st_size == 0:
+                    return {}
                 return json.load(f)
         except Exception as e:
             self.logger.error(f"Error reading file {self.file_name}: {e}")
