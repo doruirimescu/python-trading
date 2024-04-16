@@ -1,7 +1,9 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.write_to_file import write_to_json_file, read_json_file
+from Trading.utils.data_processor import JsonDataProcessor
 from Trading.config.config import USERNAME, PASSWORD, MODE, DATA_STORAGE_PATH
-import logging
+from Trading.utils.custom_logging import get_logger
+from typing import Dict
 import sys
 
 ALL_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/all_symbols.json'
@@ -12,26 +14,24 @@ CRT_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/crypto.json'
 ETF_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/etf.json'
 IND_SYMBOLS_PATH = DATA_STORAGE_PATH + 'symbols/index.json'
 
+class AllSymbolsFromXTBStore(JsonDataProcessor):
+    def __init__(self, file_name: str):
+        self.new_data: Dict = dict()
+        super().__init__(file_name)
 
-def store_symbols_from_client():
-    if "real" == MODE:
-        print("Trading with a live client. Do you wish to continue ? y/n")
-        should_continue = input().strip()
-        if should_continue.lower() != "y":
-            sys.exit(0)
+    def _process_data(self, client: XTBTradingClient):
+        all_xtb_symbols = client.get_all_symbols()
+        self.iterate_items(all_xtb_symbols, client)
+        self.data = self.new_data
 
-    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
-
-    all_symbols = client.get_all_symbols()
-
-    data_dict = dict()
-    for s in all_symbols:
-        info = client.get_symbol(s)
+    def process_item(self, item, client: XTBTradingClient):
+        info = client.get_symbol(item)
         symbol = info['symbol']
-        data_dict[symbol] = info
-        print(f"Processing symbol {s}")
+        self.new_data[symbol], self.data[symbol] = info, info
 
-    write_to_json_file(ALL_SYMBOLS_PATH, data_dict)
+def store_symbols_from_client(client: XTBTradingClient):
+    asf = AllSymbolsFromXTBStore(ALL_SYMBOLS_PATH)
+    asf.run(client=client)
 
 
 def filter_from_file(category: str, path_to_write: str):
@@ -64,9 +64,7 @@ def store_indices():
     filter_from_file('IND', IND_SYMBOLS_PATH)
 
 if __name__ == '__main__':
-    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=FORMAT)
-
-    MAIN_LOGGER = logging.getLogger('Main logger')
-    MAIN_LOGGER.setLevel(logging.DEBUG)
-    MAIN_LOGGER.propagate = True
+    MAIN_LOGGER = get_logger(__file__)
+    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
+    all_xtb_symbols = client.get_all_symbols()
+    store_symbols_from_client(client)
