@@ -1,38 +1,41 @@
 from Trading.symbols.google_search_symbol import get_yfinance_symbol_url
-from Trading.utils.write_to_file import write_to_json_file, extend_json_file, read_json_file
+from Trading.utils.data_processor import JsonFileRW, DataProcessor
+from Trading.symbols.constants import (
+    XTB_COMMODITY_SYMBOLS, YAHOO_COMMODITY_SYMBOLS_PATH,
+    XTB_STOCK_SYMBOLS_DICT, YAHOO_STOCK_SYMBOLS_PATH)
 from Trading.utils.custom_logging import get_logger
-LOGGER = get_logger(__file__)
+LOGGER = get_logger("xtb_to_yfinance.py")
+
+class YFinanceSymbolListProcessor(DataProcessor):
+    def _process_data(self, items):
+        self.iterate_items(items)
+
+    def process_item(self, item):
+        yfinance_symbol = get_yfinance_symbol_url(item)
+        self.data[item] = yfinance_symbol
+
+class YFinanceDictListProcessor(DataProcessor):
+    def _process_data(self, items, **kwargs):
+        self.iterate_items(items, **kwargs)
+
+    def process_item(self, item, items_dict):
+        symbol = items_dict[item]['symbol']
+        description = items_dict[item]['description']
+        try:
+            yfinance_symbol = get_yfinance_symbol_url(description)
+            import time
+            time.sleep(1)
+        except Exception as e:
+            LOGGER.error(f"Failed to get yfinance symbol for {description}")
+            return
+        self.data[symbol] = yfinance_symbol
 
 def parse_commodities():
-    from Trading.symbols.constants import XTB_COMMODITY_SYMBOLS, YAHOO_COMMODITY_SYMBOLS_PATH
-    commodities = dict()
-    for symbol in XTB_COMMODITY_SYMBOLS:
-        # It's easiest to get the yfinance symbol by searching for the xtb symbol
-        yfinance_symbol = get_yfinance_symbol_url(symbol)
-        commodities[symbol] = yfinance_symbol
-
-    write_to_json_file(YAHOO_COMMODITY_SYMBOLS_PATH, commodities)
+    yfsp = YFinanceSymbolListProcessor(JsonFileRW(YAHOO_COMMODITY_SYMBOLS_PATH, LOGGER), LOGGER)
+    yfsp.run(symbols=XTB_COMMODITY_SYMBOLS)
 
 def parse_stocks():
-    from Trading.symbols.constants import XTB_STOCK_SYMBOLS_DICT, YAHOO_STOCK_SYMBOLS_PATH
-
-    stocks = read_json_file(YAHOO_STOCK_SYMBOLS_PATH)
-    try:
-        for symbol in ["SHOP.US_9"]:
-            if symbol in stocks:
-                continue
-            # It's easiest to get the yfinance symbol by searching for the xtb description
-            description = XTB_STOCK_SYMBOLS_DICT[symbol]["description"]
-            try:
-                yfinance_symbol = get_yfinance_symbol_url(description)
-                stocks[symbol] = yfinance_symbol
-            except Exception as e:
-                LOGGER.error(f"Could not process symbol for {symbol} {e}")
-                continue
-        write_to_json_file(YAHOO_STOCK_SYMBOLS_PATH, stocks)
-
-    except KeyboardInterrupt as e:
-        LOGGER.info(f"Last symbol: {symbol}")
-        write_to_json_file(YAHOO_STOCK_SYMBOLS_PATH, stocks)
+    yfsp = YFinanceDictListProcessor(JsonFileRW(YAHOO_STOCK_SYMBOLS_PATH, LOGGER), LOGGER)
+    yfsp.run(items=XTB_STOCK_SYMBOLS_DICT.keys(), items_dict=XTB_STOCK_SYMBOLS_DICT)
 
 parse_stocks()
