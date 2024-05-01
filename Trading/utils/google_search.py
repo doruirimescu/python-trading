@@ -20,7 +20,7 @@ class GoogleSearcher:
             self.current_user_agent_index = 0
 
     def __get_current_user_agent(self):
-        if self.n_searches % 10 == 0:
+        if self.n_searches % 3 == 0:
             self.__increment_user_agent_index()
         return user_agent_list[self.current_user_agent_index]
 
@@ -146,7 +146,7 @@ def search(term, num_results=1, lang="en", advanced=False, sleep_interval=0, tim
             return []
 
 user_agent_list = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/113.0',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
