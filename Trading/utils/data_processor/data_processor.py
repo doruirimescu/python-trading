@@ -22,10 +22,16 @@ class DataProcessor:
         self.logger = logger
 
         if should_read:
-            self.data = file_rw.read()
-            self.logger.info(
-                f"Read from file: {self.file_rw.file_name} data of len {len(self.data)}"
-            )
+            try:
+                self.data = file_rw.read()
+                self.logger.info(
+                    f"Read from file: {self.file_rw.file_name} data of len {len(self.data)}"
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Failed to read from file: {self.file_rw.file_name}, starting with empty data."
+                )
+                self.data = {}
         else:
             self.data = {}
 
@@ -44,7 +50,7 @@ class DataProcessor:
             self.logger.info("All items already processed, skipping...")
             return
 
-        for step, item in enumerate(items):
+        for item in items:
             if item in self.data:
                 self.logger.info(f"Item {item} already processed, skipping...")
                 continue
@@ -70,5 +76,5 @@ class DataProcessor:
         try:
             self._process_data(*args, **kwargs)
         except Exception as e:
-            self.logger.error(f"Error in run: {e}")
+            raise e
         self.file_rw.write(self.data)
