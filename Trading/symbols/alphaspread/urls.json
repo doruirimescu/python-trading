@@ -2252,7 +2252,7 @@
     "NDSN": null,
     "SEE": null,
     "PSM": null,
-    "PLTR": null,
+    "PLTR": "https://www.alphaspread.com/security/nyse/pltr/summary",
     "SNY": null,
     "MRL": null,
     "TLW": null,
