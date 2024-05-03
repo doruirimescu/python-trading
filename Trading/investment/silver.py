@@ -34,7 +34,7 @@ class Investment:
     type: Type
     name: str
     paid_price_eur: float
-    original_silver_price_eur: float
+    market_silver_price_eur: float
     silver_content: float
     weight_g: float
     quantity: int
@@ -57,7 +57,7 @@ class Investments:
         return self.total_silver_weight_g() / self.total_weight_g()
 
     def average_market_price_per_gram(self):
-        return sum([i.original_silver_price_eur for i in self.investments]) / len(self)
+        return sum([i.market_silver_price_eur for i in self.investments]) / len(self)
 
     def average_paid_price_per_gram(self):
         return self.total_invested_eur() / self.total_silver_weight_g()
