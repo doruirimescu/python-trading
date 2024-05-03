@@ -5,9 +5,17 @@ from datetime import datetime
 from pathlib import Path
 import os
 import json
+import argparse
 
 CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
 SILVER_FIlE_PATH = CURRENT_FILE_PATH.joinpath("silver.json")
+
+
+# create argument parser
+parser = argparse.ArgumentParser(description="Investment tracker for silver")
+parser.add_argument("--current_silver_price_eur_g", type=float, help="Current silver price in EUR per gram")
+args = parser.parse_args()
+current_silver_price_eur_g = args.current_silver_price_eur_g
 
 def load_data(filename: Path | str):
     with open(filename) as f:
@@ -73,6 +81,11 @@ class Investments:
               f"Average market price per gram: {self.average_market_price_per_gram():.3f} EUR/g",
               f"Average paid price per gram: {self.average_paid_price_per_gram():.3f} EUR/g",
               sep="\n")
+        if current_silver_price_eur_g:
+            print(f"Current value: {current_silver_price_eur_g * self.total_silver_weight_g():.2f} EUR",
+                  f"Profit: {current_silver_price_eur_g * self.total_silver_weight_g() - self.total_invested_eur():.2f} EUR",
+                  f"Profit per gram: {current_silver_price_eur_g - self.average_paid_price_per_gram():.3f} EUR/g",
+                  sep="\n")
 
 def parse_data(json_data: Optional[dict] = None) -> List[Investment]:
     if json_data is None:
