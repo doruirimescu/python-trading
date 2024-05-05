@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from logging import Logger
 import signal
-from utils.data_processor.file_rw import FileRW
+from Trading.utils.data_processor.file_rw import FileRW
 from typing import Optional
 
 
