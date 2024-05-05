@@ -34,7 +34,7 @@ class YahooFinanceSymbolNotFound(Exception):
 
 def get_yfinance_symbol_url(symbol: str) -> Tuple[str, str]:
     try:
-        gs = GoogleSearcher(0.1)
+        gs = GoogleSearcher(0)
         url = gs.get_first_google_result("yahoo finance " + symbol)
     except GoogleSearchFailed:
         raise YahooFinanceSymbolNotFound(symbol)
