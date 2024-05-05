@@ -29,10 +29,23 @@ For example, when the gold-to-silver ratio is above 80, we sell the gold and buy
 ### Benefits
 * Common mode noise (trend) elimination
 * Impact of currency and monetary policy is eliminated
-* No shorting involved
+* No shorting involved (one asset is bought at a time)
   
 ### Ideal characteristics
 It is immediately apparent that the ideal "wealth cycle" has the following characteristics:
 * Constant mean. We do not want to have a trend component. The ratio should oscillate ideally about a fixed point.
 * High amplitude. We want the swing (swing) about the mean to be as large as possible, to increase the profits.
 * High frequency. We do not want to wait too long until the cycle reverses and we can perform one transaction.
+* High correlation between the assets.
+
+### Risk management considerations
+As we will always end up holding one asset, I have decided that the asset class shall be **stocks**. Stocks are financial instruments made with the purpose of constant returns, and should ideally increase constantly. 
+
+To eliminate the chance of one stock going bankrupt, we will **diversify**:instead of the numerator and denominator containing only one asset, they will each contain an equal number of stocks.
+
+To achieve a high correlation, we will pick a given number of stocks from the same industry sector, sort them by their market cap, and distribute them to the numerator and denominator of the ratio.
+
+### Need for normalization
+Since we add multiple assets in the numerator and in the denominator, we need to normalize their values. For example, if the current price of one asset in the numerator is 10000, and the
+price of another asset in the numerator is 10, the first asset's price will dominate the term. However, we want to buy an equal amount of each stock (for example 100 eur worth of each).
+Thus, a simple way to normalize the stocks is to divide each asset's price its first value in the timeseries.
