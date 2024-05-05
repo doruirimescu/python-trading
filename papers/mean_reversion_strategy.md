@@ -49,3 +49,10 @@ To achieve a high correlation, we will pick a given number of stocks from the sa
 Since we add multiple assets in the numerator and in the denominator, we need to normalize their values. For example, if the current price of one asset in the numerator is 10000, and the
 price of another asset in the numerator is 10, the first asset's price will dominate the term. However, we want to buy an equal amount of each stock (for example 100 eur worth of each).
 Thus, a simple way to normalize the stocks is to divide each asset's price its first value in the timeseries.
+
+
+$$\displaystyle Normalized\ Price_{i}( t) =\frac{Price_{i}( t)}{Price_{i}( 0)}$$
+
+Where:
+* $Price_{i}(t)$ represents the price of the i-th asset of time t
+* $Price_{i}(0)$ represents the initial price of the i-th asset.
