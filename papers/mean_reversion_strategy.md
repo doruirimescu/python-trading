@@ -11,8 +11,13 @@ $$\displaystyle \frac{\frac{gold}{eur}}{\frac{silver}{eur}} =\frac{gold}{eur} *\
 
 We can look at gold to silver ratio, gold-to-real estate ratio, real estate-to-oil ratio, or even gold to S&P 500 ratio in order to have a better understanding of which asset is more overpriced in relation to the another. Mathematically, this makes sense, as any common linear component of a trend gets canceled.
 
-![Selection_2204](https://github.com/doruirimescu/python-trading/assets/7363000/7ab9e44f-adcb-4e16-969e-c09b1947bcaa)
-*[Gold to Silver Ratio - 100 Year Historical Chart](https://www.macrotrends.net/1441/gold-to-silver-ratio)*
+<p align="center">
+    <img src="https://github.com/doruirimescu/python-trading/assets/7363000/7ab9e44f-adcb-4e16-969e-c09b1947bcaa" alt="Gold to Silver Ratio - 100 Year Historical Chart"/>
+</p>
+
+<p align="center">
+    <em>Gold to Silver Ratio - 100-Year Historical Chart</em>
+</p>
 
 This kind of framing gives rise to the idea of a "mean reversion strategy": by looking at the historical ratio, we can determine when the asset in the numerator is overvalued (when the ratio is significantly
 higher above its historical average), sell it and buy the asset in the denominator. Conversely, when the ratio is significantly lower than the historical average, we can sell the asset in the denominator
