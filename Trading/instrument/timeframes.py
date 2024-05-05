@@ -10,10 +10,10 @@ class TIMEFRARME_ENUM(Enum):
     ONE_HOUR = '1h'
     FOUR_HOUR = '4h'
     FIVE_HOUR = '5h'
-    ONE_DAY = '1D'
+    ONE_DAY = '1-day'
     FIVE_DAY = '5D'
-    ONE_WEEK = '1W'
-    ONE_MONTH = '1M'
+    ONE_WEEK = '1-week'
+    ONE_MONTH = '1-month'
     THREE_MOTH = '3M'
 assert TIMEFRARME_ENUM.ONE_MINUTE.value == '1m'
 
