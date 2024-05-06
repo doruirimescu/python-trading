@@ -1,7 +1,7 @@
 import unittest
-from Trading.utils.data_processor import JsonFileProcessor
+from Trading.utils.data_processor import JsonFileRW
 
 class TestJsonFileProcessor(unittest.TestCase):
     def test_read_json_file(self):
-        processor = JsonFileProcessor("test.json")
+        processor = JsonFileRW("test.json")
         self.assertEqual(processor.data, {})
