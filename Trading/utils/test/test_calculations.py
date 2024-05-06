@@ -8,7 +8,28 @@ from Trading.utils.calculations import (calculate_percentage_losers,
                                         count_zero_crossings,
                                         )
 
+class TestCalculations(unittest.TestCase):
+    def test_calculate_mean(self):
+        from Trading.utils.calculations import calculate_mean
+        result = calculate_mean([1, 2, 3, 4, 5])
+        self.assertEqual(3, result)
 
+        result = calculate_mean([-1, -2, -3, -4, -5])
+        self.assertEqual(-3, result)
+
+        result = calculate_mean([1, -2, 3, -4, 5])
+        self.assertEqual(0.6, result)
+
+    def test_calculate_standard_deviation(self):
+        from Trading.utils.calculations import calculate_standard_deviation
+        result = calculate_standard_deviation([1, 2, 3, 4, 5])
+        self.assertAlmostEqual(1.41, result, 2)
+
+        result = calculate_standard_deviation([-1, -2, -3, -4, -5])
+        self.assertAlmostEqual(1.41, result, 2)
+
+        result = calculate_standard_deviation([1, -2, 3, -4, 5])
+        self.assertAlmostEqual(3.26, result, 2)
 class ReturnsCalculationsTest(unittest.TestCase):
     def test_calculate_sharpe_ratio(self):
         returns = [1, 2, 3, -1, -2, -3]

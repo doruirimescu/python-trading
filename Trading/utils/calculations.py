@@ -14,6 +14,9 @@ def are_all_items_same(items: List) -> bool:
 def calculate_mean(items: List) -> float:
     return sum(items)/len(items)
 
+def calculate_standard_deviation(items: List) -> float:
+    mean = calculate_mean(items)
+    return np.sqrt(sum([(x - mean)**2 for x in items]) / len(items))
 
 def round_to_two_decimals(decimal_number: float) -> float:
     """Rounds number to two decimal points
