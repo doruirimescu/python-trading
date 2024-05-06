@@ -32,3 +32,52 @@ def plot_trades_gant(all_trades: List[List[Trade]]):
     ax.xaxis_date()
 
     plt.show()
+
+# plot a list of values with dates
+def plot_list_dates(values: List[float], dates: List, title: str, ylabel: str, peaks, show_cursor=True):
+    from datetime import datetime
+    import mplcursors
+    import matplotlib.dates as mdates
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    dates = [datetime.fromisoformat(d) for d in dates]
+    ax.plot(dates, values)
+    ax.set_xlabel('Date')
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.xaxis_date()
+
+    if show_cursor:
+        cursor = mplcursors.cursor(ax, hover=True)
+        # Customize the annotation
+        @cursor.connect("add")
+        def on_add(sel):
+            x_date = mdates.num2date(sel.target[0])  # Convert to datetime
+            sel.annotation.set(text=f"{x_date.strftime('%Y-%m-%d')}\nValue: {sel.target[1]:.2f}")
+    average_value = sum(values) / len(values)
+    # plot average as dotted line
+    ax.axhline(average_value, color='orange', linestyle='--', label='Average')
+
+    # plot standard deviation above and below average
+    std_dev = sum([(x - average_value) ** 2 for x in values]) / len(values)
+    std_dev = std_dev ** 0.5
+    STD_SCALER = 1.5
+    ax.axhline(average_value + STD_SCALER * std_dev, color='green', linestyle='--', label=f'Above {STD_SCALER} Std Dev')
+    ax.axhline(average_value - STD_SCALER * std_dev, color='red', linestyle='--', label=f'Below {STD_SCALER} Std Dev')
+
+    peak_values = peaks["values"]
+    peak_dates = peaks["dates"]
+    ax.plot(peak_dates, peak_values, 'ro', label='Peaks')
+
+    peaks_above_std = []
+    peaks_above_std_dates = []
+    for i in range(len(peak_values)):
+        if abs(peak_values[i] - average_value) > STD_SCALER*std_dev:
+            peaks_above_std.append(peak_values[i])
+            peaks_above_std_dates.append(peak_dates[i])
+    ax.plot(peaks_above_std_dates, peaks_above_std, 'go', label=f'Peaks outside {STD_SCALER} Std Dev')
+
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.legend()
+    plt.show()
