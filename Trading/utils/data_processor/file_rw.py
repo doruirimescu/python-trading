@@ -1,13 +1,17 @@
 from abc import abstractmethod
 from logging import Logger
-from typing import Dict
+from typing import Dict, Optional
+from Trading.utils.custom_logging import get_logger
 import os
 import json
 
 class FileRW:
-    def __init__(self, file_name: str, logger: Logger) -> None:
+    def __init__(self, file_name: str, logger: Optional[Logger]=None) -> None:
         self.file_name = file_name
-        self.logger = logger
+        if logger is None:
+            self.logger = get_logger("FileRW")
+        else:
+            self.logger = logger
 
     @abstractmethod
     def read(self) -> Dict:
@@ -18,7 +22,7 @@ class FileRW:
         ...
 
 class JsonFileRW(FileRW):
-    def __init__(self, file_name: str, logger: Logger):
+    def __init__(self, file_name: str, logger: Optional[Logger]=None):
         super().__init__(file_name, logger)
 
     def read(self) -> Dict:
