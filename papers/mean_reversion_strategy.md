@@ -67,4 +67,16 @@ This strategy will generate a reduced number of entry and exit signals for a giv
 ### Entry and exit conditions
 As this is a mean reversion strategy, the entry and exit conditions will be straightforward: Enter either below or below a constant times the standard deviation. Exit when the mean ratio is reached. Thus, according to my [risk classification](https://github.com/doruirimescu/python-trading/blob/master/papers/bounded_unbounded_trades.md), this will be an SLSP (soft-bounded loss, soft-bounded profit) strategy, with a 5/9 risk score.
 
-## The strategy
+# The strategy
+![Selection_2205](https://github.com/doruirimescu/python-trading/assets/7363000/573e4a0e-7e0e-4706-a32f-257345f07873)
+
+The figure above represents the following numerator and denominator:
+('PLD.US_9', 'CCI.US_9', 'EQIX.US_9', 'WELL.US', 'SPG.US_9') / ('PLD.US_9', 'CCI.US_9', 'DLR.US_9', 'EXR.US_9', 'HST.US_9')
+
+![Selection_2211](https://github.com/doruirimescu/python-trading/assets/7363000/e7276066-c99c-4813-9168-805c20dbff2b)
+
+
+## Asset selection
+1. Select an industry sector (for example REIT)
+2. Select a number (for example, 20) of top stocks sorted by market cap:
+['PLD.US_9','CCI.US_9', 'EQIX.US_9', 'WELL.US', 'SPG.US_9', 'BXP.US_9', 'ARE.US_9', 'VTR.US_9', 'AMT.US_9','PSA.US_9', 'O.US_9', 'AVB.US_9', 'DLR.US_9', 'VNO.US_9', 'EXR.US_9', 'HST.US_9']
