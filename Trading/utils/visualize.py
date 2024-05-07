@@ -59,8 +59,8 @@ def plot_list_dates(values: List[float], dates: List, title: str, ylabel: str, p
     ax.axhline(average_value, color='orange', linestyle='--', label='Average')
 
     # plot standard deviation above and below average
-    std_dev = sum([(x - average_value) ** 2 for x in values]) / len(values)
-    std_dev = std_dev ** 0.5
+    from Trading.utils.calculations import calculate_standard_deviation
+    std_dev = calculate_standard_deviation(values)
     STD_SCALER = 1.5
     ax.axhline(average_value + STD_SCALER * std_dev, color='green', linestyle='--', label=f'Above {STD_SCALER} Std Dev')
     ax.axhline(average_value - STD_SCALER * std_dev, color='red', linestyle='--', label=f'Below {STD_SCALER} Std Dev')
