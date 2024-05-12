@@ -2,46 +2,34 @@ from typing import List, Optional, Dict
 from itertools import combinations
 from abc import abstractmethod
 from Trading.utils.custom_logging import get_logger
-from Trading.utils.history import History
+from Trading.utils.history import History, OHLC
 from datetime import datetime
 
 MAIN_LOGGER = get_logger("ratio.py")
 
 
 class Ratio:
-    def __init__(self, numerator: List[str], denominator: List[str]) -> None:
+    def __init__(self, numerator: List[str], denominator: List[str], ohlc: OHLC = OHLC.CLOSE) -> None:
         # assert instance
-        assert isinstance(numerator, list)
-        assert isinstance(denominator, list)
-        # assert length
-        assert len(numerator) > 0
-        assert len(denominator) > 0
-
+        if not isinstance(numerator, list):
+            raise ValueError("Numerator must be a list")
+        if not isinstance(denominator, list):
+            raise ValueError("Denominator must be a list")
+        if len(numerator) == 0 or len(denominator) == 0:
+            raise ValueError("Numerator or denominator cannot be empty")
+        if len(numerator) != len(denominator):
+            raise ValueError("Numerator and denominator must have the same length")
         self.numerator = numerator
         self.denominator = denominator
         self.mean = None
         self.std = None
+        self.ohlc = ohlc.value
 
         self.histories:Dict[str, History] = dict()
         self.dates = []
 
     def __repr__(self):
         return f"Ratio({self.numerator}, {self.denominator})"
-
-    def _check_all_dates(self):
-        dates_len = len(self.histories[self.numerator[0]]["date"])
-        dates = self.histories[self.numerator[0]]["date"]
-        for symbol in self.numerator:
-            if len(self.histories[symbol]["date"]) != dates_len:
-                raise ValueError("Dates are not the same length")
-            if self.histories[symbol]["date"] != dates:
-                raise ValueError("Dates are not the same")
-        for symbol in self.denominator:
-            if len(self.histories[symbol]["date"]) != dates_len:
-                raise ValueError("Dates are not the same length")
-            if self.histories[symbol]["date"] != dates:
-                raise ValueError("Dates are not the same")
-        return True
 
     def add_history(self, symbol: str, history):
         self.histories[symbol] = history
@@ -62,32 +50,12 @@ class Ratio:
                 try:
                     i = self.histories[symbol]["date"].index(d)
                     self.histories[symbol]["date"].pop(i)
-                    self.histories[symbol]["close"].pop(i)
+                    self.histories[symbol][self.ohlc].pop(i)
                 except ValueError:
                     pass
             self._normalize_prices(symbol)
         self.dates = self.histories[self.numerator[0]]["date"]
         self._check_all_dates()
-
-
-    def _normalize_prices(self, symbol):
-        history = self.histories[symbol]
-        self.histories[symbol]["normalized"] = [
-            x / history["close"][0] for x in history["close"]
-        ]
-
-    def _get_price_at_date(self, date: str, symbol: str):
-        history = self.histories[symbol]
-        for i, d in enumerate(history["date"]):
-            if str(d) == str(date):
-                return history["close"][i]
-        return None
-
-    def _get_prices_at_date(self, symbols: List[str], date: str):
-        prices = []
-        for symbol in symbols:
-            prices.append(self._get_price_at_date(date, symbol))
-        return prices
 
     def get_numerator_prices_at_date(self, date: str):
         return self._get_prices_at_date(self.numerator, date)
@@ -108,15 +76,15 @@ class Ratio:
         if len(numerator_histories) != len(denominator_histories):
             raise ValueError("Histories are not the same length")
 
-        N_DAYS = len(numerator_histories[0]["date"])
-        numerator_total = [0] * N_DAYS
+        n_dates = len(numerator_histories[0]["date"])
+        numerator_total = [0] * n_dates
         for symbol in self.numerator:
             normalized_prices = self.histories[symbol]["normalized"]
             numerator_total = [
                 x + y for x, y in zip(numerator_total, normalized_prices)
             ]
 
-        denominator_total = [0] * N_DAYS
+        denominator_total = [0] * n_dates
         for symbol in self.denominator:
             normalized_prices = self.histories[symbol]["normalized"]
             denominator_total = [
@@ -124,7 +92,7 @@ class Ratio:
             ]
 
         ratio_values = []
-        for i in range(N_DAYS):
+        for i in range(n_dates):
             ratio_values.append(numerator_total[i] / denominator_total[i])
         self.ratio_values = ratio_values
         from Trading.utils.calculations import calculate_mean, calculate_standard_deviation
@@ -143,6 +111,39 @@ class Ratio:
         i = self.dates.index(date)
         return self.ratio_values[i]
 
+    def _normalize_prices(self, symbol):
+        history = self.histories[symbol]
+        self.histories[symbol]["normalized"] = [
+            x / history[self.ohlc][0] for x in history[self.ohlc]
+        ]
+
+    def _get_price_at_date(self, date: str, symbol: str):
+        history = self.histories[symbol]
+        for i, d in enumerate(history["date"]):
+            if str(d) == str(date):
+                return history[self.ohlc][i]
+        return None
+
+    def _get_prices_at_date(self, symbols: List[str], date: str):
+        prices = []
+        for symbol in symbols:
+            prices.append(self._get_price_at_date(date, symbol))
+        return prices
+
+    def _check_all_dates(self):
+        dates_len = len(self.histories[self.numerator[0]]["date"])
+        dates = self.histories[self.numerator[0]]["date"]
+        for symbol in self.numerator:
+            if len(self.histories[symbol]["date"]) != dates_len:
+                raise ValueError("Dates are not the same length")
+            if self.histories[symbol]["date"] != dates:
+                raise ValueError("Dates are not the same")
+        for symbol in self.denominator:
+            if len(self.histories[symbol]["date"]) != dates_len:
+                raise ValueError("Dates are not the same length")
+            if self.histories[symbol]["date"] != dates:
+                raise ValueError("Dates are not the same")
+        return True
 class RatioPermutationIndices:
     def __init__(self, k: int, numerator_index: int, denominator_index: int) -> None:
         self.k = k

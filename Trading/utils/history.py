@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from Trading.instrument.timeframes import Timeframe
+from enum import Enum
 
 class History(BaseModel):
     symbol: Optional[str] = None
@@ -10,3 +10,9 @@ class History(BaseModel):
     high: Optional[List[float]] = None
     low: Optional[List[float]] = None
     close: Optional[List[float]] = None
+
+class OHLC(Enum):
+    OPEN = "open"
+    HIGH = "high"
+    LOW = "low"
+    CLOSE = "close"
