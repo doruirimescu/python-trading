@@ -10,9 +10,15 @@ MAIN_LOGGER = get_logger("ratio.py")
 class DateNotFoundError(Exception):
     pass
 
+from enum import Enum
+class CurrentHolding(Enum):
+    NUMERATOR = "numerator"
+    DENOMINATOR = "denominator"
+    NONE = "none"
+
+
 class Ratio:
     def __init__(self, numerator: List[str], denominator: List[str], ohlc: OHLC = OHLC.CLOSE) -> None:
-        # assert instance
         if not isinstance(numerator, list):
             raise ValueError("Numerator must be a list")
         if not isinstance(denominator, list):
@@ -29,8 +35,7 @@ class Ratio:
 
         self.histories:Dict[str, History] = dict()
         self.normalized_histories:Dict[str, History] = dict()
-
-        self.dates = []
+        self.dates: List[str] = []
 
     def __repr__(self):
         return f"Ratio({self.numerator}, {self.denominator})"
@@ -104,7 +109,7 @@ class Ratio:
         self.std = calculate_standard_deviation(ratio_values)
         return ratio_values
 
-    def get_next_date_at_mean(self, date: str, tolerance: float = 0.01) -> Optional[datetime]:
+    def get_next_date_at_mean(self, date: str, tolerance: float = 0.001) -> Optional[datetime]:
         i = self.dates.index(str(date))
         for j in range(i + 1, len(self.dates)):
             if abs(self.ratio_values[j] - self.mean) < tolerance:

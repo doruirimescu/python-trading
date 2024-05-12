@@ -37,7 +37,7 @@ class Trade:
                         lowest = historical_data["close"][i]
                     max_drawdown = min(max_drawdown, lowest - self.open_price)
                     drawdown_date = d
-        self.max_drawdown = MaxDrawdown(date=drawdown_date, value=max_drawdown)
+        self.max_drawdown = MaxDrawdown(date=drawdown_date, value=round(max_drawdown, 3))
 
 
 class StrategySummary:
@@ -67,6 +67,37 @@ class StrategySummary:
         pass
 
 
+@dataclass
+class TradesAnalysisResult:
+    total_net_profit: Optional[float] = None
+    total_cash_invested: Optional[float] = None
+    max_drawdown: Optional[float] = None
+    max_loss: Optional[float] = None
+    n_profit_trades: Optional[int] = None
+    n_loss_trades: Optional[int] = None
+    total_loss: Optional[float] = None
+    total_profit: Optional[float] = None
+    average_trade_duration_days: Optional[float] = None
+    rewards_to_risk_ratio: Optional[float] = None
+    average_cash_per_trade: Optional[float] = None
+    annualized_return: Optional[float] = None
+    n_years: Optional[int] = None
+    n_days: Optional[int] = None
+    n_trades: Optional[int] = None
+    profit_currency: Optional[str] = None
+    drawdown_date_start: Optional[datetime] = None
+    drawdown_date_end: Optional[datetime] = None
+
+    def print(self):
+        print("---------------------------------------")
+        print(f"Total net profit: {self.total_net_profit:.2f} {self.profit_currency}")
+        print(f"Average cash invested per trade: {self.average_cash_per_trade:.2f} {self.profit_currency}")
+        print(f"Max drawdown: {self.max_drawdown:.2f} {self.profit_currency} between {self.drawdown_date_start} and {self.drawdown_date_end}")
+        print(f"A number of {self.n_trades} trades were made during {self.n_days} days")
+        print(f"Profit trades: {self.n_profit_trades}, Loss trades: {self.n_loss_trades} Win ratio: {100*self.n_profit_trades/self.n_trades:.2f}%")
+        print(f"Reward to risk ratio: {self.rewards_to_risk_ratio:.2f}")
+        print(f"Average trade duration: {self.average_trade_duration_days:.2f} days")
+        print(f"Annualized returns: {self.annualized_return:.2f}%")
 def analyze_trades(
     trades: List[Trade], strategy_summary: StrategySummary
 ):
@@ -81,25 +112,29 @@ def analyze_trades(
         strategy_summary.print_annualized_returns,
     )
 
-    total_net_profit = 0
-    total_cash_invested = 0
-    max_drawdown = 1000000
-    max_loss = max_drawdown
-    n_profit_trades = 0
-    n_loss_trades = 0
-    total_loss = 0
-    total_profit = 0
+    trade_analysis_result = TradesAnalysisResult()
+    trade_analysis_result.total_net_profit = 0
+    trade_analysis_result.total_cash_invested = 0
+    trade_analysis_result.max_drawdown = 1000000
+    trade_analysis_result.max_loss = trade_analysis_result.max_drawdown
+    trade_analysis_result.n_profit_trades = 0
+    trade_analysis_result.n_loss_trades = 0
+    trade_analysis_result.total_loss = 0
+    trade_analysis_result.total_profit = 0
+    trade_analysis_result.n_days = N_DAYS
+    trade_analysis_result.n_trades = len(trades)
     profits_list = []
-    average_trade_duration_days = 0
+    trade_analysis_result.average_trade_duration_days = 0
     for t in trades:
         symbol_info = XTB_ALL_SYMBOLS_DICT[t.symbol]
         CONTRACT_SIZE = symbol_info["contractSize"]
         PROFIT_CURRENCY = symbol_info["currencyProfit"]
         CATEGORY_NAME = symbol_info["categoryName"]
+        trade_analysis_result.profit_currency = PROFIT_CURRENCY
 
-        average_trade_duration_days += t.duration_days()
+        trade_analysis_result.average_trade_duration_days += t.duration_days()
         if SHOULD_REINVEST:
-            cash_to_invest = DESIRED_CASH_INVESTED + total_profit
+            cash_to_invest = DESIRED_CASH_INVESTED + trade_analysis_result.total_profit
         else:
             cash_to_invest = DESIRED_CASH_INVESTED
 
@@ -114,52 +149,38 @@ def analyze_trades(
         actual_cash_invested = volume * t.open_price * CONTRACT_SIZE
         p = CONTRACT_SIZE * volume * (t.close_price - t.open_price)
 
-        total_cash_invested += actual_cash_invested
+        trade_analysis_result.total_cash_invested += actual_cash_invested
 
-        if p < max_loss:
-            max_loss = p
-        total_net_profit += p
-        max_drawdown = min(max_drawdown, t.max_drawdown.value)
-        profits_list.append(total_net_profit)
+        if p < trade_analysis_result.max_loss:
+            trade_analysis_result.max_loss = p
+        trade_analysis_result.total_net_profit += p
+        trade_analysis_result.max_drawdown = min(trade_analysis_result.max_drawdown, t.max_drawdown.value)
+        profits_list.append(trade_analysis_result.total_net_profit)
         if p < 0:
-            n_loss_trades += 1
-            total_loss += p
+            trade_analysis_result.n_loss_trades += 1
+            trade_analysis_result.total_loss += p
         else:
-            n_profit_trades += 1
-            total_profit += p
-    average_cash_per_trade = total_cash_invested / len(trades)
-    average_trade_duration_days = average_trade_duration_days / len(trades)
+            trade_analysis_result.n_profit_trades += 1
+            trade_analysis_result.total_profit += p
+    trade_analysis_result.average_cash_per_trade = trade_analysis_result.total_cash_invested / len(trades)
+    trade_analysis_result.average_trade_duration_days = trade_analysis_result.average_trade_duration_days / len(trades)
 
-    print(f"Total net profit: {total_net_profit:.2f} {PROFIT_CURRENCY}")
-    print(
-        f"Average cash invested per trade: {average_cash_per_trade:.2f} {PROFIT_CURRENCY}"
-    )
     for t in trades:
-        if t.max_drawdown.value == max_drawdown:
-            entry_date = t.entry_date.date()
-            drawdown_date = t.max_drawdown.date.date()
-            print(
-                f"Max drawdown {max_drawdown:.2f} {PROFIT_CURRENCY} between {entry_date} and {drawdown_date}"
-            )
+        if t.max_drawdown.value == trade_analysis_result.max_drawdown:
+            trade_analysis_result.drawdown_date_start = t.entry_date.date()
+            trade_analysis_result.drawdown_date_end = t.max_drawdown.date.date()
 
-    print(f"A number of {len(trades)} trades were made during {N_DAYS} days")
-    print(
-        f"Profit trades: {n_profit_trades}, Loss trades: {n_loss_trades} Win ratio: {100*n_profit_trades/len(trades):.2f}%"
+    trade_analysis_result.rewards_to_risk_ratio = abs(
+        trade_analysis_result.total_profit / trade_analysis_result.total_loss
     )
-    print(f"Reward to risk ratio: {abs(total_profit/total_loss):.2f}")
-    print(f"Average trade duration: {average_trade_duration_days:.2f} days")
 
     n_years = N_DAYS / 365.0
+    trade_analysis_result.n_years = n_years
 
     annualized_return = (
-        (total_net_profit + average_cash_per_trade) / average_cash_per_trade
+        (trade_analysis_result.total_net_profit + trade_analysis_result.average_cash_per_trade) / trade_analysis_result.average_cash_per_trade
     ) ** (1 / n_years) - 1
-    print(f"Annualized returns: {100*annualized_return:.2f}%")
+    trade_analysis_result.annualized_return = 100 * annualized_return
 
-    if PRINT_ANNUALIZED_RETURNS:
-        pass
-
-    if 100 * annualized_return > 10.0:
-        return 100 * annualized_return
-    else:
-        return None
+    trade_analysis_result.print()
+    return trade_analysis_result
