@@ -40,33 +40,35 @@ CRITERION = Criterion(maximum_average_ratio_deviation=0.05,
 
 def calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     peaks = [ratios[0]]
-    peak_days = [days[0]]
+    peak_days = [datetime.fromisoformat(days[0])]
     mean = calculate_mean(ratios)
     mean_swing_size = 0
-
     for i in range(1, len(ratios)):
         if peaks[-1] > mean and ratios[i] > mean:
             if ratios[i] > peaks[-1]:
                 peaks[-1] = ratios[i]
-                peak_days[-1] = datetime.fromisoformat(days[i])
+                days_i = datetime.fromisoformat(days[i])
+                if (days_i - peak_days[-1]).days > CRITERION.max_days_between_swings:
+                    return None
+                peak_days[-1] = days_i
         elif peaks[-1] < mean and ratios[i] < mean:
             if ratios[i] < peaks[-1]:
                 peaks[-1] = ratios[i]
-                peak_days[-1] = datetime.fromisoformat(days[i])
+                days_i = datetime.fromisoformat(days[i])
+                if (days_i - peak_days[-1]).days > CRITERION.max_days_between_swings:
+                    return None
+                peak_days[-1] = days_i
         elif ratios[i] == mean:
             continue
         else:
             swing = abs(ratios[i] - peaks[-1])
             if swing > CRITERION.min_swing_size:
                 days_i = datetime.fromisoformat(days[i])
-                if (days_i - peak_days[-1]).days > CRITERION.max_days_between_swings:
-                    return None
                 peaks.append(ratios[i])
                 peak_days.append(days_i)
                 mean_swing_size += swing
 
     mean_swing_size /= len(peaks)
-
     peak_dict = {"values": peaks,
                  "dates": peak_days,
                  "mean_swing_size": mean_swing_size}
@@ -102,9 +104,8 @@ def calculate_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str=""):
         return False
 
     dates = [str(x) for x in history_days['date']]
-
     peak_dict = calculate_mean_crossing_peaks(ratio_values, dates)
-    if peak_dict is None:
+    if not peak_dict:
         return False
     n_peaks = len(peak_dict["values"])
 
@@ -119,14 +120,9 @@ def calculate_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str=""):
     if peak_offset >= CRITERION.max_peak_offset:
         return False
 
-    swing_dates = peak_dict["dates"]
-
-    for i in range(1, n_peaks):
-        if (swing_dates[i] - swing_dates[i-1]).days > CRITERION.max_days_between_swings:
-            return False
-
     print(f"Found a ratio with at least one swing per year: {ratio.numerator} / {ratio.denominator}")
     plot_list_dates(ratio_values, dates, f'Iteration number {iteration_info}', 'Ratio Value', peak_dict, show_cursor=True)
+    print(peak_dict)
     return True
 
 if __name__ == '__main__':
