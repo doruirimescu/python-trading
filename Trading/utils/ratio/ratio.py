@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from itertools import combinations
 from abc import abstractmethod
 from Trading.utils.custom_logging import get_logger
+from Trading.utils.history import History
 from datetime import datetime
 
 MAIN_LOGGER = get_logger("ratio.py")
@@ -21,9 +22,7 @@ class Ratio:
         self.mean = None
         self.std = None
 
-        # dictionary mapping symbols to their historical data
-        self.histories = dict()
-        self.normalied_histories = dict()
+        self.histories:Dict[str, History] = dict()
         self.dates = []
 
     def __repr__(self):
@@ -69,7 +68,6 @@ class Ratio:
             self._normalize_prices(symbol)
         self.dates = self.histories[self.numerator[0]]["date"]
         self._check_all_dates()
-        print(f"Intersecting dates: {len(self.dates)}")
 
 
     def _normalize_prices(self, symbol):
