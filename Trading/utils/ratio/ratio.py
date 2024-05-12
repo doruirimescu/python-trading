@@ -7,6 +7,8 @@ from datetime import datetime
 
 MAIN_LOGGER = get_logger("ratio.py")
 
+class DateNotFoundError(Exception):
+    pass
 
 class Ratio:
     def __init__(self, numerator: List[str], denominator: List[str], ohlc: OHLC = OHLC.CLOSE) -> None:
@@ -26,6 +28,8 @@ class Ratio:
         self.ohlc = ohlc.value
 
         self.histories:Dict[str, History] = dict()
+        self.normalized_histories:Dict[str, History] = dict()
+
         self.dates = []
 
     def __repr__(self):
@@ -79,14 +83,14 @@ class Ratio:
         n_dates = len(numerator_histories[0]["date"])
         numerator_total = [0] * n_dates
         for symbol in self.numerator:
-            normalized_prices = self.histories[symbol]["normalized"]
+            normalized_prices = self.normalized_histories[symbol]
             numerator_total = [
                 x + y for x, y in zip(numerator_total, normalized_prices)
             ]
 
         denominator_total = [0] * n_dates
         for symbol in self.denominator:
-            normalized_prices = self.histories[symbol]["normalized"]
+            normalized_prices = self.normalized_histories[symbol]
             denominator_total = [
                 x + y for x, y in zip(denominator_total, normalized_prices)
             ]
@@ -102,10 +106,10 @@ class Ratio:
 
     def get_next_date_at_mean(self, date: str, tolerance: float = 0.01) -> Optional[datetime]:
         i = self.dates.index(str(date))
-        for j in range(i, len(self.dates)):
+        for j in range(i + 1, len(self.dates)):
             if abs(self.ratio_values[j] - self.mean) < tolerance:
                 return datetime.fromisoformat(self.dates[j])
-        return None
+        raise DateNotFoundError("No date found")
 
     def get_ratio_value_at_date(self, date: str):
         i = self.dates.index(date)
@@ -113,7 +117,7 @@ class Ratio:
 
     def _normalize_prices(self, symbol):
         history = self.histories[symbol]
-        self.histories[symbol]["normalized"] = [
+        self.normalized_histories[symbol] = [
             x / history[self.ohlc][0] for x in history[self.ohlc]
         ]
 
