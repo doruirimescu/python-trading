@@ -4,13 +4,18 @@ from abc import abstractmethod
 from Trading.utils.custom_logging import get_logger
 from Trading.utils.history import History, OHLC
 from datetime import datetime
+from dataclasses import dataclass
 
 MAIN_LOGGER = get_logger("ratio.py")
+
 
 class DateNotFoundError(Exception):
     pass
 
+
 from enum import Enum
+
+
 class CurrentHolding(Enum):
     NUMERATOR = "numerator"
     DENOMINATOR = "denominator"
@@ -18,7 +23,9 @@ class CurrentHolding(Enum):
 
 
 class Ratio:
-    def __init__(self, numerator: List[str], denominator: List[str], ohlc: OHLC = OHLC.CLOSE) -> None:
+    def __init__(
+        self, numerator: List[str], denominator: List[str], ohlc: OHLC = OHLC.CLOSE
+    ) -> None:
         if not isinstance(numerator, list):
             raise ValueError("Numerator must be a list")
         if not isinstance(denominator, list):
@@ -33,8 +40,8 @@ class Ratio:
         self.std = None
         self.ohlc = ohlc.value
 
-        self.histories:Dict[str, History] = dict()
-        self.normalized_histories:Dict[str, History] = dict()
+        self.histories: Dict[str, History] = dict()
+        self.normalized_histories: Dict[str, History] = dict()
         self.dates: List[str] = []
 
     def __repr__(self):
@@ -104,16 +111,22 @@ class Ratio:
         for i in range(n_dates):
             ratio_values.append(numerator_total[i] / denominator_total[i])
         self.ratio_values = ratio_values
-        from Trading.utils.calculations import calculate_mean, calculate_standard_deviation
+        from Trading.utils.calculations import (
+            calculate_mean,
+            calculate_standard_deviation,
+        )
+
         self.mean = calculate_mean(ratio_values)
         self.std = calculate_standard_deviation(ratio_values)
         return ratio_values
 
-    def get_next_date_at_mean(self, date: str, tolerance: float = 0.001) -> Optional[datetime]:
+    def get_next_date_at_mean(
+        self, date: str, tolerance: float = 0.001
+    ) -> Optional[datetime]:
         i = self.dates.index(str(date))
         for j in range(i + 1, len(self.dates)):
             if abs(self.ratio_values[j] - self.mean) < tolerance:
-                return datetime.fromisoformat(self.dates[j])
+                return datetime.fromisoformat(self.dates[j]), j
         raise DateNotFoundError("No date found")
 
     def get_ratio_value_at_date(self, date: str):
@@ -153,14 +166,6 @@ class Ratio:
             if self.histories[symbol]["date"] != dates:
                 raise ValueError("Dates are not the same")
         return True
-class RatioPermutationIndices:
-    def __init__(self, k: int, numerator_index: int, denominator_index: int) -> None:
-        self.k = k
-        self.numerator_index = numerator_index
-        self.denominator_index = denominator_index
-
-    def __repr__(self):
-        return f"RatioPermutationIndices(k: {self.k}, numerator_index: {self.numerator_index}, denominator_index: {self.denominator_index})"
 
 
 class RatioGenerator:
@@ -176,40 +181,24 @@ class RatioGenerator:
     def _process(self, ratio: Ratio, *args, **kwargs):
         pass
 
-    def get_permutations(self, perms: List[RatioPermutationIndices]) -> List[Ratio]:
-        ratios = []
-        for p in perms:
-            cmb = list(combinations(self.symbols, p.k))
-            numerator = cmb[p.numerator_index]
-            denominator = cmb[p.denominator_index]
-            ratio = Ratio(list(numerator), list(denominator))
-            ratios.append(ratio)
-        return ratios
-
     def run(self, *args, **kwargs):
-        cmb = list(combinations(self.symbols, self.choose_k))
-        cnt = 0
-        for self.numerator_index, numerator in enumerate(cmb):
-            for self.denominator_index in range(self.numerator_index + 1, len(cmb)):
-                denominator = cmb[self.denominator_index]
-                ratio = Ratio(list(numerator), list(denominator))
-                result = self._process(
-                    ratio=ratio,
-                    iteration_info=(
-                        f"k: {self.choose_k} numerator index:"
-                        f"{self.numerator_index} denominator index:"
-                        f"{self.denominator_index}"
-                    ),
-                    *args,
-                    **kwargs,
-                )
-                if result:
-                    self.candidates.append(
-                        (self.choose_k, self.numerator_index, self.denominator_index)
-                    )
-                cnt += 1
-                if cnt % 100 == 0:
-                    MAIN_LOGGER.info(f"Processed {cnt} ratios")
-        MAIN_LOGGER.info(f"Processed {cnt} ratios")
+        from Trading.utils.combinatorics import get_all_ratios
+
+        all_ratios = get_all_ratios(self.symbols, self.choose_k)
+
+        for i, ratio in enumerate(all_ratios):
+            n, d = ratio
+            ratio = Ratio(list(n), list(d))
+            result = self._process(
+                ratio=ratio,
+                iteration_info=(f"k: {self.choose_k} index: {i}"),
+                *args,
+                **kwargs,
+            )
+            if result:
+                self.candidates.append((self.choose_k))
+            if (i + 1) % 100 == 0:
+                MAIN_LOGGER.info(f"Processed {i+1} ratios")
+        MAIN_LOGGER.info(f"Processed {i+1} ratios")
         MAIN_LOGGER.info(f"Found {len(self.candidates)} candidates")
         print(self.candidates)
