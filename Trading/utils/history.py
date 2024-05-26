@@ -11,6 +11,9 @@ class History(BaseModel):
     low: Optional[List[float]] = None
     close: Optional[List[float]] = None
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
 class OHLC(Enum):
     OPEN = "open"
     HIGH = "high"
