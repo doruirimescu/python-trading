@@ -2,6 +2,7 @@ from Trading.live.client.client import XTBLoggingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument import Instrument, Timeframe
 from Trading.utils.visualize import plot_list_dates
+from Trading.utils.ratio.combinatorics import get_ith_ratio
 from typing import Optional, Dict
 from dotenv import load_dotenv
 import os
@@ -291,7 +292,6 @@ if __name__ == "__main__":
     MAIN_LOGGER.info(f"Total number of symbols: {len(ALL_SYMBOLS)}")
 
     ratio_permutations_indices = [338, 641, 635, 676, 2532]  # 338, 641, 635, 676, 2532
-    from Trading.utils.combinatorics import get_ith_ratio
 
     for i, ratio in enumerate(ratio_permutations_indices):
         r = get_ith_ratio(ALL_SYMBOLS, 5, ratio)

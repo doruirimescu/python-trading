@@ -1,10 +1,9 @@
 from typing import List, Optional, Dict
-from itertools import combinations
 from abc import abstractmethod
 from Trading.utils.custom_logging import get_logger
 from Trading.utils.history import History, OHLC
 from datetime import datetime
-from dataclasses import dataclass
+from Trading.utils.ratio.combinatorics import get_all_ratios
 
 MAIN_LOGGER = get_logger("ratio.py")
 
@@ -182,8 +181,6 @@ class RatioGenerator:
         pass
 
     def run(self, *args, **kwargs):
-        from Trading.utils.combinatorics import get_all_ratios
-
         all_ratios = get_all_ratios(self.symbols, self.choose_k)
 
         for i, ratio in enumerate(all_ratios):
