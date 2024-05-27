@@ -4,7 +4,7 @@ from Trading.instrument import Instrument, Timeframe
 from Trading.symbols.constants import XTB_STOCK_SYMBOLS, XTB_ETF_SYMBOLS
 from Trading.utils.range.range import PerfectRange
 from Trading.utils.history import History
-from Trading.utils.data_processor import DataProcessor, JsonFileRW
+from Trading.utils.data_processor import StatefulDataProcessor, JsonFileRW
 from dotenv import load_dotenv
 import os
 import logging
@@ -19,7 +19,7 @@ TOLERANCE = 0.05 # how much above the low the current price can be
 perfect_range = PerfectRange(N_MONTHS, TOP, TOLERANCE)
 
 
-class StockRangeProcessor(DataProcessor):
+class StockRangeProcessor(StatefulDataProcessor):
     def process_data(self, items, client):
         self.iterate_items(items, client=client)
 

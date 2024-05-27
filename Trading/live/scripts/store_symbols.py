@@ -1,5 +1,5 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.data_processor import DataProcessor, JsonFileRW
+from Trading.utils.data_processor import StatefulDataProcessor, JsonFileRW
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.symbols.constants import (
     XTB_ALL_SYMBOLS_PATH,
@@ -16,7 +16,7 @@ from logging import Logger
 MAIN_LOGGER = get_logger("store_symbols.py")
 
 
-class AllSymbolsFromXTBStore(DataProcessor):
+class AllSymbolsFromXTBStore(StatefulDataProcessor):
     def __init__(self, file_rw: JsonFileRW, logger: Logger):
         super().__init__(file_rw, logger)
 

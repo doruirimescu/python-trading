@@ -6,6 +6,14 @@ from typing import Optional
 
 
 """
+Problem: let's say you have a large amount of data, that you want to loop through and process incrementally.
+Processing takes time, and in case an error occurs, you do not want to lose all the progress.
+You want to save the data to a file and be able to continue processing from where you left off.
+You also want to be able to interrupt the processing with a SIGINT signal and save the data to the file.
+You want to be able to subclass the processor and implement the process_data and process_item methods.
+You want to be able to iterate through items and process them one by one.
+
+StatefulDataProcessor class to process data incrementally.
     Process large amounts of data in a JSON file incrementally.
     The data is stored in a dictionary and the processor keeps track of the current step being processed.
     The processor can be interrupted with a SIGINT signal and the data will be saved to the file.
@@ -14,7 +22,7 @@ from typing import Optional
 """
 
 
-class DataProcessor:
+class StatefulDataProcessor:
     def __init__(
         self, file_rw: FileRW, logger: Logger, should_read: Optional[bool] = True
     ):
