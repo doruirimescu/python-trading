@@ -23,7 +23,9 @@ DATA_STORAGE_PATH=os.getenv("DATA_STORAGE_PATH", "./Trading/live/scripts/data/")
 SYMBOLS_PATH = DATA_STORAGE_PATH + "symbols/"
 ETF_PATH = SYMBOLS_PATH + "/etf.json"
 GENERATED_PATH = CURRENT_FILE_PATH.joinpath("../generated/")
-HISTORY_CACHE_PATH = CURRENT_FILE_PATH.joinpath("../tmp")
+TMP_PATH = CURRENT_FILE_PATH.joinpath("../tmp/")
+HISTORY_CACHE_PATH = TMP_PATH.joinpath("history_cache/")
+RANGING_STOCKS_PATH = TMP_PATH.joinpath("ranging_stocks/")
 
 # ALL_SYMBOLS_PATH = SYMBOLS_PATH + "all_symbols.json"
 # ALL_SYMBOLS = None
