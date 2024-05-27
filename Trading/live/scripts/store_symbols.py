@@ -20,7 +20,7 @@ class AllSymbolsFromXTBStore(DataProcessor):
     def __init__(self, file_rw: JsonFileRW, logger: Logger):
         super().__init__(file_rw, logger)
 
-    def _process_data(self, client: XTBTradingClient):
+    def process_data(self, client: XTBTradingClient):
         all_xtb_symbols = client.get_all_symbols()
         self.iterate_items(all_xtb_symbols, client)
 

@@ -7,7 +7,7 @@ from Trading.utils.custom_logging import get_logger
 LOGGER = get_logger("xtb_to_yfinance.py")
 
 class YFinanceSymbolListProcessor(DataProcessor):
-    def _process_data(self, items):
+    def process_data(self, items):
         self.iterate_items(items)
 
     def process_item(self, item):
@@ -15,7 +15,7 @@ class YFinanceSymbolListProcessor(DataProcessor):
         self.data[item] = yfinance_symbol
 
 class YFinanceDictListProcessor(DataProcessor):
-    def _process_data(self, items, **kwargs):
+    def process_data(self, items, **kwargs):
         self.iterate_items(items, **kwargs)
 
     def process_item(self, item, items_dict):

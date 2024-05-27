@@ -9,7 +9,7 @@ from typing import Optional
     Process large amounts of data in a JSON file incrementally.
     The data is stored in a dictionary and the processor keeps track of the current step being processed.
     The processor can be interrupted with a SIGINT signal and the data will be saved to the file.
-    The processor is meant to be subclassed and the _process_data method should be implemented.
+    The processor is meant to be subclassed and the process_data method should be implemented.
     The process_item method should be implemented to process a single item, if iterate_items is used.
 """
 
@@ -39,7 +39,7 @@ class DataProcessor:
         signal.signal(signal.SIGINT, self._signal_handler)
 
     @abstractmethod
-    def _process_data(self, *args, **kwargs):
+    def process_data(self, *args, **kwargs):
         """Template method for processing data."""
         ...
 
@@ -74,7 +74,7 @@ class DataProcessor:
     def run(self, *args, **kwargs):
         """Main method to run the processor."""
         try:
-            self._process_data(*args, **kwargs)
+            self.process_data(*args, **kwargs)
         except Exception as e:
             raise e
         self.file_rw.write(self.data)

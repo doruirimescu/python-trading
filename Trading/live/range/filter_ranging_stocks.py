@@ -20,7 +20,7 @@ perfect_range = PerfectRange(N_MONTHS, TOP, TOLERANCE)
 
 
 class StockRangeProcessor(DataProcessor):
-    def _process_data(self, items, client):
+    def process_data(self, items, client):
         self.iterate_items(items, client=client)
 
     def process_item(self, item, client):
