@@ -1,15 +1,10 @@
 import pytest
 import unittest
 from Trading.live.logger.ticker import Ticker
+from Trading.instrument.timeframes import TIMEFRARME_ENUM
 from datetime import datetime
 
 class TestTicker(unittest.TestCase):
-
-    def test_ticker_raises_exception(self):
-        with self.assertRaises(Exception) as context:
-            t = Ticker('16m')
-        self.assertTrue('Timeframe' in str(context.exception))
-
     def test_tick_1minute_true(self):
         #Arrange
         year = 2020
@@ -19,7 +14,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1m')
+        t = Ticker(TIMEFRARME_ENUM.ONE_MINUTE)
 
         #Act
         result = t.tick(d)
@@ -36,7 +31,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1m')
+        t = Ticker(TIMEFRARME_ENUM.ONE_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -51,7 +46,7 @@ class TestTicker(unittest.TestCase):
         minute = 5
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('5m')
+        t = Ticker(TIMEFRARME_ENUM.FIVE_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -82,7 +77,7 @@ class TestTicker(unittest.TestCase):
         minute = 5
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('5m')
+        t = Ticker(TIMEFRARME_ENUM.FIVE_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -115,7 +110,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('15m')
+        t = Ticker(TIMEFRARME_ENUM.FIFTEEN_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -146,7 +141,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('15m')
+        t = Ticker(TIMEFRARME_ENUM.FIFTEEN_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -179,7 +174,7 @@ class TestTicker(unittest.TestCase):
         minute = 30
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('30m')
+        t = Ticker(TIMEFRARME_ENUM.THIRTY_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -211,7 +206,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('30m')
+        t = Ticker(TIMEFRARME_ENUM.THIRTY_MINUTE)
         #Act
         result = t.tick(d)
         #Assert
@@ -244,7 +239,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1h')
+        t = Ticker(TIMEFRARME_ENUM.ONE_HOUR)
         #Act
         result = t.tick(d)
         #Assert
@@ -267,7 +262,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1h')
+        t = Ticker(TIMEFRARME_ENUM.ONE_HOUR)
         #Act
         result = t.tick(d)
         #Assert
@@ -301,7 +296,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('4h')
+        t = Ticker(TIMEFRARME_ENUM.FOUR_HOUR)
         #Act
         result = t.tick(d)
         #Assert
@@ -324,7 +319,7 @@ class TestTicker(unittest.TestCase):
         minute = 15
         second = 0
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('4h')
+        t = Ticker(TIMEFRARME_ENUM.FOUR_HOUR)
         #Act
         result = t.tick(d)
         #Assert
@@ -359,7 +354,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1D')
+        t = Ticker(TIMEFRARME_ENUM.ONE_DAY)
         #Act
         result = t.tick(d)
         #Assert
@@ -383,7 +378,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1D')
+        t = Ticker(TIMEFRARME_ENUM.ONE_DAY)
         #Act
         result = t.tick(d)
         #Assert
@@ -408,7 +403,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1W')
+        t = Ticker(TIMEFRARME_ENUM.ONE_WEEK)
         #Act
         result = t.tick(d)
         #Assert
@@ -432,7 +427,7 @@ class TestTicker(unittest.TestCase):
         minute = 0
         second = 1
         d = datetime(year, month, day, hour, minute, second)
-        t = Ticker('1W')
+        t = Ticker(TIMEFRARME_ENUM.ONE_WEEK)
         #Act
         result = t.tick(d)
         #Assert

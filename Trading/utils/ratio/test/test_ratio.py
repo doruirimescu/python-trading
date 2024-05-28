@@ -142,9 +142,9 @@ class TestRatio(unittest.TestCase):
         r.add_history("den", den)
         r.eliminate_nonintersecting_dates()
         r.calculate_ratio()
-        self.assertEqual(r.get_next_date_at_mean("2021-01-01"), datetime.fromisoformat("2021-01-02"))
-        self.assertEqual(r.get_next_date_at_mean("2021-01-02"), datetime.fromisoformat("2021-01-04"))
-        self.assertEqual(r.get_next_date_at_mean("2021-01-03"), datetime.fromisoformat("2021-01-04"))
+        self.assertEqual(r.get_next_date_at_mean("2021-01-01"), (datetime.fromisoformat("2021-01-02"),1,))
+        self.assertEqual(r.get_next_date_at_mean("2021-01-02"), (datetime.fromisoformat("2021-01-04"), 3))
+        self.assertEqual(r.get_next_date_at_mean("2021-01-03"), (datetime.fromisoformat("2021-01-04"), 3))
         with self.assertRaises(DateNotFoundError):
             r.get_next_date_at_mean("2021-01-04")
 
