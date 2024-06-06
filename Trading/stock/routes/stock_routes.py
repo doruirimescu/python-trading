@@ -1,16 +1,13 @@
 from fastapi import APIRouter
 import Trading.stock.constants as constants
-from Trading.stock.analyze_nasdaq import analyze
+from Trading.stock.analyze_nasdaq import analyze_nasdaq
 from Trading.stock.visualize import prepare_data
-import os
 import Trading.live.monitoring.monitor_stocks as monitor_stocks
 router = APIRouter()
 
 @router.get("/nasdaq")
 def analyse():
-    # check if file exists
-    if not os.path.isfile(constants.NASDAQ_ANALYSIS_FILENAME):
-        analyze(constants.NASDAQ_ANALYSIS_FILENAME)
+    analyze_nasdaq()
 
     stock_names, scores, solvencies, valuation_types = prepare_data(
         constants.NASDAQ_ANALYSIS_FILENAME

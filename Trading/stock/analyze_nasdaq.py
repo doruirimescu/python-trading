@@ -1,60 +1,46 @@
+import argparse
 import json
-from Trading.symbols.wrapper import get_nasdaq_symbols, get_nasdaq_helsinki_symbols, get_alphaspread_nasdaq_url
+import os
+import sys
+from time import sleep
+
+from stateful_data_processor.file_rw import JsonFileRW
+from stateful_data_processor.processor import StatefulDataProcessor
+
 from Trading.stock.alphaspread.alphaspread import analyze_url
 from Trading.stock.alphaspread.url import get_alphaspread_url
-from Trading.stock.constants import NASDAQ_ANALYSIS_FILENAME, HELSINKI_NASDAQ_ANALYSIS_FILENAME
-from time import sleep
-import sys
-import os
+from Trading.stock.constants import (HELSINKI_NASDAQ_ANALYSIS_FILENAME,
+                                     NASDAQ_ANALYSIS_FILENAME)
+from Trading.symbols.wrapper import (get_alphaspread_nasdaq_url,
+                                     get_nasdaq_helsinki_symbols,
+                                     get_nasdaq_symbols)
+from Trading.utils.custom_logging import get_logger
 
-import argparse
-
+LOGGER = get_logger("analyze_nasdaq")
 SLEEP_TIME = 2.0
 
-
-def analyze(filename):
-    undervalued_symbols = []
-    print("Getting symbols")
-    nasdaq_symbols = get_nasdaq_symbols()
-    print("Done getting symbols")
-
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            # load json
-            json_str = f.read()
-            data = json.loads(json_str)
-    else:
-        data = []
-
-    print(nasdaq_symbols)
-    for symbol in nasdaq_symbols:
-        # Check if symbol is already in json
-        should_continue = False
-        for d in data:
-            if symbol in d["symbol"]:
-                print(f"Skipping {symbol}")
-                should_continue = True
-                break
-        if should_continue:
-            continue
-
+class AlphaspreadNasdaqProcessor(StatefulDataProcessor):
+    def process_item(self, item, iteration_index: int):
+        symbol = item
         url = get_alphaspread_nasdaq_url(symbol)
-        try:
-            analysis = analyze_url(url, symbol)
-            undervalued_symbols.append(analysis)
-
-            # add analysis to json
-            data.append(analysis.dict())
-
-        except Exception as e:
-            print(f"Error analyzing {symbol}: {e}")
+        analysis = analyze_url(url, symbol)
+        self.data[symbol] = analysis.dict()
         sleep(SLEEP_TIME)
 
-    with open(filename, "w") as f:
-        json_str = json.dumps(
-            data, indent=4
-        )
-        f.write(json_str)
+def analyze_nasdaq():
+    nasdaq_symbols = get_nasdaq_symbols()
+    nasdaq_symbols = sorted(nasdaq_symbols)
+    json_file_rw = JsonFileRW(NASDAQ_ANALYSIS_FILENAME, LOGGER)
+    anp = AlphaspreadNasdaqProcessor(json_file_rw, LOGGER)
+    anp.run(nasdaq_symbols)
+
+def analyze_helsinki_nasdaq():
+    nasdaq_symbols = get_nasdaq_helsinki_symbols()
+    nasdaq_symbols = sorted(nasdaq_symbols)
+
+    json_file_rw = JsonFileRW(HELSINKI_NASDAQ_ANALYSIS_FILENAME, LOGGER)
+    anp = AlphaspreadNasdaqProcessor(json_file_rw, LOGGER)
+    anp.run(nasdaq_symbols)
 
 if __name__ == "__main__":
     arg = argparse.ArgumentParser()
@@ -63,16 +49,9 @@ if __name__ == "__main__":
     args = arg.parse_args()
 
     if args.helsinki:
-        nasdaq_symbols = get_nasdaq_helsinki_symbols()
-        filename = HELSINKI_NASDAQ_ANALYSIS_FILENAME
-        url_getter = get_alphaspread_url
+        analyze_helsinki_nasdaq()
     elif args.nasdaq:
-        nasdaq_symbols = get_nasdaq_symbols()
-        filename = NASDAQ_ANALYSIS_FILENAME
-        url_getter = get_alphaspread_nasdaq_url
+        analyze_nasdaq()
     else:
         print("Please specify --helsinki or --nasdaq")
         sys.exit(1)
-
-    if __name__ == "__main__":
-        analyze(filename)
