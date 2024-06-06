@@ -12,7 +12,10 @@ from Trading.live.client.client import XTBTradingClient
 from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS
 from Trading.utils.history import History
 from Trading.utils.range.range import PerfectRange
+from Trading.utils.time import get_date_now_cet
+from Trading.utils.custom_logging import get_logger
 
+LOGGER = get_logger("filter_ranging_stocks")
 
 def exit():
     sys.exit(0)
@@ -41,17 +44,11 @@ class StockRangeProcessor(StatefulDataProcessor):
                 perfect_range.add_history(history, ask)
                 self.data[item] = history.dict()
         except Exception as e:
+            LOGGER.error(f"Error processing {item}: {e}")
             self.data[item] = None
             return
 
 if __name__ == '__main__':
-    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=FORMAT)
-
-    MAIN_LOGGER = logging.getLogger('Main logger')
-    MAIN_LOGGER.setLevel(logging.DEBUG)
-    MAIN_LOGGER.propagate = True
-
     load_dotenv()
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
@@ -59,8 +56,8 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # temp json file storage
-    js = JsonFileRW(RANGING_STOCKS_PATH.joinpath("temp_all_stocks_04_06.json"), MAIN_LOGGER)
-    sp = StockRangeProcessor(js, MAIN_LOGGER)
+    js = JsonFileRW(RANGING_STOCKS_PATH.joinpath(f"temp-all-stocks-{get_date_now_cet()}.json"), LOGGER)
+    sp = StockRangeProcessor(js, LOGGER)
     sp.run(items=XTB_STOCK_SYMBOLS, client=client)
 
 # GREAT FINDS:
