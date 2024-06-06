@@ -12,17 +12,14 @@ LOGGER = get_logger("xtb_to_yfinance.py")
 
 class YFinanceSymbolListProcessor(StatefulDataProcessor):
     def process_data(self, items):
-        self.iterate_items(items)
+        self._iterate_items(items)
 
-    def process_item(self, item):
+    def process_item(self, item, iteration_index):
         yfinance_symbol = get_yfinance_symbol_url(item)
         self.data[item] = yfinance_symbol
 
 class YFinanceDictListProcessor(StatefulDataProcessor):
-    def process_data(self, items, **kwargs):
-        self.iterate_items(items, **kwargs)
-
-    def process_item(self, item, items_dict):
+    def process_item(self, item, iteration_index, items_dict):
         symbol = items_dict[item]['symbol']
         description = items_dict[item]['description']
         try:
