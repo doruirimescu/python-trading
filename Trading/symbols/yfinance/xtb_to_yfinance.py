@@ -1,9 +1,13 @@
+from stateful_data_processor.file_rw import JsonFileRW
+from stateful_data_processor.processor import StatefulDataProcessor
+
+from Trading.symbols.constants import (XTB_COMMODITY_SYMBOLS,
+                                       XTB_STOCK_SYMBOLS_DICT,
+                                       YAHOO_COMMODITY_SYMBOLS_PATH,
+                                       YAHOO_STOCK_SYMBOLS_PATH)
 from Trading.symbols.google_search_symbol import get_yfinance_symbol_url
-from Trading.utils.data_processor import JsonFileRW, StatefulDataProcessor
-from Trading.symbols.constants import (
-    XTB_COMMODITY_SYMBOLS, YAHOO_COMMODITY_SYMBOLS_PATH,
-    XTB_STOCK_SYMBOLS_DICT, YAHOO_STOCK_SYMBOLS_PATH)
 from Trading.utils.custom_logging import get_logger
+
 LOGGER = get_logger("xtb_to_yfinance.py")
 
 class YFinanceSymbolListProcessor(StatefulDataProcessor):
