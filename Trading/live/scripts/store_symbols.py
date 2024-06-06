@@ -1,5 +1,6 @@
 from Trading.live.client.client import XTBTradingClient
-from Trading.utils.data_processor import StatefulDataProcessor, JsonFileRW
+from stateful_data_processor.file_rw import JsonFileRW
+from stateful_data_processor.processor import StatefulDataProcessor
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.symbols.constants import (
     XTB_ALL_SYMBOLS_PATH,
@@ -24,7 +25,7 @@ class AllSymbolsFromXTBStore(StatefulDataProcessor):
         all_xtb_symbols = client.get_all_symbols()
         self.iterate_items(all_xtb_symbols, client)
 
-    def process_item(self, item, client: XTBTradingClient):
+    def process_item(self, item, iteration_index, client: XTBTradingClient):
         info = client.get_symbol(item)
         symbol = info["symbol"]
         self.data[symbol] = info
