@@ -1,6 +1,4 @@
 import argparse
-import json
-import os
 import sys
 from time import sleep
 
@@ -8,7 +6,6 @@ from stateful_data_processor.file_rw import JsonFileRW
 from stateful_data_processor.processor import StatefulDataProcessor
 
 from Trading.stock.alphaspread.alphaspread import analyze_url
-from Trading.stock.alphaspread.url import get_alphaspread_url
 from Trading.stock.constants import (HELSINKI_NASDAQ_ANALYSIS_FILENAME,
                                      NASDAQ_ANALYSIS_FILENAME)
 from Trading.symbols.wrapper import (get_alphaspread_nasdaq_url,
