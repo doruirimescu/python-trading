@@ -1,9 +1,10 @@
 from Trading.live.client.client import LoggingClient, TradingClient
-from Trading.instrument.instrument import Instrument
 from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
+from Trading.instrument import Instrument, Timeframe
 from Trading.utils.calculations import round_to_two_decimals
 from datetime import datetime
 from typing import Optional, Tuple, List
+from pydantic import BaseModel
 
 
 def get_top_ten_biggest_swaps_report(client: LoggingClient) -> Tuple[str, List]:
@@ -38,25 +39,6 @@ def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> Tuple[s
     return report, data
 
 
-def is_symbol_price_below_value(client: LoggingClient,
-                                symbol: str,
-                                value: float) -> Optional[str]:
-    info = client.get_symbol(symbol)
-    price = float(info['ask'])
-    if price < value:
-        return f"Price of {symbol} has gone below {value}"
-    return None
-
-
-def is_symbol_price_above_value(client: LoggingClient,
-                                symbol: str,
-                                value: float) -> Optional[str]:
-    info = client.get_symbol(symbol)
-    price = float(info['bid'])
-    if price > value:
-        return f"Price of {symbol} has gone above {value}"
-    return None
-
 
 def is_symbol_price_below_last_n_intervals_low(client: LoggingClient,
                                                instrument: Instrument,
@@ -86,3 +68,127 @@ def is_symbol_price_above_last_n_intervals_low(client: LoggingClient,
             f"above the past {n} {TIMEFRAMES_TO_NAME[instrument.timeframe]} timeframe high {maximum}"
         )
     return None
+
+from enum import Enum
+from typing import Callable, Optional
+from Trading.instrument.price import BidAsk
+from Trading.utils.send_email import send_email
+from abc import abstractmethod
+import operator
+
+# Dictionary mapping operator functions to their string representations
+operator_strings = {
+    operator.lt: "<",
+    operator.le: "<=",
+    operator.eq: "==",
+    operator.ne: "!=",
+    operator.ge: ">=",
+    operator.gt: ">",
+    operator.add: "+",
+    operator.sub: "-",
+    operator.mul: "*",
+    operator.truediv: "/",
+    operator.floordiv: "//",
+    operator.mod: "%",
+    operator.pow: "**",
+    operator.and_: "&",
+    operator.or_: "|",
+    operator.xor: "^",
+    operator.not_: "not",
+    operator.inv: "~"
+}
+class AlertAction(Enum):
+    SEND_EMAIL = 0
+    PRINT_MESSAGE = 1
+    RING_BELL = 2
+
+class Alert(BaseModel):
+    name: str
+    description: str
+    schedule: str
+    type: str
+    data_source: str
+    operator: Callable
+    threshold_value: float
+    action: Optional[AlertAction] = None
+    message: Optional[str] = None
+    is_handled: bool = False
+    is_triggered: bool = False
+
+    @abstractmethod
+    def are_conditions_valid(self, *args, **kwargs) -> bool:
+        # Check if the conditions for the alert are met
+        ...
+
+    @abstractmethod
+    def _should_trigger(self, *args, **kwargs) -> bool:
+        ...
+
+    def evaluate(self, *args, **kwargs):
+        if not self._should_trigger(*args, **kwargs) or self.is_handled:
+            return
+        if self.action == AlertAction.SEND_EMAIL:
+            send_email(subject=self.name, message=self.message)
+        elif self.action == AlertAction.PRINT_MESSAGE:
+            from Trading.utils.custom_logging import get_logger
+            logger = get_logger("AlertLogger")
+            logger.info(self.message)
+        elif self.action == AlertAction.RING_BELL:
+            pass
+
+
+class XTBSpotAlert(Alert):
+    symbol: str
+    bid_ask: BidAsk
+
+    def are_conditions_valid(self, client: LoggingClient) -> bool:
+        is_market_open = client.is_market_open(self.symbol)
+        return is_market_open
+
+    def _trigger(self, bid_ask: str, price: float):
+        self.is_triggered = True
+        self.message = (f"{self.symbol} {bid_ask} price of {price} is {operator_strings[self.operator]} "
+                        f"{self.threshold_value} from datasource: {self.data_source}")
+
+    def _untrigger(self):
+        self.is_triggered = False
+        self.is_handled = False
+        self.message = None
+
+    def _should_trigger(self, client: LoggingClient) -> bool:
+        bid, ask = client.get_current_price()
+        result = False
+        bid_ask = ""
+        if self.bid_ask == BidAsk.BID:
+            result = self.operator(bid, self.threshold_value)
+            bid_ask  = "bid"
+            price = bid
+        else:
+            result = self.operator(ask, self.threshold_value)
+            bid_ask = "ask"
+            price = ask
+
+        if result:
+            self._trigger(bid_ask, price)
+            return True
+        else:
+            self._untrigger()
+
+if __name__ == '__main__':
+    gold_spot_price = XTBSpotAlert(name="Gold Spot Price XTB Alert",
+                            description="Alert when gold spot price is above 1800",
+                            schedule="* * * * *",
+                            type="spot",
+                            data_source="XTB",
+                            operator=operator.gt,
+                            threshold_value=1800.0,
+                            symbol="XAUUSD",
+                            bid_ask=BidAsk.ASK,
+                            action=AlertAction.PRINT_MESSAGE,
+                            message="Gold spot price is above 1800")
+    from unittest.mock import MagicMock
+    client = MagicMock()
+    client.get_current_price.return_value = (1800.1, 1800.2)
+    client.is_market_open.return_value = True
+
+    gold_spot_price.evaluate(client=client)
