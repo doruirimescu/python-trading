@@ -1,20 +1,28 @@
 # Bounded and unbounded trades
-In this paper, we will attempt to categorize trades and their risk scores by analyzing their entry and exit conditions. We shall introduce the following terms: bounded, unbounded, soft-bound, hard-bounded.
 
-* A trade's entry condition is a set of logical rules, which, if evaluated to true, result in the execution of the trade.
-* A trade's exit condition is a set of logical rules, which, if evaluated to true, result in the closing of the trade. We can further categorize the exit conditions into two categories: stop loss (denoted by L) and take profit (P).
-* A stop loss (L) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a loss.
-* A take profit (P) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a profit.
+## Abstract
+In this paper, we categorize trades and assess their risk scores by analyzing their entry and exit conditions. We introduce the terms: bounded, unbounded, soft-bound, and hard-bounded trades. By defining these categories, we aim to provide a structured framework for understanding the inherent risks associated with different trading strategies.
 
-### Unbounded trades
-Unbounded (U) trades do not have an exit condition for the loss, profit, or both. Trades which, once entered, have no predefined conditions for an exit.
-This can often end up in locked or realized capital losses.
+## Introduction
+Trades in financial markets involve a variety of strategies, each with unique risk profiles. Understanding the nature of these risks is crucial for traders, investors, and risk managers. In this study, we classify trades based on their entry and exit conditions and propose a risk scoring system to quantify their risk levels.
 
-### Bounded trades
-Bounded trades have a defined exit condition for the loss, profit, or both. We can further categorize bounded trades into: soft-bounded (S) and hard-bounded (H) exit conditions, such that:
-* soft-bounded (S) is a condition that depends on the evolution of the market, after the trade has been entered. For example, a certain price action pattern, piece of news or a candlestick pattern can indicate the condition for exiting the trade, which cannot be predicted prior to entering.
+### Terminology
 
-* hard-bounded (H) is a condition that is pre-determined before the trade has been entered. This can give an exact idea about the risk to reward ratio, and cannot lead into locking or losing large amounts of capital for a long amount of time. For example, a price target.
+#### Entry and Exit Conditions
+
+* A trade's **entry condition** is a set of logical rules, which, if evaluated to true, result in the execution of the trade.
+* A trade's **exit condition** is a set of logical rules, which, if evaluated to true, result in the closing of the trade. We can further categorize the exit conditions into two categories: stop loss (denoted by L) and take profit (P).
+* A **stop loss** (L) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a loss.
+* A **take profit** (P) is an exit condition, thus a set of logical rules which, if evaluated to true, results in the closing of the trade, resulting in a profit.
+
+#### Unbounded trades
+**Unbounded (U)** trades do not have an exit condition for the loss, profit, or both. Such trades lack a clear strategy for when to exit, which can lead to indefinite holding periods and potentially significant losses.
+
+#### Bounded trades
+**Bounded trades** have a defined exit condition for the loss, profit, or both. These can be further categorized as:
+* **soft-bounded (S)** Exit conditions that depend on market evolution after entering the trade. For example, a certain price action pattern, piece of news or a candlestick pattern can indicate the condition for exiting the trade, which cannot be predicted before entering.
+
+* **hard-bounded (H)** Predetermined exit conditions established before entering the trade. This can give an exact idea about the risk to reward ratio, and cannot lead into locking or losing large amounts of capital for a long amount of time. For example, a price target.
 
 
 ## Risk categories
