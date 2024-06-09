@@ -1,5 +1,7 @@
 from datetime import datetime
 from Trading.instrument.timeframes import *
+from Trading.utils.time import get_datetime_now_cet
+from typing import Optional
 import logging
 
 
@@ -8,13 +10,13 @@ class Ticker:
     Ticks every second.
     """
 
-    def __init__(self, timeframe):
+    def __init__(self, timeframe: TIMEFRARME_ENUM):
         self.validate(timeframe)
         self.timeframe = timeframe
-        self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe]*60
+        self.timeframe_seconds_ = TIMEFRAME_TO_MINUTES[timeframe.value]*60
         self.LOGGER = logging.getLogger('Ticker')
 
-    def validate(self, timeframe):
+    def validate(self, timeframe: TIMEFRARME_ENUM):
         """Check if the timeframe is supported
 
         Args:
@@ -23,10 +25,10 @@ class Ticker:
         Raises:
             Exception: Timeframe not supported
         """
-        if timeframe not in TIMEFRAMES:
+        if timeframe.value not in TIMEFRAMES:
             raise Exception("Timeframe not supported")
 
-    def tick(self, test=None):
+    def tick(self, test=Optional[datetime]):
         """Check if the time has elapsed or not.
 
         Args:
@@ -36,33 +38,32 @@ class Ticker:
             bool: True if the time has passed, False otherwise.
         """
 
-        now = datetime.now()
+        now = get_datetime_now_cet()
         if test is not None:
             now = test
         second = now.second
         minute = now.minute
         hour = now.hour
-        day = now.day
         weekday = now.weekday()
 
         self.LOGGER.debug("Ticking... ")
 
         if second == 1:
-            if(self.timeframe == '1m'):
+            if(self.timeframe == TIMEFRARME_ENUM.ONE_MINUTE):
                 return True
-            elif(self.timeframe == '5m' and (minute % 5 == 0)):
+            elif(self.timeframe == TIMEFRARME_ENUM.FIVE_MINUTE and (minute % 5 == 0)):
                 return True
-            elif(self.timeframe == '15m' and (minute % 15 == 0)):
+            elif(self.timeframe == TIMEFRARME_ENUM.FIFTEEN_MINUTE and (minute % 15 == 0)):
                 return True
-            elif(self.timeframe == '30m' and (minute % 30 == 0)):
+            elif(self.timeframe == TIMEFRARME_ENUM.THIRTY_MINUTE and (minute % 30 == 0)):
                 return True
-            elif(self.timeframe == '1h' and (minute == 0)):
+            elif(self.timeframe == TIMEFRARME_ENUM.ONE_HOUR and (minute == 0)):
                 return True
-            elif(self.timeframe == '4h' and (hour % 4 == 0 and minute == 0)):
+            elif(self.timeframe == TIMEFRARME_ENUM.FOUR_HOUR and (hour % 4 == 0 and minute == 0)):
                 return True
-            elif(self.timeframe == '1D' and hour == 12 and minute == 0):
+            elif(self.timeframe == TIMEFRARME_ENUM.ONE_DAY and hour == 12 and minute == 0):
                 return True
-            elif(self.timeframe == '1W' and weekday == 0 and hour == 12 and minute == 0):
+            elif(self.timeframe == TIMEFRARME_ENUM.ONE_WEEK and weekday == 0 and hour == 12 and minute == 0):
                 return True
         return False
 
