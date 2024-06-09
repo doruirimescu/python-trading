@@ -41,12 +41,13 @@ We now have the necessary vocabulary make the following definitions:
 * **HLHP** - hard-bounded loss, hard-bounded profit
 
 ## Risk scores
-We shall attempt to create a scoring system, starting from the following premises:
-* The higher score, the riskier the trade
-* Unbounded is the riskiest type of trade
-* Soft-bounded is a less risky type of trade
-* Hard-bounded is the least risk-presenting type of trade
-* A profit has the potential of turning into a loss.
+To quantify the risk associated with each trade category, we propose a scoring system based on the following premises:
+
+* Higher scores indicate riskier trades.
+* Unbounded trades are the riskiest.
+* Soft-bounded trades present moderate risk.
+* Hard-bounded trades are the least risky.
+* Profit has the potential of turning into a loss.
 
 | Risk Score | Risk Class | Abbreviation | Name                                   | Loss Description                                                                       | Profit Description                                                |
 |------------|------------|--------------|----------------------------------------|----------------------------------------------------------------------------------------|-------------------------------------------------------------------|
@@ -59,3 +60,8 @@ We shall attempt to create a scoring system, starting from the following premise
 | 3          | Low        | HLUP         | Hard-Bounded Loss, Unbounded Profit    | Hard-bounded losses have a low risk of leading to account termination.                 | Unbounded profits have a high risk of turning  into losses.       |
 | 2          | Low        | HLSP         | Hard-Bounded Loss, Soft-Bounded Profit | Hard-bounded losses have a low risk of leading to account termination.                 | Soft-bounded profits have a medium risk of turning into losses.   |
 | 1          | Low        | HLHP         | Hard-Bounded Loss, Hard-Bounded Profit | Hard-bounded losses have a low risk of leading to account termination.                 | Hard-bounded profits have a low risk of turning into losses.      |
+
+## Conclusion
+This paper provides a structured framework for categorizing trades based on their exit conditions and proposes a risk scoring system to quantify their risk levels. By understanding these categories and their associated risks, traders and investors can make more informed decisions, potentially improving their risk management strategies and overall market performance.
+
+Future research could expand on this framework by incorporating additional variables such as market conditions, trader behavior, and external economic factors to refine the risk scoring system further.
