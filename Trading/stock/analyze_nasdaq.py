@@ -20,7 +20,11 @@ class AlphaspreadNasdaqProcessor(StatefulDataProcessor):
     def process_item(self, item, iteration_index: int):
         symbol = item
         url = get_alphaspread_nasdaq_url(symbol)
-        analysis = analyze_url(url, symbol)
+        try:
+            analysis = analyze_url(url, symbol)
+        except Exception as e:
+            LOGGER.error(f"Error processing {url}: {e}")
+            analysis = None
         self.data[symbol] = analysis.dict()
         sleep(SLEEP_TIME)
 
