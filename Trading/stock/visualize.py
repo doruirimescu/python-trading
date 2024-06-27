@@ -72,7 +72,8 @@ def prepare_data(filename):
         data = json.load(f)
 
     stock_valuation = dict()
-    for stk in data:
+    for key in data.keys():
+        stk = data[key]
         symbol = stk["symbol"]
         valuation_type = stk["valuation_type"]
         valuation_score = stk["valuation_score"]
