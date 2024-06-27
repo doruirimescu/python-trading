@@ -335,6 +335,13 @@
         "valuation_score": 48,
         "valuation_type": "Overvalued"
     },
+    "ILMN": {
+        "profitability_score": 38,
+        "solvency_score": 64,
+        "symbol": "ILMN",
+        "valuation_score": 1,
+        "valuation_type": "Overvalued"
+    },
     "INTC": {
         "profitability_score": 45,
         "solvency_score": 44,
