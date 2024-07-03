@@ -6,7 +6,7 @@
         "description": "Alert when GOLD spot price is below 1800.0",
         "is_handled": true,
         "is_triggered": true,
-        "message": "GOLD bid price of 2356.2 is > 1800.0 from datasource: XTB",
+        "message": "GOLD bid price of 2356.48 is > 1800.0 from datasource: XTB",
         "name": "GOLD Spot Price XTB Alert",
         "operator": "gt",
         "schedule": "* * * * *",
