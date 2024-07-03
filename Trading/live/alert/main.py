@@ -110,5 +110,6 @@ if __name__ == "__main__":
 
     for alert in alerts:
         alert.evaluate(client)
+        alert.message = None
 
     dump_alerts_to_json(alerts)
