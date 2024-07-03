@@ -2,8 +2,14 @@ from Trading.live.client.client import XTBLoggingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE, ALERTS_PATH
 from Trading.live.alert.alert import XTBSpotAlert, BidAsk, AlertAction
 import operator
+from typing import List
 import json
+from stateful_data_processor.file_rw import JsonFileRW
 
+def dump_alerts_to_json(alerts: List):
+    json_file = JsonFileRW(ALERTS_PATH)
+    jsons = [json.loads(alert.custom_json()) for alert in alerts]
+    json_file.write(jsons)
 
 def generate_xtb_alert_gt(
     stock_name: str,
@@ -92,19 +98,18 @@ def generate_alerts_to_json():
             "Patterson", "PDCO.US_9", 29.5, BidAsk.ASK, AlertAction.SEND_EMAIL
         ),
     ]
-
-    jsons = [json.loads(alert.custom_json()) for alert in alerts]
-    json.dump(jsons, open(ALERTS_PATH, "w"), indent=4)
-
+    dump_alerts_to_json(alerts)
 
 if __name__ == "__main__":
-    # generate_alerts_to_json()
     alerts = []
-    with open(ALERTS_PATH, "r") as f:
-        data = json.load(f)
-        for alert in data:
-            alerts.append(XTBSpotAlert.custom_load(json.dumps(alert)))
+    json_file = JsonFileRW(ALERTS_PATH)
+    data = json_file.read()
+    print(data)
+    for alert in data:
+        alerts.append(XTBSpotAlert.custom_load(json.dumps(alert)))
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
 
     for alert in alerts:
         alert.evaluate(client)
+
+    dump_alerts_to_json(alerts)

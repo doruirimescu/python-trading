@@ -1,75 +1,7 @@
-from Trading.live.client.client import LoggingClient, TradingClient
-from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
-from Trading.instrument import Instrument
-from Trading.utils.calculations import round_to_two_decimals
-from datetime import datetime
+from Trading.live.client.client import LoggingClient
 from typing import Optional, Tuple, List
 from pydantic import BaseModel, ValidationError
 import json
-
-
-def get_top_ten_biggest_swaps_report(client: LoggingClient) -> Tuple[str, List]:
-    biggest_swaps = client.get_top_ten_biggest_swaps()
-    report = "Top 10 biggest swaps:\n\n"
-    report += "|{:^15}|{:^15}|{:^15}|\n".format("Pair", "Swap Long", "Swap Short")
-    report += "-------------------------------------------------\n"
-    for sym, sl, ss in biggest_swaps:
-        report += f"|{sym:^15}|{sl:^15}|{ss:^15}|"
-        report += "\n"
-    print(report)
-    return report, biggest_swaps
-
-
-def get_total_swap_of_open_forex_trades_report(client: TradingClient) -> Tuple[str, List]:
-    open_trade_swaps = client.get_swaps_of_forex_open_trades()
-    print(open_trade_swaps)
-    report = ""
-    for symbol, swap in open_trade_swaps:
-        if swap < 0.0:
-            date_now = str(datetime.now().date())
-            report + f"Open trade swap gone negative, symbol: {symbol} swap: {str(swap)} date:{date_now}\n"
-
-    total_profit, total_swap, text_message, data = client.get_total_forex_open_trades_profit_and_swap()
-    report += text_message
-    report += f"\nTotal profit: {str(total_profit)} Total swap: {str(round_to_two_decimals(total_swap))}\n"
-    biggest_swaps = client.get_top_ten_biggest_swaps()
-    report += f"\nBiggest 10 swaps:\n"
-    for sym, sl, ss in biggest_swaps[0:10]:
-        report += "Pair:\t{}\tSwap long:{:>10}\tSwap short:{:>10}\n".format(
-                            sym, sl, ss)
-    return report, data
-
-
-
-def is_symbol_price_below_last_n_intervals_low(client: LoggingClient,
-                                               instrument: Instrument,
-                                               n: int) -> Optional[str]:
-    info = client.get_symbol(instrument.symbol)
-    price = float(info['ask'])
-    history = client.get_last_n_candles_history(instrument, n)['low'][:-1]
-    minimum = min(history)
-    if price < minimum:
-        return (
-            f"{instrument.symbol} price {price} has gone "
-            f"below the past {n} {TIMEFRAMES_TO_NAME[instrument.timeframe]} timeframe low {minimum}"
-        )
-    return None
-
-
-def is_symbol_price_above_last_n_intervals_low(client: LoggingClient,
-                                               instrument: Instrument,
-                                               n: int) -> Optional[str]:
-    info = client.get_symbol(instrument.symbol)
-    price = float(info['bid'])
-    history = client.get_last_n_candles_history(instrument, n)['high'][:-1]
-    maximum = max(history)
-    if price > maximum:
-        return (
-            f"{instrument.symbol} price {price} has gone "
-            f"above the past {n} {TIMEFRAMES_TO_NAME[instrument.timeframe]} timeframe high {maximum}"
-        )
-    return None
-
 from enum import Enum
 from typing import Callable, Optional
 from Trading.instrument.price import BidAsk
@@ -147,9 +79,9 @@ class Alert(BaseModel):
     def _should_trigger(self, *args, **kwargs) -> bool:
         ...
 
-    def evaluate(self, *args, **kwargs):
+    def evaluate(self, *args, **kwargs) -> bool:
         if not self._should_trigger(*args, **kwargs) or self.is_handled:
-            return
+            return False
         if self.action == AlertAction.SEND_EMAIL:
             send_email(subject=self.name, body=self.message)
         elif self.action == AlertAction.PRINT_MESSAGE:
@@ -158,6 +90,8 @@ class Alert(BaseModel):
             logger.info(self.message)
         elif self.action == AlertAction.RING_BELL:
             pass
+        self.is_handled = True
+        return True
 
     def custom_json(self):
         # Convert the model to a dict, including the comparator as its name
@@ -189,7 +123,6 @@ class Alert(BaseModel):
             raise ValidationError(f"Invalid bid_ask name: {data['bid_ask']}")
         return cls(**data)
 
-
 class XTBSpotAlert(Alert):
     symbol: str
     bid_ask: BidAsk
@@ -206,7 +139,7 @@ class XTBSpotAlert(Alert):
     def _untrigger(self):
         self.is_triggered = False
         self.is_handled = False
-        self.message = None
+        # self.message = None
 
     def _should_trigger(self, client: LoggingClient) -> bool:
         bid, ask = client.get_current_price(self.symbol)
@@ -226,29 +159,3 @@ class XTBSpotAlert(Alert):
             return True
         else:
             self._untrigger()
-
-if __name__ == '__main__':
-    gold_spot_price = XTBSpotAlert(name="Gold Spot Price XTB Alert",
-                            description="Alert when gold spot price is above 1800",
-                            schedule="* * * * *",
-                            type="spot",
-                            data_source="XTB",
-                            operator=operator.gt,
-                            threshold_value=1800.0,
-                            symbol="XAUUSD",
-                            bid_ask=BidAsk.ASK,
-                            action=AlertAction.PRINT_MESSAGE,
-                            message="Gold spot price is above 1800")
-    # from unittest.mock import MagicMock
-    # client = MagicMock()
-    # client.get_current_price.return_value = (1800.1, 1800.2)
-    # client.is_market_open.return_value = True
-    # gold_spot_price.evaluate(client=client)
-    # import json
-    # # dump to json
-    # d = gold_spot_price.custom_json()
-
-    # # dump to file
-    # with open("alert.json", "w") as f:
-    #     # set indent
-    #     json.dump(json.loads(d), f, indent=4)
