@@ -4,7 +4,7 @@ from Trading.instrument import Instrument, Timeframe
 from Trading.utils.calculations import round_to_two_decimals
 from datetime import datetime
 from typing import Optional, Tuple, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 
 def get_top_ten_biggest_swaps_report(client: LoggingClient) -> Tuple[str, List]:
@@ -97,10 +97,31 @@ operator_strings = {
     operator.not_: "not",
     operator.inv: "~"
 }
+
+# Map of comparator names to actual functions
+operator_map = {
+    'gt': operator.gt,
+    'lt': operator.lt,
+    'eq': operator.eq,
+    'ne': operator.ne,
+    'ge': operator.ge,
+    'le': operator.le,
+}
 class AlertAction(Enum):
     SEND_EMAIL = 0
     PRINT_MESSAGE = 1
     RING_BELL = 2
+
+    @classmethod
+    def from_str(cls, value: str):
+        if value == 'SEND_EMAIL':
+            return cls.SEND_EMAIL
+        elif value == 'PRINT_MESSAGE':
+            return cls.PRINT_MESSAGE
+        elif value == 'RING_BELL':
+            return cls.RING_BELL
+        else:
+            raise ValueError(f"Invalid AlertAction value: {value}")
 
 # Schedule should not be used in this class, it should be used in the runner (github action)
 class Alert(BaseModel):
@@ -136,6 +157,36 @@ class Alert(BaseModel):
             logger.info(self.message)
         elif self.action == AlertAction.RING_BELL:
             pass
+
+    def custom_json(self):
+        # Convert the model to a dict, including the comparator as its name
+        data = self.model_dump()
+        data['operator'] = self.operator.__name__
+        data['action'] = self.action.name
+        data['bid_ask'] = self.bid_ask.name
+        return json.dumps(data)
+
+    @classmethod
+    def custom_load(cls, json_str):
+        # Load the data from the JSON string
+        data = json.loads(json_str)
+        # Convert the comparator name back to the actual function
+        operator_name = data.get('operator')
+        if operator_name in operator_map:
+            data['operator'] = operator_map[operator_name]
+        else:
+            raise ValidationError(f"Invalid operatoroperator name: {operator_name}")
+
+        try:
+            data['action'] = AlertAction.from_str(data['action'])
+        except KeyError:
+            raise ValidationError(f"Invalid action name: {data['action']}")
+
+        try:
+            data['bid_ask'] = BidAsk.from_str(data['bid_ask'])
+        except KeyError:
+            raise ValidationError(f"Invalid bid_ask name: {data['bid_ask']}")
+        return cls(**data)
 
 
 class XTBSpotAlert(Alert):
@@ -187,3 +238,16 @@ if __name__ == '__main__':
                             bid_ask=BidAsk.ASK,
                             action=AlertAction.PRINT_MESSAGE,
                             message="Gold spot price is above 1800")
+    # from unittest.mock import MagicMock
+    # client = MagicMock()
+    # client.get_current_price.return_value = (1800.1, 1800.2)
+    # client.is_market_open.return_value = True
+    # gold_spot_price.evaluate(client=client)
+    # import json
+    # # dump to json
+    # d = gold_spot_price.custom_json()
+
+    # # dump to file
+    # with open("alert.json", "w") as f:
+    #     # set indent
+    #     json.dump(json.loads(d), f, indent=4)
