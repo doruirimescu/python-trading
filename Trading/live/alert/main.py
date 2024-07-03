@@ -104,7 +104,6 @@ if __name__ == "__main__":
     alerts = []
     json_file = JsonFileRW(ALERTS_PATH)
     data = json_file.read()
-    print(data)
     for alert in data:
         alerts.append(XTBSpotAlert.custom_load(json.dumps(alert)))
     client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
