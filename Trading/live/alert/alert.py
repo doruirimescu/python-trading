@@ -102,6 +102,7 @@ class AlertAction(Enum):
     PRINT_MESSAGE = 1
     RING_BELL = 2
 
+# Schedule should not be used in this class, it should be used in the runner (github action)
 class Alert(BaseModel):
     name: str
     description: str
@@ -128,7 +129,7 @@ class Alert(BaseModel):
         if not self._should_trigger(*args, **kwargs) or self.is_handled:
             return
         if self.action == AlertAction.SEND_EMAIL:
-            send_email(subject=self.name, message=self.message)
+            send_email(subject=self.name, body=self.message)
         elif self.action == AlertAction.PRINT_MESSAGE:
             from Trading.utils.custom_logging import get_logger
             logger = get_logger("AlertLogger")
@@ -156,7 +157,7 @@ class XTBSpotAlert(Alert):
         self.message = None
 
     def _should_trigger(self, client: LoggingClient) -> bool:
-        bid, ask = client.get_current_price()
+        bid, ask = client.get_current_price(self.symbol)
         result = False
         bid_ask = ""
         if self.bid_ask == BidAsk.BID:
@@ -186,9 +187,3 @@ if __name__ == '__main__':
                             bid_ask=BidAsk.ASK,
                             action=AlertAction.PRINT_MESSAGE,
                             message="Gold spot price is above 1800")
-    from unittest.mock import MagicMock
-    client = MagicMock()
-    client.get_current_price.return_value = (1800.1, 1800.2)
-    client.is_market_open.return_value = True
-
-    gold_spot_price.evaluate(client=client)

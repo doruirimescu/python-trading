@@ -39,6 +39,11 @@ jobs:
           echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' >> Trading/utils/.env
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' >> Trading/utils/.env
 
+          echo "XTB_USERNAME=${{ secrets.XTB_USERNAME }}" >> $GITHUB_ENV
+          echo "XTB_PASSWORD=${{ secrets.XTB_PASSWORD }}" >> $GITHUB_ENV
+          echo "XTB_MODE=${{ secrets.XTB_MODE }}" >> $GITHUB_ENV
+          echo "BROKER_TIMEZONE=${{ secrets.BROKER_TIMEZONE }}" >> $GITHUB_ENV
+
       - name: Run alert scripts
         run: |
           cd python-trading

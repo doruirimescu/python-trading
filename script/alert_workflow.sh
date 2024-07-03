@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-echo "HELLO WORLD"
+python3 Trading/live/alert/main.py
