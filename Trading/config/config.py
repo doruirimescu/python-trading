@@ -35,3 +35,5 @@ RANGING_STOCKS_PATH = TMP_PATH.joinpath("ranging_stocks/")
 DB_USERNAME=os.getenv("DB_USERNAME")
 DB_PASSWORD=os.getenv("DB_PASSWORD")
 DB_NAME=os.getenv("DB_NAME")
+
+ALERTS_PATH = CURRENT_FILE_PATH.joinpath("../live/alert/alert.json")
