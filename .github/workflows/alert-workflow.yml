@@ -50,3 +50,15 @@ jobs:
           ls -la
           bash script/alert_workflow.sh
           echo "Alerts sent"
+
+      - name: Commit and push changes
+        run: |
+          cd python-trading
+          ls -la
+          git config --global user.name '${{ github.actor }}'
+          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
+          git add .
+          git commit -m "Add modified alert.json files"
+          git push https://${{ secrets.MY_PAT }}@github.com/doruirimescu/python-trading HEAD:${{ github.event.inputs.branchName || 'master' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
