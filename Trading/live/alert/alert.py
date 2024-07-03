@@ -1,10 +1,11 @@
 from Trading.live.client.client import LoggingClient, TradingClient
 from Trading.instrument.timeframes import TIMEFRAMES_TO_NAME
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
 from Trading.utils.calculations import round_to_two_decimals
 from datetime import datetime
 from typing import Optional, Tuple, List
 from pydantic import BaseModel, ValidationError
+import json
 
 
 def get_top_ten_biggest_swaps_report(client: LoggingClient) -> Tuple[str, List]:

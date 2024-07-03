@@ -5,7 +5,7 @@ from Trading.utils.send_email import send_email_if_exception_occurs
 from Trading.live.client.exception import MarketClosedException, ServerNotUpException
 from Trading.config.config import TIMEZONE
 
-from Trading.instrument import Instrument
+from Trading.instrument import Instrument, TIMEFRARME_ENUM, Timeframe
 
 
 from XTBApi.api import Client as XTBClient
@@ -37,6 +37,13 @@ class LoggingClient:
     # @send_email_if_exception_occurs()
     # @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_last_n_candles_history(self, instrument: Instrument, N: int):
+        # try to get from cache
+        from Trading.utils.history_cache import get_history_days, store_history_days
+        if instrument.timeframe.get_name() == '1-day':
+            history = get_history_days(instrument, N)
+            if history is not None:
+                return history
+
         if (not self._is_server_up):
             raise ServerNotUpException()
 
@@ -57,7 +64,10 @@ class LoggingClient:
             low.append(ohlct['low'])
             close.append(ohlct['close'])
             date.append(datetime.fromtimestamp(ohlct['timestamp']))
-        return {'open': open, 'high': high, 'low': low, 'close': close, 'date': date}
+        history= {'open': open, 'high': high, 'low': low, 'close': close, 'date': date}
+        if instrument.timeframe.get_name() == '1-day':
+            store_history_days(history, instrument, N)
+        return history
 
     @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=10, sleep_time_s=6)
@@ -119,7 +129,7 @@ class LoggingClient:
         return False
 
     @send_email_if_exception_occurs()
-    @exception_with_retry(n_retry=2, sleep_time_s=1)
+    @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_current_price(self, symbol: str):
         now = datetime.now()
         ts = now.timestamp()
@@ -127,7 +137,9 @@ class LoggingClient:
         if not self._is_server_up():
             raise ServerNotUpException()
         if not self.is_market_open(symbol):
-            raise MarketClosedException(symbol)
+            pass
+            # raise MarketClosedException(symbol)
+            # it will get last price
         prices = self._client.get_tick_prices([symbol], ts)
         self._client.logout()
         return (prices['quotations'][0]['bid'], prices['quotations'][0]['ask'])
@@ -339,10 +351,10 @@ class XTBTradingClient(TradingClient):
         if mode.lower() == "demo":
             return
         print("Trading with a live client. Do you wish to continue ? y/n")
-        should_continue = input().strip()
-        if should_continue.lower() != "y":
-            import sys
-            sys.exit(0)
+        # should_continue = input().strip()
+        # if should_continue.lower() != "y":
+        #     import sys
+        #     sys.exit(0)
 
 def get_cmd(position: str):
     if position.upper() == 'BUY':
