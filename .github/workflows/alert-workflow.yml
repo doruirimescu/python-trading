@@ -8,7 +8,7 @@ on:
         required: true
         default: 'master'
   schedule:
-    - cron: '* */2 * * 1-5' # Every 2nd hour on every day-of-week from Monday through Friday
+    - cron: '15 */2 * * 1-5' # Every 2nd hour on every day-of-week from Monday through Friday
 jobs:
   alert-job:
     runs-on: ubuntu-latest
