@@ -8,38 +8,7 @@ from Trading.instrument.price import BidAsk
 from Trading.utils.send_email import send_email
 from abc import abstractmethod
 import operator
-
-# Dictionary mapping operator functions to their string representations
-operator_strings = {
-    operator.lt: "<",
-    operator.le: "<=",
-    operator.eq: "==",
-    operator.ne: "!=",
-    operator.ge: ">=",
-    operator.gt: ">",
-    operator.add: "+",
-    operator.sub: "-",
-    operator.mul: "*",
-    operator.truediv: "/",
-    operator.floordiv: "//",
-    operator.mod: "%",
-    operator.pow: "**",
-    operator.and_: "&",
-    operator.or_: "|",
-    operator.xor: "^",
-    operator.not_: "not",
-    operator.inv: "~"
-}
-
-# Map of comparator names to actual functions
-operator_map = {
-    'gt': operator.gt,
-    'lt': operator.lt,
-    'eq': operator.eq,
-    'ne': operator.ne,
-    'ge': operator.ge,
-    'le': operator.le,
-}
+from utils.operator import OPERATOR_TO_SYMBOL, NAME_TO_OPERATOR
 class AlertAction(Enum):
     SEND_EMAIL = 0
     PRINT_MESSAGE = 1
@@ -107,8 +76,8 @@ class Alert(BaseModel):
         data = json.loads(json_str)
         # Convert the comparator name back to the actual function
         operator_name = data.get('operator')
-        if operator_name in operator_map:
-            data['operator'] = operator_map[operator_name]
+        if operator_name in NAME_TO_OPERATOR:
+            data['operator'] = NAME_TO_OPERATOR[operator_name]
         else:
             raise ValidationError(f"Invalid operatoroperator name: {operator_name}")
 
@@ -133,7 +102,7 @@ class XTBSpotAlert(Alert):
 
     def _trigger(self, bid_ask: str, price: float):
         self.is_triggered = True
-        self.message = (f"{self.symbol} {bid_ask} price of {price} is {operator_strings[self.operator]} "
+        self.message = (f"{self.symbol} {bid_ask} price of {price} is {OPERATOR_TO_SYMBOL[self.operator]} "
                         f"{self.threshold_value} from datasource: {self.data_source}")
 
     def _untrigger(self):
