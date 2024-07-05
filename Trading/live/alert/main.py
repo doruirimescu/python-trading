@@ -97,10 +97,20 @@ def generate_alerts_to_json():
         generate_xtb_alert_gt(
             "Patterson", "PDCO.US_9", 29.5, BidAsk.ASK, AlertAction.SEND_EMAIL
         ),
+        generate_xtb_alert_lt(
+            "Golden Ocean", "GOGL.NO_9", 100, BidAsk.BID, AlertAction.SEND_EMAIL
+        ),
+        generate_xtb_alert_lt(
+            "Golden Ocean", "GOGL.NO_9", 90, BidAsk.BID, AlertAction.SEND_EMAIL
+        ),
+        generate_xtb_alert_lt(
+            "Golden Ocean", "GOGL.NO_9", 80, BidAsk.BID, AlertAction.SEND_EMAIL
+        ),
     ]
     dump_alerts_to_json(alerts)
 
 if __name__ == "__main__":
+    # generate_alerts_to_json()
     alerts = []
     json_file = JsonFileRW(ALERTS_PATH)
     data = json_file.read()
