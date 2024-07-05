@@ -34,6 +34,10 @@ class Expression(Enableable):
         left, right = str(left), str(right)
         operator_symbol = OPERATOR_TO_SYMBOL[self.operator]
         evaluate = str(self.evaluate())
+        if self.left and isinstance(self.left, Enableable) and not self.left.is_enabled:
+            return str(self.right)
+        if self.right and isinstance(self.right, Enableable) and not self.right.is_enabled:
+            return str(self.left)
         s = f"({self.name}{left} {operator_symbol} {right} {evaluate})"
         return s
 
@@ -50,6 +54,8 @@ class Expression(Enableable):
     def evaluate(self) -> bool:
         if self.left is None or self.right is None:
             return False
+        if not self.is_enabled:
+            return True
         return self.operator(self.left.evaluate(), self.right.evaluate())
 
     def __or__(self, other) -> Expression:
@@ -96,6 +102,8 @@ class Numerical(Expression):
     def evaluate(self) -> bool:
         if self.left is None or self.right is None:
             return False
+        if not self.is_enabled:
+            return True
         return self.operator(self.left, self.right)
 
     def debug(self):
@@ -125,3 +133,20 @@ def and_(*criteria) -> Expression:
 def or_(*criteria) -> Expression:
     c = criteria[0]
     return c | or_(*criteria[1:]) if criteria[1:] else c
+
+# roe = Threshold("Return on Equity: ", operator.ge, 10.0)
+# print(roe)
+# div_yield = Threshold("Dividend yield: ", operator.ge, 5.0)
+# print(div_yield)
+# combined = roe & div_yield
+# print(combined)
+
+# roe.value = 15.0
+# div_yield.value = 7.0
+# print(combined)
+
+# roe.value = 3.0
+# print(combined.debug())
+
+# roe.disable()
+# print(combined)

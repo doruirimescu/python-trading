@@ -17,4 +17,7 @@ print(combined)
 roe.value = 3.0
 print(combined.debug())
 # (Return on Equity: 3.0 >= 10.0 False)
+roe.disable()
+print(combined)
+# (Dividend yield: 7.0 >= 5.0 True)
 ```
