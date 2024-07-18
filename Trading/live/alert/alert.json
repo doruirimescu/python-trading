@@ -211,6 +211,21 @@
     },
     {
         "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Patterson spot price is above 27.8",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Patterson Spot Price XTB Alert",
+        "operator": "gt",
+        "schedule": "* * * * *",
+        "symbol": "PDCO.US_9",
+        "threshold_value": 27.8,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
         "bid_ask": "BID",
         "data_source": "XTB",
         "description": "Alert when Golden Ocean spot price is below 100",
