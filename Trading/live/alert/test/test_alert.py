@@ -2,7 +2,7 @@ from Trading.live.alert.alert import Alert, XTBSpotAlert, AlertAction
 from Trading.instrument import Timeframe
 from unittest import TestCase
 from unittest.mock import MagicMock
-from Trading.instrument.price import BidAsk
+from Trading.model.price import BidAsk
 import operator
 
 class TestAlert(TestCase):

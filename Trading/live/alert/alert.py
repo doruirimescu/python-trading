@@ -4,7 +4,7 @@ from pydantic import BaseModel, ValidationError
 import json
 from enum import Enum
 from typing import Callable, Optional
-from Trading.instrument.price import BidAsk
+from Trading.model.price import BidAsk
 from Trading.utils.send_email import send_email
 from abc import abstractmethod
 from Trading.utils.operator import OPERATOR_TO_SYMBOL, NAME_TO_OPERATOR
