@@ -1,5 +1,6 @@
 from Trading.live.client.client import XTBLoggingClient, get_cmd
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.utils.calculations import (
     count_zero_crossings,

@@ -1,6 +1,7 @@
 from Trading.live.client.client import XTBLoggingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.utils.visualize import plot_list_dates
 from Trading.utils.ratio.combinatorics import get_ith_ratio
 from typing import Optional, Dict
@@ -14,7 +15,7 @@ from typing import List
 from Trading.utils.ratio.ratio import Ratio, DateNotFoundError, CurrentHolding
 from Trading.utils.history_cache import get_history_days
 from Trading.utils.calculations import calculate_mean
-from Trading.utils.data_processor import JsonFileRW
+from stateful_data_processor.file_rw import JsonFileRW
 
 
 def exit():

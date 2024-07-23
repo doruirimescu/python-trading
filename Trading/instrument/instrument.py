@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from Trading.instrument.timeframes import Timeframe
+from Trading.model.timeframes import Timeframe
 
 @dataclass
 class Instrument:

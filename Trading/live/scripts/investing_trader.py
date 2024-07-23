@@ -1,6 +1,7 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.live.trader.investing_trader import InvestingTrader
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.live.investing_api.investing_technical import InvestingTechnicalAnalyzer
 from dotenv import load_dotenv
 import time

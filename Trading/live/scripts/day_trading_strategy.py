@@ -5,7 +5,8 @@ from Trading.utils.time import (get_date_now_cet,
 from Trading.algo.strategy.strategy import DailyBuyStrategy, Action
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.algo.trade.trade import TradeType, Trade
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.utils.write_to_file import (write_json_to_file_named_with_today_date,
                                         read_json_from_file_named_with_today_date,
                                         read_json_file)

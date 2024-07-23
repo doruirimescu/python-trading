@@ -10,7 +10,7 @@ from Trading.live.investing_api.investing_technical import *
 
 from Trading.live.logger.ticker import Ticker
 from Trading.instrument.instrument import Instrument
-from Trading.instrument.timeframes import *
+from Trading.model.timeframes import *
 from Trading.candlechart.candleCsvWriter import CandleCsvWriter
 
 import time

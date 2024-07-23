@@ -6,7 +6,8 @@ from Trading.symbols.constants import XTB_ETF_SYMBOLS
 
 from Trading.utils.write_to_file import read_json_file
 from Trading.utils.time import get_date_now_cet
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.live.scripts.data.symbols.failing_symbols import FAILING_SYMBOLS
 from dotenv import load_dotenv
 from datetime import datetime

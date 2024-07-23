@@ -1,5 +1,5 @@
 from datetime import datetime
-from Trading.instrument.timeframes import *
+from Trading.model.timeframes import *
 from Trading.utils.time import get_datetime_now_cet
 from typing import Optional
 import logging

@@ -1,5 +1,6 @@
 import argparse
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from typing import List, Tuple, Optional
 
 

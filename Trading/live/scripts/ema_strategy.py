@@ -1,7 +1,8 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.utils.send_email import send_email
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.algo.indicators.indicator import EMAIndicator, BollingerBandsIndicator
 from Trading.algo.technical_analyzer.technical_analysis import TrendAnalysis, TechnicalAnalysis
 from Trading.algo.strategy.strategy import Action, StrategyType, BollingerBandsStrategy

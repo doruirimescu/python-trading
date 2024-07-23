@@ -1,5 +1,4 @@
-from Trading.live.alert.alert import Alert, XTBSpotAlert, AlertAction
-from Trading.instrument import Timeframe
+from Trading.live.alert.alert import XTBSpotAlert, AlertAction
 from unittest import TestCase
 from unittest.mock import MagicMock
 from Trading.model.price import BidAsk

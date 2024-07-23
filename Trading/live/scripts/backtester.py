@@ -1,7 +1,7 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.instrument.instrument import Instrument
-from Trading.instrument.timeframes import Timeframe
+from Trading.model.timeframes import Timeframe
 from dotenv import load_dotenv
 from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT, XTB_INDEX_SYMBOLS, XTB_ETF_SYMBOLS
 import os

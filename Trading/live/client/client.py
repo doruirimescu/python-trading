@@ -5,7 +5,7 @@ from Trading.utils.send_email import send_email_if_exception_occurs
 from Trading.live.client.exception import MarketClosedException, ServerNotUpException
 from Trading.config.config import TIMEZONE
 
-from Trading.instrument import Instrument, TIMEFRARME_ENUM, Timeframe
+from Trading.instrument import Instrument
 
 
 from XTBApi.api import Client as XTBClient

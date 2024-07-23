@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 from Trading.symbols.investing.symbols_url import SYMBOLS_URL
-from Trading.instrument.timeframes import TIMEFRAMES
+from Trading.model.timeframes import TIMEFRAMES
 from Trading.algo.technical_analyzer.technical_analysis import TechnicalAnalysis
 from Trading.instrument.instrument import Instrument
 __all__ = ['InvestingTechnicalAnalyzer']

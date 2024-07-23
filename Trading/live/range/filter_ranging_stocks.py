@@ -7,7 +7,8 @@ from stateful_data_processor.file_rw import JsonFileRW
 from stateful_data_processor.processor import StatefulDataProcessor
 
 from Trading.config.config import MODE, PASSWORD, RANGING_STOCKS_PATH, USERNAME
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from Trading.live.client.client import XTBTradingClient
 from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS
 from Trading.utils.history import History

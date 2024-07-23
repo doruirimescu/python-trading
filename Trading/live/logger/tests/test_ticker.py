@@ -1,7 +1,6 @@
-import pytest
 import unittest
 from Trading.live.logger.ticker import Ticker
-from Trading.instrument.timeframes import TIMEFRARME_ENUM
+from Trading.model.timeframes import TIMEFRARME_ENUM
 from datetime import datetime
 
 class TestTicker(unittest.TestCase):

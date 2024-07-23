@@ -1,7 +1,5 @@
 from unittest import TestCase
-from Trading.instrument.timeframes import Timeframe, TIMEFRAMES
-from Trading.instrument import TIMEFRARME_ENUM
-
+from Trading.model.timeframes import Timeframe, TIMEFRAMES, TIMEFRARME_ENUM
 class TestTimeframe(TestCase):
     def test_timeframe(self):
         for t in TIMEFRAMES:

@@ -1,6 +1,7 @@
 from Trading.live.client.client import XTBTradingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.instrument import Instrument, Timeframe
+from Trading.instrument import Instrument
+from Trading.model.timeframes import Timeframe
 from dotenv import load_dotenv
 from Trading.utils.calculations import calculate_net_profit_eur
 from Trading.live.hedge.fixed_conversion_rates import convert_currency_to_eur
