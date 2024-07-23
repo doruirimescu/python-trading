@@ -37,6 +37,9 @@ class Investment:
         self.annual_return_rate = annual_return_rate
 
     def invest(self, amount, current_year, n_years):
+        '''
+        Invests amount in the current year and calculates the gains in the future.
+        '''
         self.total_invested += amount
 
         future_multiplier = (1 + self.annual_return_rate) ** (
@@ -97,9 +100,12 @@ def _simulate_percentage(
         yearly_investment = 0
         if not l.is_done():
             yearly_payment = yearly_salary * percentage
+
+            # Round yearly payment to principal and interest if it exceeds principal
             if yearly_payment > l.principal:
                 yearly_payment = l.principal + l.get_yearly_interest()
 
+            # Invest what is left after paying the loan
             yearly_investment = yearly_salary - yearly_payment
         else:
             yearly_investment = yearly_salary
@@ -117,10 +123,11 @@ def perform_simulation(
     interest_rate: float,
     fixed_month_installement: int,
     investment_return: float,
-    yearly_salary: int,
+    monthly_salary: int,
     n_years: int,
     should_plot: bool = False,
 ):
+    yearly_salary = monthly_salary * 12
     infeasible_ps = list()
     total_worth_list = list()
     P_RANGE_START = 0.05
@@ -168,24 +175,21 @@ def perform_simulation(
         "total_worth_list": total_worth_list,
     }
 
-PRINCIPAL = 200000
-IR = 5.5 / 100
+PRINCIPAL = 100000
+IR = 4.0 / 100
 FIXED_MONTHLY_INSTALLMENT = 450
-
-
-INVESTMENT_RETURN = round(7 / 100, 2)
-
-N_YEARS = 10
+INVESTMENT_RETURN = round(10 / 100, 2)
+N_YEARS = 20
 N_MONTHS = 12 * N_YEARS
-
 MONTHLY_SALARY = 3500
-YEARLY_SALARY = 12 * MONTHLY_SALARY
 
-# perform_simulation(
-#     PRINCIPAL,
-#     IR,
-#     FIXED_MONTHLY_INSTALLMENT,
-#     INVESTMENT_RETURN,
-#     YEARLY_SALARY,
-#     N_YEARS,
-# )
+perform_simulation(
+    PRINCIPAL,
+    IR,
+    FIXED_MONTHLY_INSTALLMENT,
+    INVESTMENT_RETURN,
+    MONTHLY_SALARY,
+    N_YEARS,
+    True
+)
+#TODO: compare with annuity formula and see if we get the same result
