@@ -1,6 +1,7 @@
 from Trading.live.client.client import XTBLoggingClient
 from Trading.config.config import USERNAME, PASSWORD, MODE, ALERTS_PATH
-from Trading.live.alert.alert import XTBSpotAlert, BidAsk, AlertAction
+from Trading.live.alert.alert import XTBSpotAlert, AlertAction
+from Trading.instrument.price import BidAsk
 import operator
 from typing import List
 import json

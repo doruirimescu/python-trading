@@ -1,5 +1,5 @@
 from Trading.live.client.client import LoggingClient
-from typing import Optional, Tuple, List
+from typing import Optional
 from pydantic import BaseModel, ValidationError
 import json
 from enum import Enum
