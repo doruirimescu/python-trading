@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 from Trading.instrument.timeframes import Timeframe
-from Trading.instrument.symbol_investing_to_x import SYMBOL_XTB_INDEX, SYMBOL_INVESTING_INDEX, SYMBOL_TO_X
-
 
 @dataclass
 class Instrument:
