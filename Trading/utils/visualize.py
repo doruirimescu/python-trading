@@ -1,7 +1,7 @@
 from typing import List
 from matplotlib.dates import date2num
 import matplotlib.pyplot as plt
-from Trading.algo.strategy.trade import Trade
+from Trading.model.trade import Trade
 
 # Visualizations for trades
 

@@ -152,7 +152,7 @@ def calculate_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
     if ratio_values != ratio.calculate_ratio():
         raise Exception("Error in calculating ratio")
 
-    from Trading.algo.strategy.trade import (
+    from Trading.model.trade import (
         Trade,
         analyze_trades,
         StrategySummary,

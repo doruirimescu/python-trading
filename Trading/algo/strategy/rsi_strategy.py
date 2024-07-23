@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import mplfinance as mpf
 from typing import List
 from datetime import datetime
-from Trading.algo.strategy.trade import Trade
+from Trading.model.trade import Trade
 from Trading.utils.timeseries import slice_data_np
 
 
