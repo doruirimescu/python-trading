@@ -81,6 +81,13 @@ class LoggingClient:
         return symbols
 
     @send_email_if_exception_occurs()
+    @exception_with_retry(n_retry=10, sleep_time_s=6)
+    def get_all_symbol_data(self):
+        self._client.login()
+        symbols = self._client.get_all_symbols()
+        return symbols
+
+    @send_email_if_exception_occurs()
     @exception_with_retry(n_retry=1, sleep_time_s=1)
     def get_profit_calculation(self, symbol, open_price, close_price, volume, cmd):
         # cmd = 0 for buy, 1 for sell
