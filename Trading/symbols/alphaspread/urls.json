@@ -279,7 +279,7 @@
     "GPOR": null,
     "IDEX": "https://www.alphaspread.com/security/nasdaq/idex/summary",
     "ORK": "https://www.alphaspread.com/security/otc/orklf/summary",
-    "DOX": null,
+    "DOX": "https://www.alphaspread.com/security/NASDAQ/DOX/summary",
     "SOLO": "https://www.alphaspread.com/security/nasdaq/solo/summary",
     "ABCL": "https://www.alphaspread.com/security/nasdaq/abcl/summary",
     "GOGO": "https://www.alphaspread.com/security/tse/9984/summary",
@@ -1814,6 +1814,7 @@
     "CAP": "https://www.alphaspread.com/security/lse/capc/summary",
     "WCN": "https://www.alphaspread.com/security/tsx/wcn/summary",
     "AVY": "https://www.alphaspread.com/security/nyse/avy/summary",
+    "RDDT": "https://www.alphaspread.com/security/nyse/rddt/summary",
     "PIC": null,
     "TKR": null,
     "TRVG": null,
@@ -2377,7 +2378,7 @@
     "DWNI": null,
     "MDF": null,
     "WAB": null,
-    "OTLY": null,
+    "OTLY": "https://www.alphaspread.com/security/nasdaq/otly/summary",
     "CYBR": null,
     "TGS": null,
     "LINK": null,
@@ -2608,5 +2609,6 @@
     "PEGA": null,
     "URI": null,
     "ARM": "https://www.alphaspread.com/security/nasdaq/ARM/summary",
-    "GRAL": "https://www.alphaspread.com/security/nasdaq/GRALV/summary"
+    "GRAL": "https://www.alphaspread.com/security/nasdaq/GRALV/summary",
+    "OBDC": "https://www.alphaspread.com/security/NYSE/OWL/summary"
 }
