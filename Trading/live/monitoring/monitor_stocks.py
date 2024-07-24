@@ -11,7 +11,6 @@ from Trading.stock.alphaspread.alphaspread import (
 )
 from dotenv import load_dotenv
 from datetime import date
-import json
 import os
 import logging
 from time import sleep
@@ -24,6 +23,26 @@ TMP_FILENAME = TMP_PATH / "monitor_stocks" /(f"{date.today()}.json")
 USD_CVP_FILENAME = TMP_PATH / "monitor_stocks" / f"usd_cv_price_{date.today()}.json"
 EUR_CVP_FILENAME = TMP_PATH / "monitor_stocks" / f"eur_cv_price_{date.today()}.json"
 
+def get_alphaspread_url(xtb_symbol):
+    #remove _US9 from the symbol
+    xtb_symbol = xtb_symbol.replace(".US_9", "")
+    xtb_symbol = xtb_symbol.replace(".US", "")
+    from Trading.stock.alphaspread.url import get_alphaspread_url_from_ticker
+    try:
+        symbol, url = get_alphaspread_url_from_ticker(xtb_symbol)
+        return symbol, url
+    except Exception as e:
+        print(e)
+
+    try:
+        symbol, url = get_alphaspread_symbol_url(xtb_symbol)
+        sleep(3)
+        return symbol, url
+    except Exception as e:
+        print(e)
+
+    raise Exception(f"Could not find alphaspread url for {xtb_symbol}")
+
 def get_alphaspread_valuations(stock_names):
     stock_valuation = dict()
     for stock_name in stock_names:
@@ -31,7 +50,7 @@ def get_alphaspread_valuations(stock_names):
             print("Skipping")
             continue
         try:
-            symbol, url = get_alphaspread_symbol_url(stock_name)
+            symbol, url = get_alphaspread_url(stock_name)
             analysis = analyze_url(url, symbol)
             stock_valuation[stock_name] = (
                 analysis.valuation_type,
