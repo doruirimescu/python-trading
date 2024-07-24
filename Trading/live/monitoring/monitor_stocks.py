@@ -1,5 +1,4 @@
 from exception_with_retry import exception_with_retry
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -9,8 +8,6 @@ from Trading.config.config import USERNAME, PASSWORD, MODE
 from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
 from Trading.stock.alphaspread.alphaspread import (
     analyze_url,
-    valuation_type_order,
-    ValuationType,
 )
 from dotenv import load_dotenv
 from datetime import date
@@ -18,124 +15,61 @@ import json
 import os
 import logging
 from time import sleep
+from stateful_data_processor.file_rw import JsonFileRW
+from Trading.live.monitoring.get_open_stock_trades import get_data_from_broker
+from Trading.config.config import TMP_PATH
 
-# open all symbols file
-# Monitor stock allocations
+TMP_FILENAME = TMP_PATH / "monitor_stocks" /(f"{date.today()}.json")
 
-# get current file path
-CURRENT_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+USD_CVP_FILENAME = TMP_PATH / "monitor_stocks" / f"usd_cv_price_{date.today()}.json"
+EUR_CVP_FILENAME = TMP_PATH / "monitor_stocks" / f"eur_cv_price_{date.today()}.json"
 
-
-TMP_FILENAME = CURRENT_FILE_PATH + "/" + (f"tmp_{date.today()}.json")
-
-
-def get_data_from_broker(client):
-    stock_contract_value = dict()
-    stock_profits = dict()
-
-    trades = client.get_open_trades()
-    for trade in trades:
-        if trade["closed"] or not trade["profit"]:
+def get_alphaspread_valuations(stock_names):
+    stock_valuation = dict()
+    for stock_name in stock_names:
+        if stock_name in stock_valuation:
+            print("Skipping")
             continue
+        try:
+            symbol, url = get_alphaspread_symbol_url(stock_name)
+            analysis = analyze_url(url, symbol)
+            stock_valuation[stock_name] = (
+                analysis.valuation_type,
+                analysis.valuation_score,
+                analysis.solvency_score,
+            )
+        except Exception as e:
+            print(f"Error analyzing {stock_name}: {e}")
 
-        symbol = trade["symbol"]
-        nominal_value = trade["nominalValue"]
-        print(f"Retrieving data for symbol {symbol}")
-
-        # Filter out other instruments
-        s = XTB_ALL_SYMBOLS_DICT[symbol]
-        cat = s["categoryName"]
-        if cat not in ["STC"]:
-            continue
-
-        # Add up contract value and profit
-        if not stock_contract_value.get(symbol):
-            stock_contract_value[symbol] = nominal_value
-            stock_profits[symbol] = trade["profit"]
-        else:
-            stock_contract_value[symbol] += nominal_value
-            stock_profits[symbol] += trade["profit"]
-
-        s = client.get_symbol(symbol)
-        cat = s["categoryName"]
-    return stock_contract_value, stock_profits
-
+    return stock_valuation
 
 @exception_with_retry(n_retry=10, sleep_time_s=5.0)
 def monitor_once(client, should_plot=True):
-    is_data_loaded_from_file = False
-    stock_valuation = dict()
-    if not os.path.isfile(TMP_FILENAME):
-        stock_contract_value, stock_profits = get_data_from_broker(client)
-    else:
-        # load data from file
-        with open(TMP_FILENAME, "r") as f:
-            file_data = json.load(f)
-            stock_contract_value = file_data["stock_contract_value"]
-            stock_profits = file_data["stock_profits"]
-            stock_valuation = file_data["stock_valuation"]
-            is_data_loaded_from_file = True
-            print(f"Loaded data from file, stocks from xtb: {len(stock_contract_value)} stocks from file: {len(stock_valuation)}")
 
-    total_portfolio_contract_value = sum(stock_contract_value.values())
-    total_portfolio_profit = sum(stock_profits.values())
+    symbol_to_cv_profit = get_data_from_broker(client, USD_CVP_FILENAME)
+    stock_valuation = get_alphaspread_valuations(symbol_to_cv_profit.keys())
+
+    total_portfolio_contract_value = sum([cv for cv, _ in symbol_to_cv_profit.values()])
+    total_portfolio_profit = sum([profit for _, profit in symbol_to_cv_profit.values()])
 
     stock_contract_value_percentage = dict()
     stock_profits_percentage = dict()
-    for symbol in stock_contract_value.keys():
-        stock_contract_value_percentage[symbol] = (
-            stock_contract_value[symbol] / total_portfolio_contract_value
-        )
-        stock_profits_percentage[symbol] = (
-            stock_profits[symbol] / total_portfolio_profit
-        )
+    for symbol in symbol_to_cv_profit.keys():
+        cv = symbol_to_cv_profit[symbol][0]
+        profit = symbol_to_cv_profit[symbol][1]
+
+        stock_contract_value_percentage[symbol] = cv / total_portfolio_contract_value
+        stock_profits_percentage[symbol] = profit / total_portfolio_profit
 
     # Data for pie chart
     labels = list(stock_contract_value_percentage.keys())
     labels = [XTB_ALL_SYMBOLS_DICT[l]["description"].strip() for l in labels]
     sizes = list(stock_contract_value_percentage.values())
 
-
-    stock_names_to_retry = []
-
-    for stock_name in labels:
-        if stock_name in stock_valuation:
-                print("Skipping")
-                continue
-        try:
-            symbol, url = get_alphaspread_symbol_url(stock_name)
-            analysis = analyze_url(url, symbol)
-            stock_valuation[stock_name] = (
-                analysis.valuation_type,
-                analysis.valuation_score,
-                analysis.solvency_score,
-            )
-        except Exception as e:
-            print(f"Error analyzing {stock_name}: {e}")
-            if "Too Many Requests for url" in str(e):
-                stock_names_to_retry.append(stock_name)
-                print(f"Added {stock_name} to retry list")
-
-    for stock_name in stock_names_to_retry:
-        try:
-            sleep(3)
-            print(f"Retrying {stock_name}")
-            symbol, url = get_alphaspread_symbol_url(stock_name)
-            analysis = analyze_url(url, symbol)
-            stock_valuation[stock_name] = (
-                analysis.valuation_type,
-                analysis.valuation_score,
-                analysis.solvency_score,
-            )
-        except Exception as e:
-            print(f"Error analyzing {stock_name}: {e}")
-
     # Sort the dictionary using the new sort order
     sorted_stock_valuation_new = sorted(
         stock_valuation.items(),
-        key=lambda item: (
-            item[1][2] if item[1][2] is not None else 0,
-        ),
+        key=lambda item: (item[1][2] if item[1][2] is not None else 0,),
     )
     for stock_name, valuation in sorted_stock_valuation_new:
         print(f"{stock_name}: {valuation[0]} {valuation[1]}")
@@ -151,19 +85,6 @@ def monitor_once(client, should_plot=True):
         "red" if item[1][0] == "Overvalued" else "green"
         for item in sorted_stock_valuation_new
     ]
-
-    with open(TMP_FILENAME, "w") as f:
-        json.dump(
-            {
-                "stock_contract_value": stock_contract_value,
-                "stock_profits": stock_profits,
-                "stock_valuation": stock_valuation,
-            },
-            f,
-            indent=4,
-            sort_keys=True,
-            default=str,
-        )
 
     if should_plot:
         # Plotting
@@ -232,6 +153,6 @@ if __name__ == "__main__":
     username = os.getenv("USD_STOCKS")
     password = os.getenv("XTB_PASSWORD")
     mode = os.getenv("XTB_MODE")
-    client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
+    client = XTBTradingClient(username, password, mode, False)
 
     monitor_once(client, should_plot=True)
