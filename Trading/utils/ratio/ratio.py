@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
 from abc import abstractmethod
 from Trading.utils.custom_logging import get_logger
-from Trading.utils.history import History, OHLC
+from Trading.model.history import History, OHLC
 from datetime import datetime
 from Trading.utils.ratio.combinatorics import get_all_ratios
 

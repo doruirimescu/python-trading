@@ -1,7 +1,7 @@
 import unittest
 
 from Trading.utils.ratio.ratio import Ratio, DateNotFoundError
-from Trading.utils.history import History
+from Trading.model.history import History
 from datetime import datetime
 
 HISTORY_A = {"date": ["2021-01-01", "2021-01-02"], "close": [1, 2]}

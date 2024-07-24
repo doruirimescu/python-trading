@@ -183,13 +183,13 @@ N_YEARS = 20
 N_MONTHS = 12 * N_YEARS
 MONTHLY_SALARY = 3500
 
-perform_simulation(
-    PRINCIPAL,
-    IR,
-    FIXED_MONTHLY_INSTALLMENT,
-    INVESTMENT_RETURN,
-    MONTHLY_SALARY,
-    N_YEARS,
-    True
-)
+# perform_simulation(
+#     PRINCIPAL,
+#     IR,
+#     FIXED_MONTHLY_INSTALLMENT,
+#     INVESTMENT_RETURN,
+#     MONTHLY_SALARY,
+#     N_YEARS,
+#     True
+# )
 #TODO: compare with annuity formula and see if we get the same result

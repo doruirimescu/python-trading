@@ -1,5 +1,5 @@
 from Trading.utils.range.range import calculate_rank, rank_histories
-from Trading.utils.history import History
+from Trading.model.history import History
 import unittest
 
 class TestRange(unittest.TestCase):

@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional
-from Trading.utils.history import History
+from Trading.model.history import History
 from Trading.utils.custom_logging import get_logger
 
 MAIN_LOGGER = get_logger("range.py")

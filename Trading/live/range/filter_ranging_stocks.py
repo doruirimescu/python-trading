@@ -11,7 +11,7 @@ from Trading.instrument import Instrument
 from Trading.model.timeframes import Timeframe
 from Trading.live.client.client import XTBTradingClient
 from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS
-from Trading.utils.history import History
+from Trading.model.history import History
 from Trading.utils.range.range import PerfectRange
 from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
