@@ -19,4 +19,4 @@ class BidAsk(Enum):
 class PriceQuote(BaseModel):
     price: float
     time: Optional[datetime] = None
-    bid_ask: Optional[BidAsk] = None
+    currency: Optional[str] = None
