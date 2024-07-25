@@ -21,6 +21,8 @@ class Trade:
     close_price: Optional[float] = None
     max_drawdown: Optional[MaxDrawdown] = None
     symbol: Optional[str] = None
+    profit: Optional[float] = None
+    volume: Optional[float] = None
 
     def duration_days(self):
         return (self.exit_date - self.entry_date).days
