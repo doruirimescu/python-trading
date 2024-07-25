@@ -20,4 +20,5 @@ if __name__ == "__main__":
     file_reader = JsonFileRW(CURRENT_FILE_PATH.joinpath(path))
     data = file_reader.read()
     investments = PreciousMetalInvestments([PreciousMetalInvestment(**entry) for entry in data])
-    print(investments.summarize())
+
+    print(investments.summarize(current_market_price_g))

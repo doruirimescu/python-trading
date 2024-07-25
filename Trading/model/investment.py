@@ -95,7 +95,13 @@ class PreciousMetalInvestments:
             [i.other["market_price_at_purchase"] for i in self.investments_list]
         ) / len(self.investments_list)
 
-    def summarize(self):
+    def get_current_market_value(self, current_market_price_g: float):
+        return current_market_price_g * self.get_total_pure_weight_g()
+
+    def get_current_profit(self, current_market_price_g: float):
+        return current_market_price_g * self.get_total_pure_weight_g() - self.get_total_invested().price
+
+    def summarize(self, current_market_price_g: Optional[float] = None) -> str:
         from Trading.utils.chain_exceptions import chain_exceptions
 
         symbol = self.investments_list[0].symbol
@@ -137,6 +143,17 @@ class PreciousMetalInvestments:
             exceptions,
             default_return="",
         )
+        if(current_market_price_g):
+            r += chain_exceptions(
+                lambda: f"Current market value: {self.get_current_market_value(current_market_price_g):.2f} {curency}\n",
+                exceptions,
+                default_return="",
+            )
+            r += chain_exceptions(
+                lambda: f"Current profit: {self.get_current_profit(current_market_price_g):.2f} {curency}\n",
+                exceptions,
+                default_return="",
+            )
         if exceptions:
             r += "Exceptions:\n"
             for e in exceptions:
