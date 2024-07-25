@@ -27,7 +27,7 @@ def get_total_invested(json_data: Optional[dict] = None):
     if json_data is None:
         json_data = load_data(SILVER_FIlE_PATH)
     total = 0
-    for h in json_data["history"]:
+    for h in json_data:
         total += h['paid_price_eur']
     return total
 
@@ -91,7 +91,7 @@ def parse_data(json_data: Optional[dict] = None) -> List[Investment]:
     if json_data is None:
         json_data = load_data(SILVER_FIlE_PATH)
     investments = []
-    for h in json_data["history"]:
+    for h in json_data:
         i = Investment(**h)
         investments.append(i)
     return Investments(investments)
