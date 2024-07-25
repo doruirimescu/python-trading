@@ -7,7 +7,7 @@ from typing import Callable, Optional
 from Trading.model.price import BidAsk
 from Trading.utils.send_email import send_email
 from abc import abstractmethod
-from Trading.utils.operator import OPERATOR_TO_SYMBOL, NAME_TO_OPERATOR
+from Trading.utils.operator_util import OPERATOR_TO_SYMBOL, NAME_TO_OPERATOR
 class AlertAction(Enum):
     SEND_EMAIL = 0
     PRINT_MESSAGE = 1

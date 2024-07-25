@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from Trading.utils.criterion.enableable import Enableable
-from Trading.utils.operator import OPERATOR_TO_SYMBOL
+from Trading.utils.operator_util import OPERATOR_TO_SYMBOL
 from typing import Optional
 import operator
 
