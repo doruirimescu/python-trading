@@ -119,11 +119,7 @@ class PreciousMetalInvestments:
             exceptions,
             default_return="",
         )
-        r += chain_exceptions(
-            lambda: f"Total weight: {self.get_total_impure_weight_g():.2f} g\n",
-            exceptions,
-            default_return="",
-        )
+
         r += chain_exceptions(
             lambda: f"Total (impure) weight: {self.get_total_impure_weight_g():.2f} g\n",
             exceptions,
@@ -179,7 +175,7 @@ class InvestmentTarget(BaseModel):
     history: List[Investment]
 
 if __name__ == "__main__":
-    path = "/home/.../.../.../Trading/model/silver.json"
+    path = "/home/doru/personal/trading/Trading/investment/silver_new.json"
     add_new_precious_metal_to_file(
         path,
         PreciousMetalInvestment(
