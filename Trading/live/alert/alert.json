@@ -61,7 +61,7 @@
     },
     {
         "action": "SEND_EMAIL",
-        "bid_ask": "BID",
+        "bid_ask": "ASK",
         "data_source": "XTB",
         "description": "Alert when Elekta spot price is above 85.0",
         "is_handled": false,
@@ -136,32 +136,32 @@
     },
     {
         "action": "SEND_EMAIL",
-        "bid_ask": "ASK",
+        "bid_ask": "BID",
         "data_source": "XTB",
-        "description": "Alert when BD spot price is above 241",
+        "description": "Alert when BD spot price is below 224",
         "is_handled": false,
         "is_triggered": false,
         "message": null,
         "name": "BD Spot Price XTB Alert",
-        "operator": "gt",
+        "operator": "lt",
         "schedule": "* * * * *",
         "symbol": "BDX.US_9",
-        "threshold_value": 241.0,
+        "threshold_value": 224.0,
         "type": "spot"
     },
     {
         "action": "SEND_EMAIL",
-        "bid_ask": "ASK",
+        "bid_ask": "BID",
         "data_source": "XTB",
-        "description": "Alert when BioMarin spot price is above 90",
+        "description": "Alert when BioMarin spot price is below 75.5",
         "is_handled": false,
         "is_triggered": false,
         "message": null,
         "name": "BioMarin Spot Price XTB Alert",
-        "operator": "gt",
+        "operator": "lt",
         "schedule": "* * * * *",
         "symbol": "BMRN.US_9",
-        "threshold_value": 90.0,
+        "threshold_value": 75.5,
         "type": "spot"
     },
     {
@@ -267,6 +267,54 @@
         "schedule": "* * * * *",
         "symbol": "GOGL.NO_9",
         "threshold_value": 80.0,
+        "type": "spot"
+    },
+
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "BID",
+        "data_source": "XTB",
+        "description": "Alert when AMDOCS is below 78",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Amdocs Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "DOX.US_9",
+        "threshold_value": 77.6,
+        "type": "spot"
+    },
+
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Acerinox is above 10",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Acerinox Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "ACX1.ES_4",
+        "threshold_value": 10.24,
+        "type": "spot"
+    },
+
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Senior is above 1.769",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Senior Price XTB Alert",
+        "operator": "gt",
+        "schedule": "* * * * *",
+        "symbol": "SNR.UK_4",
+        "threshold_value": 1.769,
         "type": "spot"
     }
 ]
