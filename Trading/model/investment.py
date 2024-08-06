@@ -2,6 +2,7 @@ from Trading.model.price import PriceQuote
 from typing import Optional, List
 from enum import Enum
 from pydantic import BaseModel
+from datetime import date
 
 
 class Investment(BaseModel):
@@ -172,7 +173,6 @@ def add_new_precious_metal_to_file(
     file_reader.write(data)
 
 class InvestmentTarget(BaseModel):
-    from datetime import date
     symbol: str
     target: float
     target_date: date
