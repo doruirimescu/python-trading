@@ -313,5 +313,36 @@
         "symbol": "SNR.UK_4",
         "threshold_value": 1.769,
         "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when QQQ3 spot price is above 240",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Senior Price XTB Alert",
+        "operator": "gt",
+        "schedule": "* * * * *",
+        "symbol": "QQQ3.UK",
+        "threshold_value": 240,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when QQQ3 spot price is below 130",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Senior Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "QQQ3.UK",
+        "threshold_value": 130,
+        "type": "spot"
     }
+
 ]
