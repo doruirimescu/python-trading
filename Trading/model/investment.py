@@ -171,6 +171,12 @@ def add_new_precious_metal_to_file(
     data.append(new_investment.model_dump())
     file_reader.write(data)
 
+class InvestmentTarget(BaseModel):
+    from datetime import date
+    symbol: str
+    target: float
+    target_date: date
+    history: List[Investment]
 
 if __name__ == "__main__":
     path = "/home/.../.../.../Trading/model/silver.json"
