@@ -110,17 +110,19 @@ def generate_alerts_to_json():
     ]
     dump_alerts_to_json(alerts)
 
+def print_alerts(alerts: List[XTBSpotAlert], filter_list: List[str] = []):
+    alerts.sort(key=lambda x: x.symbol)
+    if filter_list:
+        alerts = [alert for alert in alerts if alert.symbol in filter_list]
+    for alert in alerts:
+        # Just print the description and add the message if the alert is triggered
+        print(alert.description)
+        if alert.is_triggered:
+            print(alert.message)
+
 if __name__ == "__main__":
     # generate_alerts_to_json()
     alerts = []
     json_file = JsonFileRW(ALERTS_PATH)
     data = json_file.read()
-    for alert in data:
-        alerts.append(XTBSpotAlert.custom_load(json.dumps(alert)))
-    client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
-
-    for alert in alerts:
-        alert.evaluate(client)
-        alert.message = None
-
-    dump_alerts_to_json(alerts)
+    print_alerts([XTBSpotAlert.custom_load(json.dumps(alert)) for alert in data])
