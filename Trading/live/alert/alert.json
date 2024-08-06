@@ -269,7 +269,6 @@
         "threshold_value": 80.0,
         "type": "spot"
     },
-
     {
         "action": "SEND_EMAIL",
         "bid_ask": "BID",
@@ -285,14 +284,13 @@
         "threshold_value": 77.6,
         "type": "spot"
     },
-
     {
         "action": "SEND_EMAIL",
         "bid_ask": "ASK",
         "data_source": "XTB",
         "description": "Alert when Acerinox is above 10",
-        "is_handled": false,
-        "is_triggered": false,
+        "is_handled": true,
+        "is_triggered": true,
         "message": null,
         "name": "Acerinox Price XTB Alert",
         "operator": "lt",
@@ -301,7 +299,6 @@
         "threshold_value": 10.24,
         "type": "spot"
     },
-
     {
         "action": "SEND_EMAIL",
         "bid_ask": "ASK",
