@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # update stocks
     stocks_dict = {}
     for symbol in symbols:
-        if symbol["categoryName"] == "stc":
+        if symbol["categoryName"] == "STC" and "US_4" not in symbol["symbol"]:
             stocks_dict[symbol["symbol"]] = symbol
     from Trading.symbols.constants import XTB_STOCK_SYMBOLS_PATH
     with open(XTB_STOCK_SYMBOLS_PATH, 'w') as f:
