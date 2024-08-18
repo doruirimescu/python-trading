@@ -79,6 +79,7 @@ Once a set of stocks has been selected for execution, it should be added to a li
 ## When to exit
 * Once the TP has been achieved
 * Once the company's fundamental scores start deteriorating
+* Piotroski F-score < 5
 ## Further improvements
 * Classify risk based on certain criteria such as alphaspread solvency, gurufocus score, Piotroski F-score.
 * Classify the probability of the take profit target to be achieved by looking at the percentage of the time during which the price
