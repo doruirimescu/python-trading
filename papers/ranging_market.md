@@ -62,7 +62,7 @@ the shortlisted stocks. We use metrics such as:
 * **Alphaspread Solvency:** A metric indicating a company's ability to meet its long-term debt obligations.
 Only stocks that exhibit strong financial health are considered viable candidates for this ranging strategy.
 
-### Take profit selection
+### Take Profit Selection
 A reasonable take profit target should be selected well within the range, that could be achieved within some months. Typically, one conservative and one aggressive profit targets can be found. These typically vary between 8% - 25%.
 <p align="center">
     <img src="https://github.com/user-attachments/assets/0ac7b1ef-2d7c-43e8-ade0-c919451ce6c5" alt="Take profit" width="40%" />
@@ -76,6 +76,9 @@ A reasonable take profit target should be selected well within the range, that c
 ## Selection and trade execution
 Once a set of stocks has been selected for execution, it should be added to a list of monitored alarms.
 
+## When to exit
+* Once the TP has been achieved
+* Once the company's fundamental scores start deteriorating
 ## Further improvements
 * Classify risk based on certain criteria such as alphaspread solvency, gurufocus score, Piotroski F-score.
 * Classify the probability of the take profit target to be achieved by looking at the percentage of the time during which the price
