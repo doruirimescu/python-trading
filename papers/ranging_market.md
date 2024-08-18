@@ -63,7 +63,20 @@ the shortlisted stocks. We use metrics such as:
 Only stocks that exhibit strong financial health are considered viable candidates for this ranging strategy.
 
 ### Take profit selection
-A reasonable take profit target should be selected well within the range, that could be achieved within some months.
+A reasonable take profit target should be selected well within the range, that could be achieved within some months. Typically, one conservative and one aggressive profit targets can be found. These typically vary between 8% - 25%.
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/0ac7b1ef-2d7c-43e8-ade0-c919451ce6c5" alt="Take profit" width="40%" />
+</p>
+
+<p align="center">
+    <em>Possible take profit targets.</em>
+</p>
+
 
 ## Selection and trade execution
 Once a set of stocks has been selected for execution, it should be added to a list of monitored alarms.
+
+## Further improvements
+* Classify risk based on certain criteria such as alphaspread solvency, gurufocus score, Piotroski F-score.
+* Classify the probability of the take profit target to be achieved by looking at the percentage of the time during which the price
+of the stock has been above the take profit target within the duration of the range.
