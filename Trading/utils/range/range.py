@@ -18,7 +18,7 @@ def calculate_rank(history: History, periods: int):
     return (range_size*periods - sum_of_ranges) / range_size
 
 
-def rank_histories(histories: List[History], periods: int):
+def rank_histories(histories: List[History], periods: int, range_width: Optional[float] = None) -> Dict[str, float]:
     ranks = dict()
     for history in histories:
         rank = calculate_rank(history, periods)
@@ -34,7 +34,7 @@ class PerfectRange:
         self.top_n = top_n
         self.tolerance = tolerance
 
-    def add_history(self, history: History, current_price: Optional[float]):
+    def add_history(self, history: History, current_price: Optional[float], range_height: Optional[float] = None):
         # if current price is greater or smaller than the last periods high or low, respectively,
         # then the range is not perfect
         max_h = max(history.high[-self.periods:])
@@ -47,6 +47,8 @@ class PerfectRange:
         if self.tolerance:
             if current_price > min_l * (1+self.tolerance):
                 return
+        if range_height and max_h / min_l < range_height:
+            return
         self.histories.append(history)
         rank = calculate_rank(history, self.periods)
         rank = round(rank, 2)
