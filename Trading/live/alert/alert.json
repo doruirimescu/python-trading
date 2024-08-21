@@ -322,7 +322,7 @@
         "is_handled": false,
         "is_triggered": false,
         "message": null,
-        "name": "Senior Price XTB Alert",
+        "name": "QQQ3 Price XTB Alert",
         "operator": "gt",
         "schedule": "* * * * *",
         "symbol": "QQQ3.UK",
@@ -337,11 +337,26 @@
         "is_handled": false,
         "is_triggered": false,
         "message": null,
-        "name": "Senior Price XTB Alert",
+        "name": "QQQ3 Price XTB Alert",
         "operator": "lt",
         "schedule": "* * * * *",
         "symbol": "QQQ3.UK",
         "threshold_value": 130,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "BID",
+        "data_source": "XTB",
+        "description": "Alert when CONSOL Energy spot price is below 85.1",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "CONSOL Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "CEIX.US_9",
+        "threshold_value": 85.1,
         "type": "spot"
     }
 
