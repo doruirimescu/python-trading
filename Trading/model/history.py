@@ -11,6 +11,19 @@ class History(BaseModel):
     low: Optional[List[float]] = None
     close: Optional[List[float]] = None
 
+    def slice(self, start: int, end: Optional[int] = None):
+        if end is None:
+            end = len(self.date)
+
+        return History(
+            symbol=self.symbol,
+            timeframe=self.timeframe,
+            date=self.date[start:end],
+            open=self.open[start:end],
+            high=self.high[start:end],
+            low=self.low[start:end],
+            close=self.close[start:end]
+        )
     def __getitem__(self, item):
         return getattr(self, item)
 
