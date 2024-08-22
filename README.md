@@ -15,6 +15,12 @@ First step after cloning: `./install_requirements.sh`
 
 Second step: read [this](https://github.com/doruirimescu/python-trading/tree/master/Trading/live/scripts#readme)
 
+### Navigation
+This repo is HUGE, and you will probably not need 90% of the things in here.
+
+Loan management [here](https://github.com/doruirimescu/python-trading/blob/master/Trading/loan/README.md)
+Investment and precious metal model [here](https://github.com/doruirimescu/python-trading/blob/master/Trading/model/investment.py)
+Precious metal investment tracking [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/investment)
 
 # Pipeline structure
 ![automation_flow drawio](papers/automation-flow.png)
