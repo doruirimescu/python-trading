@@ -17,3 +17,7 @@ Here is one example (concrete numbers are blurred out in paint):
 
 ## 2. Loan vs investment analysis
 Should I repay my loan, or should I invest my cash this month?
+
+Setup the constants in [this script](https://github.com/doruirimescu/python-trading/blob/af2b89028dd09c2c0a13f2fd9d994269ed52a6a8/Trading/loan/loan_vs_investment.py#L178).
+
+Then run the script find out.
