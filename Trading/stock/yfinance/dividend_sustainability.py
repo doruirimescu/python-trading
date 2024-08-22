@@ -4,10 +4,10 @@ from Trading.symbols.google_search_symbol import get_yfinance_symbol_url
 from Trading.symbols.constants import YAHOO_STOCK_SYMBOLS_DICT
 
 
-def plot_dividend_growth(dividends):
+def plot_dividend_growth(symbol, dividends):
     plt.figure(figsize=(10, 6))
     plt.plot(dividends.index, dividends.values, marker="o", linestyle="-")
-    plt.title("Dividend Growth Over Time")
+    plt.title(f"Dividend Growth Over Time for {symbol}")
     plt.xlabel("Year")
     plt.ylabel("Dividend ($)")
     plt.grid(True)
@@ -47,23 +47,23 @@ def analyze_dividend_sustainability(data, should_print: bool = False):
                 f"Free cash flow divided by min cash flow: {free_cashflow / min_free_cashflow:.2f}"
             )
 
-        from Trading.utils.criterion.criterion import Criterion, and_criteria
+        from Trading.utils.criterion.expression import Numerical, and_
         import operator
 
-        payout_criterion = Criterion(
+        payout_criterion = Numerical(
             "Payout ratio", operator.lt, payout_ratio, max_payout_ratio
         )
-        yield_criterion = Criterion(
+        yield_criterion = Numerical(
             "Dividend yield", operator.ge, dividend_yield, min_yield
         )
-        debt_criterion = Criterion(
+        debt_criterion = Numerical(
             "Debt-to-equity ratio", operator.le, debt_equity, max_debt_equity
         )
-        roe_criterion = Criterion("Return on equity", operator.ge, roe, min_roe)
-        free_cashflow_criterion = Criterion(
+        roe_criterion = Numerical("Return on equity", operator.ge, roe, min_roe)
+        free_cashflow_criterion = Numerical(
             "Free cash flow", operator.ge, free_cashflow, min_free_cashflow
         )
-        criteria = and_criteria(
+        criteria = and_(
             payout_criterion,
             yield_criterion,
             debt_criterion,
@@ -97,7 +97,7 @@ def analyze_and_plot(symbol_to_find: str):
     last_10_years_dividends = dividends.last("10Y")
 
     # Plotting the dividend history of the last 10 years
-    plot_dividend_growth(last_10_years_dividends)
+    plot_dividend_growth(ticker, last_10_years_dividends)
     # MED, RAND, IIPR, MO, DOC, UMC, KEY are good examples
 
 
@@ -115,6 +115,15 @@ def get_sustainable_dividend_stocks():
             print(f"{yahoo_stock_symbol}: {message}")
     return sustainable_dividend_stocks
 
+
+sustainable_dividend_stocks = ["OCSL", "swks"]
+print(sustainable_dividend_stocks)
+for s in sustainable_dividend_stocks:
+    analyze_and_plot(s)
+
+# CEIX, CHRD, CVX!!, DINO, GIL.DE, HF Sinclair Corporation, REP.MC, swks!
+# RIO TINTO TO ADD
+# TO LOOK: swks
 
 # sustainable_dividend_stocks = ['BEKB.BR',
 # 'BKG.L',
@@ -151,11 +160,3 @@ def get_sustainable_dividend_stocks():
 # 'VLO',
 # 'WRT1V.HE',
 # 'XOM']
-sustainable_dividend_stocks = ["OCSL"]
-print(sustainable_dividend_stocks)
-for s in sustainable_dividend_stocks:
-    analyze_and_plot(s)
-
-# CEIX, CHRD, CVX!!, DINO, GIL.DE, HF Sinclair Corporation, REP.MC, swks!
-# RIO TINTO TO ADD
-# TO LOOK: swks
