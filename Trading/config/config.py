@@ -26,14 +26,4 @@ GENERATED_PATH = CURRENT_FILE_PATH.joinpath("../generated/")
 TMP_PATH = CURRENT_FILE_PATH.joinpath("../tmp/")
 HISTORY_CACHE_PATH = TMP_PATH.joinpath("history_cache/")
 RANGING_STOCKS_PATH = TMP_PATH.joinpath("ranging_stocks/")
-
-# ALL_SYMBOLS_PATH = SYMBOLS_PATH + "all_symbols.json"
-# ALL_SYMBOLS = None
-# with open(ALL_SYMBOLS_PATH, 'r') as f:
-#     ALL_SYMBOLS = json.load(f)
-
-DB_USERNAME=os.getenv("DB_USERNAME")
-DB_PASSWORD=os.getenv("DB_PASSWORD")
-DB_NAME=os.getenv("DB_NAME")
-
 ALERTS_PATH = CURRENT_FILE_PATH.joinpath("../live/alert/alert.json")
