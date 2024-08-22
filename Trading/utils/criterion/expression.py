@@ -38,7 +38,7 @@ class Expression(Enableable):
             return str(self.right)
         if self.right and isinstance(self.right, Enableable) and not self.right.is_enabled:
             return str(self.left)
-        s = f"({self.name}{left} {operator_symbol} {right} {evaluate})"
+        s = f"({self.name} {left} {operator_symbol} {right} {evaluate})"
         return s
 
     def formatted(self):
@@ -113,6 +113,10 @@ class Numerical(Expression):
 
 
 class Threshold(Numerical):
+    '''
+    A threshold is a numerical expression with a name and an operator, used
+    to compare a value with a threshold
+    '''
     def __init__(self, name: str, op: operator, threshold: NUMERICAL) -> None:
         super().__init__(name, op, right=threshold)
 
@@ -124,6 +128,21 @@ class Threshold(Numerical):
     def value(self, value):
         self.left = value
 
+class ThresholdGE(Threshold):
+    def __init__(self, name: str, threshold: NUMERICAL) -> None:
+        super().__init__(name, operator.ge, threshold)
+
+class ThresholdGT(Threshold):
+    def __init__(self, name: str, threshold: NUMERICAL) -> None:
+        super().__init__(name, operator.gt, threshold)
+
+class ThresholdLE(Threshold):
+    def __init__(self, name: str, threshold: NUMERICAL) -> None:
+        super().__init__(name, operator.le, threshold)
+
+class ThresholdLT(Threshold):
+    def __init__(self, name: str, threshold: NUMERICAL) -> None:
+        super().__init__(name, operator.lt, threshold)
 
 def and_(*criteria) -> Expression:
     c = criteria[0]
