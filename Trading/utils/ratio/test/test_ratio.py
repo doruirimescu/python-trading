@@ -4,8 +4,8 @@ from Trading.utils.ratio.ratio import Ratio, DateNotFoundError
 from Trading.model.history import History
 from datetime import datetime
 
-HISTORY_A = {"date": ["2021-01-01", "2021-01-02"], "close": [1, 2]}
-HISTORY_B = History(**{"date": ["2021-01-01", "2021-01-02"], "close": [2, 3]})
+HISTORY_A = {"date": [datetime(2021, 1, 1), datetime(2021, 1, 2)], "close": [1, 2]}
+HISTORY_B = History(**{"date": [datetime(2021, 1, 1), datetime(2021, 1, 2)], "close": [2, 3]})
 
 
 class TestRatio(unittest.TestCase):
@@ -41,42 +41,42 @@ class TestRatio(unittest.TestCase):
         r = Ratio(["a"], ["b"])
         r.add_history("a", HISTORY_A)
         r.add_history("b", HISTORY_B)
-        self.assertEqual(r.get_numerator_prices_at_date("2021-01-01"), [1])
-        self.assertEqual(r.get_numerator_prices_at_date("2021-01-02"), [2])
+        self.assertEqual(r.get_numerator_prices_at_date(datetime(2021, 1, 1)), [1])
+        self.assertEqual(r.get_numerator_prices_at_date(datetime(2021, 1, 2)), [2])
 
     def test_get_get_denominator_histories(self):
         r = Ratio(["a"], ["b"])
         r.add_history("a", HISTORY_A)
         r.add_history("b", HISTORY_B)
-        self.assertEqual(r.get_denominator_prices_at_date("2021-01-01"), [2])
-        self.assertEqual(r.get_denominator_prices_at_date("2021-01-02"), [3])
+        self.assertEqual(r.get_denominator_prices_at_date(datetime(2021, 1, 1)), [2])
+        self.assertEqual(r.get_denominator_prices_at_date(datetime(2021, 1, 2)), [3])
 
     def test_get_numerator_prices_at_date(self):
         r = Ratio(["a"], ["b"])
         r.add_history("a", HISTORY_A)
         r.add_history("b", HISTORY_B)
-        self.assertEqual(r.get_numerator_prices_at_date("2021-01-01"), [1])
-        self.assertEqual(r.get_numerator_prices_at_date("2021-01-02"), [2])
+        self.assertEqual(r.get_numerator_prices_at_date(datetime(2021, 1, 1)), [1])
+        self.assertEqual(r.get_numerator_prices_at_date(datetime(2021, 1, 2)), [2])
 
     def test_get_denominator_prices_at_date(self):
         r = Ratio(["a"], ["b"])
         r.add_history("a", HISTORY_A)
         r.add_history("b", HISTORY_B)
-        self.assertEqual(r.get_denominator_prices_at_date("2021-01-01"), [2])
-        self.assertEqual(r.get_denominator_prices_at_date("2021-01-02"), [3])
+        self.assertEqual(r.get_denominator_prices_at_date(datetime(2021, 1, 1)), [2])
+        self.assertEqual(r.get_denominator_prices_at_date(datetime(2021, 1, 2)), [3])
 
     def test_eliminate_nonintersecting_dates(self):
         r = Ratio(["a"], ["b"])
         r.add_history("a", HISTORY_A)
         r.add_history("b", HISTORY_B)
         r.eliminate_nonintersecting_dates()
-        self.assertEqual(r.dates, ["2021-01-01", "2021-01-02"])
+        self.assertEqual(r.dates, [datetime(2021, 1, 1), datetime(2021, 1, 2)])
         self.assertEqual(r.histories["a"], HISTORY_A)
         self.assertEqual(r.histories["b"], HISTORY_B)
-        history_c = {"date": ["2021-01-05"], "close": [100]}
+        history_c = {"date": [datetime(2021, 1, 5)], "close": [100]}
         r.add_history("c", history_c)
         r.eliminate_nonintersecting_dates()
-        self.assertEqual(r.dates, ["2021-01-01", "2021-01-02"])
+        self.assertEqual(r.dates, [datetime(2021, 1, 1), datetime(2021, 1, 2)])
 
     def test_calculate_ratio(self):
         r = Ratio(["a"], ["b"])
@@ -92,16 +92,16 @@ class TestRatio(unittest.TestCase):
 
     def test_calculate_ratio_two_symbols(self):
         num_1 = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03"], close=[1, 2, 3]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[1, 2, 3]
         )
         num_2 = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03"], close=[1, 2, 3]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[1, 2, 3]
         )
         den_1 = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03"], close=[2, 3, 4]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[2, 3, 4]
         )
         den_2 = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03"], close=[2, 3, 4]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[2, 3, 4]
         )
         r = Ratio(["num_1", "num_2"], ["den_1", "den_2"])
         r.add_history("num_1", num_1)
@@ -131,39 +131,39 @@ class TestRatio(unittest.TestCase):
     def test_get_next_date_at_mean(self):
         r = Ratio(["num"], ["den"])
         num = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"],
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
             close=[1, 2, 4, 2, 1],
         )
         den = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"],
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
             close=[1, 1, 1, 1, 1],
         )
         r.add_history("num", num)
         r.add_history("den", den)
         r.eliminate_nonintersecting_dates()
         r.calculate_ratio()
-        self.assertEqual(r.get_next_date_at_mean("2021-01-01"), (datetime.fromisoformat("2021-01-02"),1,))
-        self.assertEqual(r.get_next_date_at_mean("2021-01-02"), (datetime.fromisoformat("2021-01-04"), 3))
-        self.assertEqual(r.get_next_date_at_mean("2021-01-03"), (datetime.fromisoformat("2021-01-04"), 3))
+        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 1)), (datetime(2021, 1, 2),1,))
+        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 2)), (datetime(2021, 1, 4), 3))
+        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 3)), (datetime(2021, 1, 4), 3))
         with self.assertRaises(DateNotFoundError):
-            r.get_next_date_at_mean("2021-01-04")
+            r.get_next_date_at_mean(datetime(2021, 1, 4))
 
     def test_get_ratio_value_at_date(self):
         r = Ratio(["num"], ["den"])
         num = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"],
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
             close=[1, 2, 4, 2, 1],
         )
         den = History(
-            date=["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"],
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
             close=[1, 1, 1, 1, 1],
         )
         r.add_history("num", num)
         r.add_history("den", den)
         r.eliminate_nonintersecting_dates()
         r.calculate_ratio()
-        self.assertEqual(r.get_ratio_value_at_date("2021-01-01"), 1)
-        self.assertEqual(r.get_ratio_value_at_date("2021-01-02"), 2)
-        self.assertEqual(r.get_ratio_value_at_date("2021-01-03"), 4)
-        self.assertEqual(r.get_ratio_value_at_date("2021-01-04"), 2)
-        self.assertEqual(r.get_ratio_value_at_date("2021-01-05"), 1)
+        self.assertEqual(r.get_ratio_value_at_date(datetime(2021, 1, 1)), 1)
+        self.assertEqual(r.get_ratio_value_at_date(datetime(2021, 1, 2)), 2)
+        self.assertEqual(r.get_ratio_value_at_date(datetime(2021, 1, 3)), 4)
+        self.assertEqual(r.get_ratio_value_at_date(datetime(2021, 1, 4)), 2)
+        self.assertEqual(r.get_ratio_value_at_date(datetime(2021, 1, 5)), 1)

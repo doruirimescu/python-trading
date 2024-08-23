@@ -120,15 +120,15 @@ class Ratio:
         return ratio_values
 
     def get_next_date_at_mean(
-        self, date: str, tolerance: float = 0.001
+        self, date: datetime, tolerance: float = 0.001
     ) -> Optional[datetime]:
-        i = self.dates.index(str(date))
+        i = self.dates.index(date)
         for j in range(i + 1, len(self.dates)):
             if abs(self.ratio_values[j] - self.mean) < tolerance:
-                return datetime.fromisoformat(self.dates[j]), j
+                return self.dates[j], j
         raise DateNotFoundError("No date found")
 
-    def get_ratio_value_at_date(self, date: str):
+    def get_ratio_value_at_date(self, date: datetime):
         i = self.dates.index(date)
         return self.ratio_values[i]
 
@@ -138,14 +138,14 @@ class Ratio:
             x / history[self.ohlc][0] for x in history[self.ohlc]
         ]
 
-    def _get_price_at_date(self, date: str, symbol: str):
+    def _get_price_at_date(self, date: datetime, symbol: str):
         history = self.histories[symbol]
         for i, d in enumerate(history["date"]):
-            if str(d) == str(date):
+            if d == date:
                 return history[self.ohlc][i]
         return None
 
-    def _get_prices_at_date(self, symbols: List[str], date: str):
+    def _get_prices_at_date(self, symbols: List[str], date: datetime):
         prices = []
         for symbol in symbols:
             prices.append(self._get_price_at_date(date, symbol))
