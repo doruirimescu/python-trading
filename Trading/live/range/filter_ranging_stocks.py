@@ -10,40 +10,69 @@ from Trading.config.config import MODE, PASSWORD, RANGING_STOCKS_PATH, USERNAME
 from Trading.instrument import Instrument
 from Trading.model.timeframes import Timeframe
 from Trading.live.client.client import XTBTradingClient
-from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS
+from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS, XTB_STOCK_SYMBOLS_DICT
 from Trading.model.history import History
 from Trading.utils.range.range import PerfectRange
 from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
+from Trading.utils.criterion.expression import Threshold, ThresholdLE
+
+from Trading.algo.ranker.ranker import RangeScorer, Ordering
+
 
 LOGGER = get_logger("filter_ranging_stocks")
 
 def exit():
     sys.exit(0)
 
-N_MONTHS = 12
 TOP = 30
-TOLERANCE = 0.05 # how much above the low the current price can be
-perfect_range = PerfectRange(N_MONTHS, TOP, TOLERANCE)
 
+RANGE_WIDTH = 15
+TOLERANCE = None#0.05 # how much above the low the current price can be
+RANGE_HEIGHT = 1.1
+COMPARISON_LAG = 24
+TIMEFRAME = '1M'
+perfect_range = PerfectRange(RANGE_WIDTH, TOP, TOLERANCE)
+
+range_scorer = RangeScorer(RANGE_WIDTH)
+range_ordering = Ordering(TOP, range_scorer)
 
 class StockRangeProcessor(StatefulDataProcessor):
+
+    def __init__(self, json_file_rw, logger):
+        super().__init__(json_file_rw, logger)
+        self.data = {}
+
     def process_item(self, item, iteration_index, client):
         global perfect_range, N_MONTHS
         try:
-            history_months = client.get_last_n_candles_history(Instrument(item, Timeframe('1M')), N_MONTHS)
-            history_months['date'] = [str(d.date()) for d in history_months['date']]
-            history = History(**history_months)
-            history.symbol = item
-            history.timeframe = '1M'
+            if "CLOSE ONLY" in XTB_STOCK_SYMBOLS_DICT[item]["description"]:
+                return
+
+            # check that the price has not been falling too much over the last 24 months
+            history_lag = client.get_last_n_candles_history(Instrument(item, Timeframe(TIMEFRAME)), COMPARISON_LAG)
+            history_lag = History(**history_lag)
+            history_lag.symbol = item
+            history_lag.timeframe = TIMEFRAME
+
+            current_price_less_than_lag = ThresholdLE("Current price is less than point 24 months ago", history_lag.close[0])
+            current_price_less_than_lag.value = history_lag.close[-1]
+            current_price_less_than_lag.disable()
+
+            # if current_price_less_than_lag.evaluate():
+            #     return
+
+            history_range = history_lag.slice(-RANGE_WIDTH)
 
             ask = client.get_symbol(item)["ask"]
             if ask is None:
                 self.data[item] = None
                 return
             else:
-                perfect_range.add_history(history, ask)
-                self.data[item] = history.dict()
+                # perfect_range.add_history(history_range, ask, range_height=RANGE_HEIGHT)
+                # self.data[item] = history_range.dict()
+                range_ordering.add_history(history_range)
+                LOGGER.info(range_ordering.scores())
         except Exception as e:
             LOGGER.error(f"Error processing {item}: {e}")
             self.data[item] = None
@@ -57,8 +86,9 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # temp json file storage
-    js = JsonFileRW(RANGING_STOCKS_PATH.joinpath(f"temp-all-stocks-{get_date_now_cet()}.json"), LOGGER)
+    js = JsonFileRW(RANGING_STOCKS_PATH.joinpath(f"range-scorer-stocks-{get_date_now_cet()}.json"), LOGGER)
     sp = StockRangeProcessor(js, LOGGER)
+    LOGGER.info(f"Items length: {len(XTB_STOCK_SYMBOLS)}")
     sp.run(items=XTB_STOCK_SYMBOLS, client=client)
 
 # GREAT FINDS:
