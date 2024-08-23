@@ -403,6 +403,21 @@
         "symbol": "CEIX.US_9",
         "threshold_value": 85.1,
         "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Vimeo spot price is below 3.5",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Enphase Energy Spot Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "VMEO.US",
+        "threshold_value": 3.5,
+        "type": "spot"
     }
 
 ]
