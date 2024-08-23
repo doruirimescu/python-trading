@@ -363,6 +363,21 @@
         "action": "SEND_EMAIL",
         "bid_ask": "ASK",
         "data_source": "XTB",
+        "description": "Alert when Senior is below 1.51",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Senior Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "SNR.UK_4",
+        "threshold_value": 1.51,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
         "description": "Alert when QQQ3 spot price is above 240",
         "is_handled": false,
         "is_triggered": false,
@@ -433,6 +448,50 @@
         "symbol": "COLM.US_9",
         "threshold_value": 73.1,
         "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "BID",
+        "data_source": "XTB",
+        "description": "Alert when Firstgroup spot price is below 1.54",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Firstgroup Spot Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "FGP.UK_9",
+        "threshold_value": 1.54,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Rightmove is below 5.0",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Rightmove Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "RMV.UK_9",
+        "threshold_value": 1.51,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when Paychex is below 108",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Paychex Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "PAYX.US_9",
+        "threshold_value": 108,
+        "type": "spot"
     }
-
 ]
