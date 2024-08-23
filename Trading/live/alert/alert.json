@@ -406,17 +406,32 @@
     },
     {
         "action": "SEND_EMAIL",
-        "bid_ask": "ASK",
+        "bid_ask": "BID",
         "data_source": "XTB",
         "description": "Alert when Vimeo spot price is below 3.5",
         "is_handled": false,
         "is_triggered": false,
         "message": null,
-        "name": "Enphase Energy Spot Price XTB Alert",
+        "name": "Vimeo Spot Price XTB Alert",
         "operator": "lt",
         "schedule": "* * * * *",
         "symbol": "VMEO.US",
         "threshold_value": 3.5,
+        "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "BID",
+        "data_source": "XTB",
+        "description": "Alert when Columbia spot price is below 73.1",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "Columbia Spot Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "COLM.US_9",
+        "threshold_value": 73.1,
         "type": "spot"
     }
 
