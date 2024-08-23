@@ -40,9 +40,9 @@ class History(BaseModel):
 
     def extend(self, history: 'History'):
         if self.symbol != history.symbol:
-            raise ValueError("Cannot extend history with different symbol")
+            raise ValueError(f"Cannot extend history {self.symbol} with different symbol {history.symbol}")
         if self.timeframe != history.timeframe:
-            raise ValueError("Cannot extend history with different timeframe")
+            raise ValueError(f"Cannot extend history {self.timeframe} with different timeframe {history.timeframe}")
 
         self.date.extend(history.date)
         self.open.extend(history.open)
@@ -66,7 +66,8 @@ class History(BaseModel):
 
     def __getitem__(self, item):
         return getattr(self, item)
-
+    def __len__(self):
+        return len(self.date)
 class OHLC(Enum):
     OPEN = "open"
     HIGH = "high"
