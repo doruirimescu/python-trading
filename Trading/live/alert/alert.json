@@ -493,5 +493,20 @@
         "symbol": "PAYX.US_9",
         "threshold_value": 108,
         "type": "spot"
+    },
+    {
+        "action": "SEND_EMAIL",
+        "bid_ask": "ASK",
+        "data_source": "XTB",
+        "description": "Alert when On semi is below 67.9",
+        "is_handled": false,
+        "is_triggered": false,
+        "message": null,
+        "name": "On Semi Price XTB Alert",
+        "operator": "lt",
+        "schedule": "* * * * *",
+        "symbol": "ON.US_9",
+        "threshold_value": 67.9,
+        "type": "spot"
     }
 ]
