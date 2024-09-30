@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 
 @dataclass
@@ -11,6 +11,21 @@ class MaxDrawdown:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+@dataclass
+class TradeOrder:
+    cmd: int  # 0 buy, 1 sell
+    date: datetime
+    price: float
+    volume: float
+    symbol: str
+
+@dataclass
+class BuyTradeOrder(TradeOrder):
+    cmd: int = field(default=0, init=False)
+
+@dataclass
+class SellTradeOrder(TradeOrder):
+    cmd: int = field(default=1, init=False)
 
 @dataclass
 class Trade:
@@ -48,6 +63,10 @@ class Trade:
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
+
+    def get_orders(self) -> Tuple[BuyTradeOrder, SellTradeOrder]:
+        return (BuyTradeOrder(date=self.entry_date, price=self.open_price, volume=self.volume, symbol=self.symbol),
+                SellTradeOrder(date=self.exit_date, price=self.close_price, volume=self.volume, symbol=self.symbol))
 
 # create BuyTrade that inherits from Trade, has cmd=0
 @dataclass
