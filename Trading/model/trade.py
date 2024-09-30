@@ -49,6 +49,20 @@ class Trade:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+# create BuyTrade that inherits from Trade, has cmd=0
+@dataclass
+class BuyTrade(Trade):
+    cmd: int = 0
+
+    def __post_init__(self):
+        super().__init__(self.cmd)
+
+@dataclass
+class SellTrade(Trade):
+    cmd: int = 1
+
+    def __post_init__(self):
+        super().__init__(self.cmd)
 
 class StrategySummary:
     def __init__(
