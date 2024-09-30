@@ -45,6 +45,9 @@ class Ordering:
         else:
             self._scores = dict(sorted(self._scores.items(), key=lambda item: item[1])[:self._top_n])
 
+    def scores(self):
+        return self._scores
+
 class RangeScorer(ScoreCalculator):
     '''
         RangeScorer class is used to score stocks based on their historical data.
@@ -73,9 +76,14 @@ class RangeScorer(ScoreCalculator):
         ratio = top_highs / top_lows
 
         # minimize the standard deviation of highs and lows
-        from Trading.utils.calculations import calculate_standard_deviation
+        from Trading.utils.calculations import calculate_standard_deviation, calculate_mean
 
         highs_std = calculate_standard_deviation(ordered_highs)
+        highs_mean = calculate_mean(ordered_highs)
         lows_std = calculate_standard_deviation(ordered_lows)
+        lows_mean = calculate_mean(ordered_lows)
+
+        highs_std = highs_std / highs_mean
+        lows_std = lows_std / lows_mean
 
         return ratio / (highs_std + lows_std)
