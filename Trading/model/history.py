@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 from enum import Enum
 from datetime import datetime
+from bisect import bisect_left
+
 class History(BaseModel):
     symbol: Optional[str] = None
     timeframe: Optional[str] = None
@@ -26,17 +28,17 @@ class History(BaseModel):
         )
 
     def slice_n_candles_before_date(self, date: str, n: int):
-        # including date
-        index = self.date.index(date)
-        return self.slice(index-n, index+1)
+        # Use bisect_left to find the index efficiently
+        index = bisect_left(self.date, date)
+        return self.slice(max(0, index-n), index+1)
 
-    def sort_by_dates(self):
-        sorted_indices = sorted(range(len(self.date)), key=lambda i: self.date[i])
-        self.date = [self.date[i] for i in sorted_indices]
-        self.open = [self.open[i] for i in sorted_indices]
-        self.high = [self.high[i] for i in sorted_indices]
-        self.low = [self.low[i] for i in sorted_indices]
-        self.close = [self.close[i] for i in sorted_indices]
+    def sort_by_dates(self) -> None:
+        # Zip the data together and sort by dates
+        combined = list(zip(self.date, self.open, self.high, self.low, self.close))
+        combined.sort(key=lambda x: x[0])
+        # Unzip sorted data
+        self.date, self.open, self.high, self.low, self.close = map(list, zip(*combined))
+
 
     def extend(self, history: 'History'):
         if self.symbol != history.symbol:
@@ -50,19 +52,10 @@ class History(BaseModel):
         self.low.extend(history.low)
         self.close.extend(history.close)
 
-        date_set = set()
-        date_index = []
-        for i, d in enumerate(self.date):
-            if d in date_set:
-                date_index.append(i)
-            date_set.add(d)
-        for i in reversed(date_index):
-            self.date.pop(i)
-            self.open.pop(i)
-            self.high.pop(i)
-            self.low.pop(i)
-            self.close.pop(i)
-        self.sort_by_dates()
+        # Remove duplicates and sort by date in a single pass
+        combined = list(zip(self.date, self.open, self.high, self.low, self.close))
+        combined = sorted(set(combined), key=lambda x: x[0])  # Remove duplicates and sort by date
+        self.date, self.open, self.high, self.low, self.close = map(list, zip(*combined))
 
     def __getitem__(self, item):
         return getattr(self, item)

@@ -148,3 +148,22 @@ class TestHistory(TestCase):
         self.assertEqual(history.high, [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.6])
         self.assertEqual(history.low, [1.1, 1.2, 1.01, 1.4, 1.5, 1.6, 1.4])
         self.assertEqual(history.close, [1.3, 1.4, 1.9, 1.6, 1.7, 1.8, 1.6])
+
+    def test_sort_by_dates(self):
+        history = History(
+            symbol="EURUSD",
+            timeframe="1M",
+            date=[datetime(2021, 1, 3), datetime(2021, 1, 1), datetime(2021, 1, 2)],
+            open=[1.4, 1.2, 1.3],
+            high=[1.5, 1.3, 1.4],
+            low=[1.3, 1.1, 1.2],
+            close=[1.5, 1.3, 1.4],
+        )
+        history.sort_by_dates()
+        self.assertEqual(
+            history.date, [datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)]
+        )
+        self.assertEqual(history.open, [1.2, 1.3, 1.4])
+        self.assertEqual(history.high, [1.3, 1.4, 1.5])
+        self.assertEqual(history.low, [1.1, 1.2, 1.3])
+        self.assertEqual(history.close, [1.3, 1.4, 1.5])
