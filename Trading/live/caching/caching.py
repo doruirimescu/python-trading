@@ -39,56 +39,74 @@ def get_last_n_candles_from_date(from_date: datetime, instrument: Instrument, da
     '''
         Gets last n candles from date, including date
     '''
+    if from_date > datetime.now():
+        raise ValueError("from_date cannot be in the future.")
 
     caching = get_caching_file_rw(instrument, data_source)
-    data = caching.read()
-    if not data:
-        LOGGER.info("No data in caching")
-        # get_last_n_candles_history only returns the last n candles starting with today, so we need to get more data
-        # calculate how many candles we need to include from today until the from_date
-        now = datetime.now()
-        if from_date < now:
-            from_today = now - from_date
-            LOGGER.info(f"From today: {from_today}")
-            new_n = n
-            if instrument.timeframe.period == TIMEFRARME_ENUM.ONE_MONTH.value:
-                new_n = new_n + math.ceil(from_today.days/29)
+    LOGGER.info(f"Fetching last {n} candles from {from_date} for {instrument.symbol} {instrument.timeframe} file: {caching.file_name}...")
+    cached_data = caching.read()
 
-        history = _get_last_n_from_client(instrument, new_n)
+    if not cached_data:
+        LOGGER.info("No data in cache, fetching initial data...")
+        return _fetch_and_cache_initial_data(from_date, instrument, n, caching)
 
+    history = History(**cached_data)
+
+    if from_date in history.date:
+        return _handle_from_date_in_history(history, from_date, n, instrument, caching)
+
+    if from_date > history.date[-1]:
+        LOGGER.info("Fetching data for date greater than cached data's newest date...")
+        return _fetch_and_extend_history(from_date, history, n, instrument, caching, after_cache=True)
+
+    if from_date < history.date[0]:
+        LOGGER.info("Fetching data for date earlier than cached data's oldest date...")
+        return _fetch_and_extend_history(from_date, history, n, instrument, caching, after_cache=False)
+    return history.slice_n_candles_before_date(from_date, n)
+
+def _fetch_and_cache_initial_data(from_date: datetime, instrument: Instrument, n: int, caching):
+    now = datetime.now()
+    candles_needed = n
+
+    if instrument.timeframe.period == TIMEFRARME_ENUM.ONE_MONTH.value and from_date < now:
+        days_diff = (now - from_date).days
+        candles_needed += math.ceil(days_diff / 29)
+    elif instrument.timeframe.period == TIMEFRARME_ENUM.ONE_DAY.value and from_date < now:
+        candles_needed += (now - from_date).days
+
+    new_history = _get_last_n_from_client(instrument, candles_needed)
+    caching.write(new_history.__dict__)
+    LOGGER.info("Initial data written to cache.")
+    return new_history.slice_n_candles_before_date(from_date, n)
+
+def _handle_from_date_in_history(history: History, from_date: datetime, n: int, instrument: Instrument, caching):
+    index = history.date.index(from_date)
+    if index - n < 0:
+        # Need more candles to satisfy the request
+        LOGGER.info("Fetching more data to cover from_date...")
+        additional_candles = len(history) + n - index
+        new_history = _get_last_n_from_client(instrument, additional_candles)
+        history.extend(new_history)
         caching.write(history.__dict__)
-        LOGGER.info("Data written to caching")
-        return history.slice_n_candles_before_date(from_date, n)
-    else:
-        history = History(**data)
-        history_oldest_date = history.date[0]
-        history_newest_date = history.date[-1]
+    return history.slice_n_candles_before_date(from_date, n)
 
-        if from_date in history.date:
-            index = history.date.index(from_date)
-            if index - n < 0:
-                # fetch new data
-                new_n = len(history) + n - index
-                LOGGER.info("Fetching new data for from_date in history")
-                new_history = _get_last_n_from_client(instrument, new_n)
-                history.extend(new_history)
-                caching.write(history.__dict__)
-        elif from_date > history_newest_date:
-            diff = from_date - history_newest_date
-            if instrument.timeframe.period == TIMEFRARME_ENUM.ONE_MONTH.value:
-                new_n = len(history) + math.ceil(diff.days/29) + 1
-            LOGGER.info("Fetching new data for from_date > history_newest_date")
-            new_history = _get_last_n_from_client(instrument, new_n)
-            history.extend(new_history)
-            caching.write(history.__dict__)
-            LOGGER.info("Data written to caching")
-        elif from_date < history_oldest_date:
-            diff = history_oldest_date - from_date
-            if instrument.timeframe.period == TIMEFRARME_ENUM.ONE_MONTH.value:
-                new_n = len(history) + math.ceil(diff.days/29) + 1
-            LOGGER.info("Fetching new data for from_date < history_oldest_date")
-            new_history = _get_last_n_from_client(instrument, new_n)
-            history.extend(new_history)
-            caching.write(history.__dict__)
-            LOGGER.info("Data written to caching")
-        return history.slice_n_candles_before_date(from_date, n)
+def _fetch_and_extend_history(from_date: datetime, history: History, n: int, instrument: Instrument, caching, after_cache: bool):
+    if after_cache:
+        date_diff = (from_date - history.date[-1]).days
+    else:
+        date_diff = (history.date[0] - from_date).days
+
+    candles_needed = n + math.ceil(date_diff / 29) if instrument.timeframe.period == TIMEFRARME_ENUM.ONE_MONTH.value else n
+    new_history = _get_last_n_from_client(instrument, candles_needed)
+    history.extend(new_history)
+    caching.write(history.__dict__)
+    LOGGER.info("Extended data written to cache.")
+    return history.slice_n_candles_before_date(from_date, n)
+
+if __name__ == '__main__':
+    instrument = Instrument("EURUSD", Timeframe("1D"))
+    from_date = datetime(2020, 2, 23, 1, 0)
+    n = 5
+    data_source = DataSourceEnum.XTB
+    last_n = get_last_n_candles_from_date(from_date, instrument, data_source, n)
+    print(last_n.date)
