@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from typing import Optional, List
 
@@ -52,17 +52,11 @@ class Trade:
 # create BuyTrade that inherits from Trade, has cmd=0
 @dataclass
 class BuyTrade(Trade):
-    cmd: int = 0
-
-    def __post_init__(self):
-        super().__init__(self.cmd)
+    cmd: int = field(default=0, init=False)
 
 @dataclass
 class SellTrade(Trade):
-    cmd: int = 1
-
-    def __post_init__(self):
-        super().__init__(self.cmd)
+    cmd: int = field(default=1, init=False)
 
 class StrategySummary:
     def __init__(

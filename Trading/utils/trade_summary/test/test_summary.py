@@ -213,5 +213,5 @@ class TestSummary(TestCase):
             ),
         ]
         self.assertEqual(
-            get_invested_money(test_trades), 50
+            get_invested_money(test_trades), 60
         )  # Analyzes input money needed considering reinvestments
