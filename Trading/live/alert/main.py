@@ -131,3 +131,5 @@ if __name__ == "__main__":
     for alert in alerts:
         alert.evaluate(client)
         print(alert)
+    # dump alerts back to json
+    dump_alerts_to_json(alerts)
