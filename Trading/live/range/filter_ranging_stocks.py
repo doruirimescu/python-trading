@@ -10,8 +10,12 @@ from Trading.config.config import MODE, PASSWORD, RANGING_STOCKS_PATH, USERNAME
 from Trading.instrument import Instrument
 from Trading.model.timeframes import Timeframe
 from Trading.live.client.client import XTBTradingClient
-from Trading.symbols.constants import XTB_ETF_SYMBOLS, XTB_STOCK_SYMBOLS, XTB_STOCK_SYMBOLS_DICT
-from Trading.model.history import History
+from Trading.symbols.constants import (
+    XTB_ETF_SYMBOLS,
+    XTB_STOCK_SYMBOLS,
+    XTB_STOCK_SYMBOLS_DICT,
+)
+from Trading.model.history import History, OHLC
 from Trading.utils.range.range import PerfectRange
 from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
@@ -22,67 +26,83 @@ from Trading.algo.ranker.ranker import RangeScorer, Ordering
 
 LOGGER = get_logger("filter_ranging_stocks")
 
+
 def exit():
     sys.exit(0)
 
-TOP = 30
+
+ORDERING_SIZE = 70
 
 RANGE_WIDTH = 15
-TOLERANCE = None#0.05 # how much above the low the current price can be
+TOLERANCE = None  # 0.05 # how much above the low the current price can be
 RANGE_HEIGHT = 1.1
 COMPARISON_LAG = 24
-TIMEFRAME = '1M'
-perfect_range = PerfectRange(RANGE_WIDTH, TOP, TOLERANCE)
+TIMEFRAME = "1M"
+PERCENTAGE_WIN = 0.8
 
 range_scorer = RangeScorer(window=RANGE_WIDTH)
-range_ordering = Ordering(top_n=TOP, score_calculator=range_scorer)
+range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_scorer)
+
 
 class StockRangeProcessor(StatefulDataProcessor):
-    def __init__(self, json_file_rw, logger):
+    def __init__(
+        self, json_file_rw, logger, should_reload_ordering=False, should_reprocess=False
+    ):
         global range_ordering
-        super().__init__(json_file_rw, logger)
+        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess)
         # Load range ordering from file
-        if self.data is not None and self.data.get('range_ordering') is not None:
-            # load pydantic
-            range_ordering = Ordering(**self.data['range_ordering'])
+        if (
+            should_reload_ordering
+            and self.data is not None
+            and self.data.get("range_ordering") is not None
+        ):
+            # If we want to load the previous range ordering from the file, we can do it here
+            range_ordering = Ordering(**self.data["range_ordering"])
 
     def process_item(self, item, iteration_index, client):
-        global perfect_range, N_MONTHS
         try:
             if "CLOSE ONLY" in XTB_STOCK_SYMBOLS_DICT[item]["description"]:
                 return
 
             # check that the price has not been falling too much over the last 24 months
-            history_lag = client.get_last_n_candles_history(Instrument(item, Timeframe(TIMEFRAME)), COMPARISON_LAG)
+            history_lag = client.get_last_n_candles_history(
+                Instrument(item, Timeframe(TIMEFRAME)), COMPARISON_LAG
+            )
             history_lag = History(**history_lag)
             history_lag.symbol = item
             history_lag.timeframe = TIMEFRAME
 
-            current_price_less_than_lag = ThresholdLE("Current price is less than point 24 months ago", history_lag.close[0])
-            current_price_less_than_lag.value = history_lag.close[-1]
-            current_price_less_than_lag.disable()
-
-            # if current_price_less_than_lag.evaluate():
-            #     return
-
             history_range = history_lag.slice(-RANGE_WIDTH)
+            range_ratio = history_range.get_range_ratio()
+            if range_ratio < RANGE_HEIGHT:
+                return
 
             ask = client.get_symbol(item)["ask"]
             if ask is None:
                 self.data[item] = None
                 return
             else:
-                # perfect_range.add_history(history_range, ask, range_height=RANGE_HEIGHT)
                 self.data[item] = history_range.dict()
                 range_ordering.add_history(history_range)
-                self.data['range_ordering'] = range_ordering.model_dump()
+                self.data["range_ordering"] = range_ordering.model_dump()
                 LOGGER.info(range_ordering.scores)
         except Exception as e:
             LOGGER.error(f"Error processing {item}: {e}")
             self.data[item] = None
             return
 
-if __name__ == '__main__':
+    def reprocess_item(self, item, iteration_index, client) -> XTB_STOCK_SYMBOLS_DICT:
+        # Go through the history and try some new things with the range ordering.
+        # This works best if some parameter of the range ordering has changed
+        if self.data[item] is None:
+            return
+        history = History(**self.data[item])
+        range_ordering.add_history(history)
+        self.data["range_ordering"] = range_ordering.model_dump()
+        LOGGER.info(range_ordering.scores)
+
+
+if __name__ == "__main__":
     load_dotenv()
     username = os.getenv("XTB_USERNAME")
     password = os.getenv("XTB_PASSWORD")
@@ -90,10 +110,28 @@ if __name__ == '__main__':
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # temp json file storage
-    js = JsonFileRW(RANGING_STOCKS_PATH.joinpath(f"range-scorer-stocks-{get_date_now_cet()}.json"), LOGGER)
-    sp = StockRangeProcessor(js, LOGGER)
+    js = JsonFileRW(
+        RANGING_STOCKS_PATH.joinpath(f"range-scorer-stocks-{get_date_now_cet()}.json"),
+        LOGGER,
+    )
+    sp = StockRangeProcessor(
+        js, LOGGER, should_reload_ordering=False, should_reprocess=True
+    )
     LOGGER.info(f"Items length: {len(XTB_STOCK_SYMBOLS)}")
     sp.run(items=XTB_STOCK_SYMBOLS, client=client)
 
+    # Now that we have the perfect range, we can filter the stocks further: we need to have the current price within the range
+    # and the current price should be at the low end of the range
+    candidates = dict()
+    for item in range_ordering.scores.items():
+        ask = client.get_symbol(item[0])["ask"]
+        hist = History(**sp.data[item[0]]).slice(-RANGE_WIDTH)
+        lowest = hist.calculate_percentile(OHLC.HIGH, 20)
+        highest = hist.calculate_percentile(OHLC.LOW, 80)
+        potential_win_p = highest / ask
+        if ask <= lowest and potential_win_p >= PERCENTAGE_WIN:
+            candidates[item[0]] = potential_win_p
+    sorted(candidates.items(), key=lambda x: x[1], reverse=True)
+    LOGGER.info(candidates)
 # GREAT FINDS:
 # FIZZ.US_9 BTU.US!, BHF.US?
