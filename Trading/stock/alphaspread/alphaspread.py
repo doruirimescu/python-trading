@@ -93,7 +93,7 @@ def get_profitability_score(response: requests.Response):
 
 
 def get_valuation_score(response: requests.Response) -> Tuple[ValuationType, int]:
-    valuation_class_name = "sixteen wide column"
+    valuation_class_name = "full-height flex columns justify-space-between gap-1-5"
     extracted_data = fetch_data_from_div(response, valuation_class_name)
 
     extracted_data = [line.replace("\t", "") for line in extracted_data]
