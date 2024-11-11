@@ -223,6 +223,13 @@
         "valuation_score": 71,
         "valuation_type": "Overvalued"
     },
+    "CTSH": {
+        "profitability_score": 58,
+        "solvency_score": 77,
+        "symbol": "CTSH",
+        "valuation_score": 1,
+        "valuation_type": "Overvalued"
+    },
     "DASH": {
         "profitability_score": 43,
         "solvency_score": 72,
