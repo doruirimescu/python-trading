@@ -1,8 +1,10 @@
-from Trading.model.history import History
+from Trading.model.history import History, OHLC
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict
+from Trading.utils.custom_logging import get_logger
 
+LOGGER = get_logger(__file__)
 class ScoreCalculator(BaseModel):
     '''
         ScoreCalculator class is used to quantify a set of traits that is desirable
@@ -16,8 +18,6 @@ class ScoreCalculator(BaseModel):
         stocks ranging behavior based on their historical data.
     '''
     window: int
-    is_bigger_better: bool = False
-
 
     @abstractmethod
     def calculate(self, history: History) -> float:
@@ -35,33 +35,29 @@ class RangeScorer(ScoreCalculator):
         levels and returns the ratio as the score.
     '''
     x_percent: float = 10.0
-    is_bigger_better: bool = False
 
     def calculate(self, history: History):
-        # order the highs and lows of the last periods
-        ordered_highs = sorted(history.high)
-        ordered_lows = sorted(history.low)
+        # Calculate the number of top elements needed
+        length = len(history.high)
+        top_count = int(length / self.x_percent)
 
-        # get top lowest x% highs and top x% highest lows
-        length = len(ordered_highs)
-        top_highs = ordered_highs[int(length/self.x_percent)]
-        top_lows = ordered_lows[-int(length/self.x_percent)]
+        # Get the top lowest x% highs and top highest x% lows
+        #top_highs = history.calculate_percentile(OHLC.HIGH, 100 - self.x_percent)
+        #top_lows = history.calculate_percentile(OHLC.LOW, self.x_percent)
 
-        # this represents the diminished range height
-        ratio = top_highs / top_lows
+        # Calculate the diminished range height
+        #ratio = top_highs / top_lows
 
         # minimize the standard deviation of highs and lows
-        from Trading.utils.calculations import calculate_standard_deviation, calculate_mean
-
-        highs_std = calculate_standard_deviation(ordered_highs)
-        highs_mean = calculate_mean(ordered_highs)
-        lows_std = calculate_standard_deviation(ordered_lows)
-        lows_mean = calculate_mean(ordered_lows)
+        highs_std = history.calculate_std(OHLC.HIGH)
+        highs_mean = history.calculate_mean(OHLC.HIGH)
+        lows_std = history.calculate_std(OHLC.LOW)
+        lows_mean = history.calculate_mean(OHLC.LOW)
 
         highs_std = highs_std / highs_mean
         lows_std = lows_std / lows_mean
 
-        return ratio / (highs_std + lows_std)
+        return 1 / (highs_std + lows_std)
 
 
 class Ordering(BaseModel):
@@ -72,6 +68,7 @@ class Ordering(BaseModel):
     '''
     top_n: int
     score_calculator: RangeScorer
+    is_bigger_better: bool = True
     scores: Optional[Dict[str, float]] = dict()
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -81,8 +78,7 @@ class Ordering(BaseModel):
         score = round(score, 2)
         self.scores[history.symbol] = score
 
-        is_bigger_better = self.score_calculator.is_bigger_better
-        if is_bigger_better:
+        if self.is_bigger_better:
             self.scores = dict(sorted(self.scores.items(), key=lambda item: item[1],
                                       reverse=True)[:self.top_n])
         else:

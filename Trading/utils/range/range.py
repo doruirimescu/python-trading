@@ -4,6 +4,8 @@ from Trading.utils.custom_logging import get_logger
 
 MAIN_LOGGER = get_logger("range.py")
 
+
+
 def calculate_rank(history: History, periods: int):
     # calculate how close to a perfect range the last periods are
     # 0 means perfect range, 1 means no range
@@ -17,19 +19,21 @@ def calculate_rank(history: History, periods: int):
         sum_of_ranges += abs(h - l)
     return (range_size*periods - sum_of_ranges) / range_size
 
+def calculate_rank_2(history: History, periods: int):
+    # order the highs and lows of the last periods
+    ordered_highs = sorted(history.high[-periods:])
+    ordered_lows = sorted(history.low[-periods:])
 
-def rank_histories(histories: List[History], periods: int, range_width: Optional[float] = None) -> Dict[str, float]:
-    ranks = dict()
-    for history in histories:
-        rank = calculate_rank(history, periods)
-        ranks[history.symbol] = rank
-    ranks = dict(sorted(ranks.items(), key=lambda item: -item[1]))
-    return ranks
+    # get top lowest 10% highs and top highest 10% lows
+    top_highs = ordered_highs[int(periods/10)]
+    top_lows = ordered_lows[-int(periods/10)]
+
+    rank = -top_highs / top_lows
+    return rank
 
 class PerfectRange:
     def __init__(self, periods: int, top_n: int = 1, tolerance: Optional[float] = None):
         self.periods = periods
-        self.histories: List[History] = []
         self.ranks: Dict[str, float] = dict()
         self.top_n = top_n
         self.tolerance = tolerance
@@ -49,8 +53,7 @@ class PerfectRange:
                 return
         if range_height and max_h / min_l < range_height:
             return
-        self.histories.append(history)
-        rank = calculate_rank(history, self.periods)
+        rank = calculate_rank_2(history, self.periods)
         rank = round(rank, 2)
         self.ranks[history.symbol] = rank
         self.ranks = dict(sorted(self.ranks.items(), key=lambda item: item[1])[:self.top_n])
