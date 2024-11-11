@@ -1,8 +1,9 @@
 from Trading.model.history import History
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Optional
+from pydantic import BaseModel, ConfigDict
 
-class ScoreCalculator(ABC):
+class ScoreCalculator(BaseModel):
     '''
         ScoreCalculator class is used to quantify a set of traits that is desirable
         in stocks, based on their historical data. It takes a history object and a window size
@@ -14,39 +15,14 @@ class ScoreCalculator(ABC):
         The ScoreCalculator class is used in the PerfectRange class to rank
         stocks ranging behavior based on their historical data.
     '''
-    def __init__(self, window: int, is_bigger_better=False) -> None:
-        self._window = window
-        self._is_bigger_better = is_bigger_better
+    window: int
+    is_bigger_better: bool = False
+
 
     @abstractmethod
     def calculate(self, history: History) -> float:
         pass
 
-class Ordering:
-    '''
-        Ordering class is used to keep track of the ordering of stocks
-        based on their historical data. It takes a list of stocks and
-        orders them based on their historical data.
-    '''
-    def __init__(self, top_n: int, score_calculator: ScoreCalculator) -> None:
-        self._top_n = top_n
-        self._scores: Dict[str, float] = dict()
-        self._score_calculator = score_calculator
-
-    def add_history(self, history: History):
-        score = self._score_calculator.calculate(history)
-        score = round(score, 2)
-        self._scores[history.symbol] = score
-
-        is_bigger_better = self._score_calculator._is_bigger_better
-        if is_bigger_better:
-            self._scores = dict(sorted(self._scores.items(), key=lambda item: item[1],
-                                      reverse=True)[:self._top_n])
-        else:
-            self._scores = dict(sorted(self._scores.items(), key=lambda item: item[1])[:self._top_n])
-
-    def scores(self):
-        return self._scores
 
 class RangeScorer(ScoreCalculator):
     '''
@@ -58,9 +34,8 @@ class RangeScorer(ScoreCalculator):
         below which x % of the lows are. It then calculates the ratio of these two price
         levels and returns the ratio as the score.
     '''
-    def __init__(self, window: int, x_percent: float = 10) -> None:
-        super().__init__(window, is_bigger_better=True)
-        self._x_percent = x_percent
+    x_percent: float = 10.0
+    is_bigger_better: bool = False
 
     def calculate(self, history: History):
         # order the highs and lows of the last periods
@@ -69,8 +44,8 @@ class RangeScorer(ScoreCalculator):
 
         # get top lowest x% highs and top x% highest lows
         length = len(ordered_highs)
-        top_highs = ordered_highs[int(length/self._x_percent)]
-        top_lows = ordered_lows[-int(length/self._x_percent)]
+        top_highs = ordered_highs[int(length/self.x_percent)]
+        top_lows = ordered_lows[-int(length/self.x_percent)]
 
         # this represents the diminished range height
         ratio = top_highs / top_lows
@@ -87,3 +62,28 @@ class RangeScorer(ScoreCalculator):
         lows_std = lows_std / lows_mean
 
         return ratio / (highs_std + lows_std)
+
+
+class Ordering(BaseModel):
+    '''
+        Ordering class is used to keep track of the ordering of stocks
+        based on their historical data. It takes a list of stocks and
+        orders them based on their historical data.
+    '''
+    top_n: int
+    score_calculator: RangeScorer
+    scores: Optional[Dict[str, float]] = dict()
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def add_history(self, history: History):
+        score = self.score_calculator.calculate(history)
+        score = round(score, 2)
+        self.scores[history.symbol] = score
+
+        is_bigger_better = self.score_calculator.is_bigger_better
+        if is_bigger_better:
+            self.scores = dict(sorted(self.scores.items(), key=lambda item: item[1],
+                                      reverse=True)[:self.top_n])
+        else:
+            self.scores = dict(sorted(self.scores.items(), key=lambda item: item[1])[:self.top_n])

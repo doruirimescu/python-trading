@@ -34,14 +34,18 @@ COMPARISON_LAG = 24
 TIMEFRAME = '1M'
 perfect_range = PerfectRange(RANGE_WIDTH, TOP, TOLERANCE)
 
-range_scorer = RangeScorer(RANGE_WIDTH)
-range_ordering = Ordering(TOP, range_scorer)
+range_scorer = RangeScorer(window=RANGE_WIDTH)
+range_ordering = Ordering(top_n=TOP, score_calculator=range_scorer)
 
 class StockRangeProcessor(StatefulDataProcessor):
 
     def __init__(self, json_file_rw, logger):
+        global range_ordering
         super().__init__(json_file_rw, logger)
-        self.data = {}
+        # Load range ordering from file
+        if self.data is not None and self.data.get('range_ordering') is not None:
+            # load pydantic
+            range_ordering = Ordering(**self.data['range_ordering'])
 
     def process_item(self, item, iteration_index, client):
         global perfect_range, N_MONTHS
@@ -70,9 +74,10 @@ class StockRangeProcessor(StatefulDataProcessor):
                 return
             else:
                 # perfect_range.add_history(history_range, ask, range_height=RANGE_HEIGHT)
-                # self.data[item] = history_range.dict()
+                self.data[item] = history_range.dict()
                 range_ordering.add_history(history_range)
-                LOGGER.info(range_ordering.scores())
+                self.data['range_ordering'] = range_ordering.model_dump()
+                LOGGER.info(range_ordering.scores)
         except Exception as e:
             LOGGER.error(f"Error processing {item}: {e}")
             self.data[item] = None
