@@ -122,7 +122,12 @@ def print_alerts(alerts: List[XTBSpotAlert], filter_list: List[str] = []):
 
 if __name__ == "__main__":
     # generate_alerts_to_json()
-    alerts = []
     json_file = JsonFileRW(ALERTS_PATH)
     data = json_file.read()
-    print_alerts([XTBSpotAlert.custom_load(json.dumps(alert)) for alert in data])
+    alerts = [XTBSpotAlert.custom_load(json.dumps(alert)) for alert in data]
+    print_alerts(alerts)
+
+    client = XTBLoggingClient(USERNAME, PASSWORD, MODE, False)
+    for alert in alerts:
+        alert.evaluate(client)
+        print(alert)
