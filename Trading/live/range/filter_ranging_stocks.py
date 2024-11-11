@@ -38,7 +38,6 @@ range_scorer = RangeScorer(window=RANGE_WIDTH)
 range_ordering = Ordering(top_n=TOP, score_calculator=range_scorer)
 
 class StockRangeProcessor(StatefulDataProcessor):
-
     def __init__(self, json_file_rw, logger):
         global range_ordering
         super().__init__(json_file_rw, logger)
