@@ -19,7 +19,7 @@ from Trading.model.history import History, OHLC
 from Trading.utils.range.range import PerfectRange
 from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
-from Trading.utils.criterion.expression import Threshold, ThresholdLE
+from Trading.utils.criterion.expression import Threshold, ThresholdLE, ThresholdGE, and_
 
 from Trading.algo.ranker.ranker import RangeScorer, Ordering
 
@@ -34,11 +34,10 @@ def exit():
 ORDERING_SIZE = 70
 
 RANGE_WIDTH = 15
-TOLERANCE = None  # 0.05 # how much above the low the current price can be
 RANGE_HEIGHT = 1.1
 COMPARISON_LAG = 24
 TIMEFRAME = "1M"
-PERCENTAGE_WIN = 0.8
+PERCENTAGE_WIN = 1.10
 
 range_scorer = RangeScorer(window=RANGE_WIDTH)
 range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_scorer)
@@ -110,12 +109,13 @@ if __name__ == "__main__":
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # temp json file storage
+    file_path = f"range-scorer-stocks-{get_date_now_cet()}.json"
     js = JsonFileRW(
-        RANGING_STOCKS_PATH.joinpath(f"range-scorer-stocks-{get_date_now_cet()}.json"),
+        RANGING_STOCKS_PATH.joinpath("workfile.json"),
         LOGGER,
     )
     sp = StockRangeProcessor(
-        js, LOGGER, should_reload_ordering=False, should_reprocess=True
+        js, LOGGER, should_reload_ordering=True, should_reprocess=False
     )
     LOGGER.info(f"Items length: {len(XTB_STOCK_SYMBOLS)}")
     sp.run(items=XTB_STOCK_SYMBOLS, client=client)
@@ -123,15 +123,20 @@ if __name__ == "__main__":
     # Now that we have the perfect range, we can filter the stocks further: we need to have the current price within the range
     # and the current price should be at the low end of the range
     candidates = dict()
+    LOGGER.info(range_ordering.scores)
     for item in range_ordering.scores.items():
-        ask = client.get_symbol(item[0])["ask"]
         hist = History(**sp.data[item[0]]).slice(-RANGE_WIDTH)
-        lowest = hist.calculate_percentile(OHLC.HIGH, 20)
-        highest = hist.calculate_percentile(OHLC.LOW, 80)
+        ask = client.get_symbol(item[0])["ask"]
+        lowest = hist.calculate_percentile(OHLC.LOW, 20)
+
+        highest = hist.calculate_percentile(OHLC.HIGH, 80)
         potential_win_p = highest / ask
-        if ask <= lowest and potential_win_p >= PERCENTAGE_WIN:
+        potential_win_percent = ThresholdGE(name="potential_win_percent", threshold=PERCENTAGE_WIN)
+        potential_win_percent.left = potential_win_p
+
+        # conditions = and_(potential_win_percent)
+        if potential_win_percent.evaluate():
             candidates[item[0]] = potential_win_p
-    sorted(candidates.items(), key=lambda x: x[1], reverse=True)
-    LOGGER.info(candidates)
-# GREAT FINDS:
-# FIZZ.US_9 BTU.US!, BHF.US?
+    candidates = sorted(candidates.items(), key=lambda x: x[1], reverse=True)
+    for candidate in candidates:
+        LOGGER.info(f"{candidate[0]}: {candidate[1]:.3f}")
