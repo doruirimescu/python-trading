@@ -81,6 +81,16 @@ class History(BaseModel):
         elif ohlc == OHLC.CLOSE:
             return self.close_np.max()
 
+    def get_last(self, ohlc: OHLC):
+        if ohlc == OHLC.OPEN:
+            return self.open_np[-1]
+        elif ohlc == OHLC.HIGH:
+            return self.high_np[-1]
+        elif ohlc == OHLC.LOW:
+            return self.low_np[-1]
+        elif ohlc == OHLC.CLOSE:
+            return self.close_np[-1]
+
     def calculate_percentile(self, ohlc: OHLC, percentile: float):
         if ohlc == OHLC.OPEN:
             return np.percentile(self.open_np, percentile)
