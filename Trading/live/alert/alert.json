@@ -486,7 +486,7 @@
         "description": "Alert when Senior is below 1.51",
         "is_handled": true,
         "is_triggered": true,
-        "message": "SNR.UK_4 ask price of 1.417 is < 1.51 from datasource: XTB",
+        "message": "SNR.UK_4 ask price of 1.413 is < 1.51 from datasource: XTB",
         "name": "Senior Price XTB Alert",
         "operator": "lt",
         "schedule": "* * * * *",
