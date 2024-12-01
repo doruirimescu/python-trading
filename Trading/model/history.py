@@ -21,6 +21,7 @@ class History(BaseModel):
     high: Optional[List[float]] = None
     low: Optional[List[float]] = None
     close: Optional[List[float]] = None
+    len: Optional[int] = None
 
     open_np: Optional[np.ndarray] | Any = None
     high_np: Optional[np.ndarray] | Any = None
@@ -31,6 +32,7 @@ class History(BaseModel):
     # post init
     def model_post_init(self, __context):
         self.to_numpy()
+        self.len = len(self.date)
 
     def get_range_ratio(self):
         return self.high_np.max() / self.low_np.min()
