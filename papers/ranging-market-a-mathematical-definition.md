@@ -22,6 +22,8 @@ $$ W=max( H_{t} |t\in [ 1,N]) -min( L_{t} |t\in [ 1,N]) $$
   $$
   W_{x}=p_{high,\ x} -p_{low,\ x}
   $$
+  
+  This has the advantage that it filters out outliers. However, if the outliers are recent, it could mean that the ranging behavior is over. Use with care. 
 
 4. **Range Coherence Metric R:**  
   A normalized metric indicating how well-defined the range is, scaled to a maximum of 1.
