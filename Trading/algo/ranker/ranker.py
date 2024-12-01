@@ -60,6 +60,29 @@ class RangeScorer(ScoreCalculator):
         return 1 / (highs_std + lows_std)
 
 
+class RangeCoherenceMetric(ScoreCalculator):
+    '''
+        RangeCoherenceMetric class is used to calculate coherence metrics based on the
+        historical data of the stock.
+        It takes a history object and a window size and scores the stocks based on
+        their historical data in the window.
+
+        It finds the range coherence metric described in this paper.
+    '''
+
+    def calculate(self, history: History):
+        p_high = history.get_highest(OHLC.HIGH)
+        p_low = history.get_lowest(OHLC.LOW)
+
+        # Calculate the diminished range width
+        width = p_high - p_low
+
+        # sum over high - low for each candle
+        s = sum([h - l for h, l in zip(history.high, history.low)]) / width
+
+        n = history.len
+        return s / n
+
 class Ordering(BaseModel):
     '''
         Ordering class is used to keep track of the ordering of stocks
@@ -67,7 +90,7 @@ class Ordering(BaseModel):
         orders them based on their historical data.
     '''
     top_n: int
-    score_calculator: RangeScorer
+    score_calculator: RangeScorer | RangeCoherenceMetric
     is_bigger_better: bool = True
     scores: Optional[Dict[str, float]] = dict()
 
