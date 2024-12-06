@@ -411,7 +411,7 @@
         "description": "Alert when QQQ3 spot price is above 240",
         "is_handled": true,
         "is_triggered": true,
-        "message": "QQQ3.UK ask price of 257.88 is > 240.0 from datasource: XTB",
+        "message": "QQQ3.UK ask price of 257.46 is > 240.0 from datasource: XTB",
         "name": "QQQ3 Price XTB Alert",
         "operator": "gt",
         "schedule": "* * * * *",
