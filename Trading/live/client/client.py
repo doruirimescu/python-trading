@@ -36,10 +36,10 @@ class LoggingClient:
 
     # @send_email_if_exception_occurs()
     # @exception_with_retry(n_retry=1, sleep_time_s=1)
-    def get_last_n_candles_history(self, instrument: Instrument, N: int):
+    def get_last_n_candles_history(self, instrument: Instrument, N: int, should_cache:bool =False):
         # try to get from cache
         from Trading.utils.history_cache import get_history_days, store_history_days
-        if instrument.timeframe.get_name() == '1-day':
+        if should_cache and instrument.timeframe.get_name() == '1-day':
             history = get_history_days(instrument, N)
             if history is not None:
                 return history
@@ -65,7 +65,7 @@ class LoggingClient:
             close.append(ohlct['close'])
             date.append(datetime.fromtimestamp(ohlct['timestamp']))
         history= {'open': open, 'high': high, 'low': low, 'close': close, 'date': date}
-        if instrument.timeframe.get_name() == '1-day':
+        if should_cache and instrument.timeframe.get_name() == '1-day':
             store_history_days(history, instrument, N)
         return history
 
