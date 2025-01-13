@@ -196,6 +196,6 @@ class RatioGenerator:
                 self.candidates.append((self.choose_k))
             if (i + 1) % 100 == 0:
                 MAIN_LOGGER.info(f"Processed {i+1} ratios")
-        MAIN_LOGGER.info(f"Processed {i+1} ratios")
+        MAIN_LOGGER.info(f"Processed {len(all_ratios)} ratios")
         MAIN_LOGGER.info(f"Found {len(self.candidates)} candidates")
         print(self.candidates)
