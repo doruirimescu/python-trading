@@ -9,6 +9,7 @@ from Trading.model.datasource import DataSourceEnum
 from Trading.live.caching.caching import get_last_n_candles_from_date
 from typing import Optional, Dict
 from dotenv import load_dotenv
+import operator
 import os
 import logging
 import sys
@@ -17,24 +18,20 @@ from dataclasses import dataclass
 from typing import List
 from Trading.utils.ratio.ratio import Ratio, DateNotFoundError, CurrentHolding
 from Trading.utils.calculations import calculate_mean
-from stateful_data_processor.file_rw import JsonFileRW
-
+from Trading.live.ratio.backtest import backtest_ratio
+from Trading.live.ratio.heap import Heap
 
 def exit():
     sys.exit(0)
 
-
-trades_file_writer = JsonFileRW(
-    "/home/doru/personal/trading/Trading/live/ratio/trades.json"
-)
-analysis_file_writer = JsonFileRW(
-    "/home/doru/personal/trading/Trading/live/ratio/analysis.json"
-)
-
+#! Used for in-memory caching
 HISTORIES_DICT = {}
+
 DATA_SOURCE = DataSourceEnum.XTB
 GET_DATA_BEFORE_DATE = datetime(2025, 1, 1)
+STD_SCALER = 1.5
 
+top_10_ratios = Heap(10, lambda x: x[0])
 
 @dataclass
 class Criterion:
@@ -107,7 +104,6 @@ def construct_ratio(ratio: Ratio, N_DAYS: int):
 
 
 def process_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
-    STD_SCALER = 1.5
     construct_ratio(ratio, N_DAYS)
     # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
     ratio.calculate_ratio()
@@ -144,6 +140,12 @@ def process_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
     print(
         f"Found a ratio with at least one swing per year: {ratio.numerator} / {ratio.denominator}"
     )
+
+    trade_analysis_result = backtest_ratio(ratio, STD_SCALER, MAIN_LOGGER)
+    if trade_analysis_result:
+        ar = trade_analysis_result.annualized_return
+        top_10_ratios.push((ar, iteration_info, trade_analysis_result))
+
     # plot_list_dates(
     #     ratio_values,
     #     dates,
@@ -154,104 +156,6 @@ def process_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
     #     show_cursor=True,
     # )
 
-    trades = []
-    if ratio_values != ratio.calculate_ratio():
-        raise Exception("Error in calculating ratio")
-
-    from Trading.model.trade import (
-        Trade,
-        analyze_trades,
-        StrategySummary,
-        aggregate_analysis_results,
-    )
-
-    current_holding = CurrentHolding.NONE
-    # for peak, entry_date in zip(peak_dict["values"], peak_dict["dates"]):
-    index = 0
-    while index < len(ratio.ratio_values):
-        current_value = ratio.ratio_values[index]
-        entry_date = ratio.dates[index]
-        trade_tuple: List[Trade] = []
-        #! WE SHOULD NOT LOOK AT ABS OF CURRENT VALUE - MEAN
-        if (
-            current_holding == CurrentHolding.NONE
-            and abs(current_value - ratio.mean) >= STD_SCALER * ratio.std
-        ):
-            MAIN_LOGGER.info(f"Found a peak at date: {entry_date}")
-            if current_value > ratio.mean:
-                #! At high peak, buy the denominator
-                entry_prices = ratio.get_denominator_prices_at_date(entry_date)
-                current_holding = CurrentHolding.DENOMINATOR
-                d_n = ratio.denominator
-            else:
-                #! At low peak, buy the numerator
-                entry_prices = ratio.get_numerator_prices_at_date(entry_date)
-                current_holding = CurrentHolding.NUMERATOR
-                d_n = ratio.numerator
-            for price, sym in zip(entry_prices, d_n):
-                if not price:
-                    raise Exception("Price is None")
-                trade_tuple.append(
-                    Trade(cmd=0, entry_date=entry_date, open_price=price, symbol=sym)
-                )
-            trades.append(trade_tuple)
-        if current_holding == CurrentHolding.NONE:
-            index += 1
-            continue
-        try:
-
-            next_date_at_mean, index = ratio.get_next_date_at_mean(entry_date)
-            MAIN_LOGGER.info(f"Closing on: {next_date_at_mean}")
-            if current_holding == CurrentHolding.DENOMINATOR:
-                exit_prices = ratio.get_denominator_prices_at_date(next_date_at_mean)
-            elif current_holding == CurrentHolding.NUMERATOR:
-                exit_prices = ratio.get_numerator_prices_at_date(next_date_at_mean)
-            for i, p in enumerate(exit_prices):
-                trades[-1][i].exit_date = next_date_at_mean
-                trades[-1][i].close_price = p
-                trades[-1][i].calculate_max_drawdown_price_diff(
-                    ratio.histories[trade_tuple[i].symbol]
-                )
-            current_holding = CurrentHolding.NONE
-        except DateNotFoundError:
-            MAIN_LOGGER.info(f"No date found at mean for {entry_date}")
-            trades.pop()
-            break
-    tuple_analyses = []
-    for trade_tuple in trades:
-        # if the trade_tuple does not have a closing price, we should not analyze it
-        trade_tuple = [t for t in trade_tuple if t.close_price]
-        MAIN_LOGGER.info(f"Trade tuple: {trade_tuple}")
-        analysis = analyze_trades(
-            trade_tuple, StrategySummary(False, 1000, 1, "USD", "STC")
-        )
-        if analysis is None:
-            continue
-        analysis.print()
-        tuple_analyses.append(analysis)
-
-    plot_list_dates(
-        ratio_values,
-        dates,
-        f"Iteration number {iteration_info}",
-        "Ratio Value",
-        peak_dict,
-        std_scaler=STD_SCALER,
-        show_cursor=True,
-    )
-    if not tuple_analyses:
-        return False
-    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    aggregate_analysis_results(tuple_analyses).print()
-    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
-    trades = [trade for trade_tuple in trades for trade in trade_tuple]
-    trades_dict = dict()
-    trades_dict["trades"] = [t.dict() for t in trades]
-
-    trades_file_writer.write(trades_dict)
-    analysis = analyze_trades(trades, StrategySummary(False, 1000, 1, "USD", "STC"))
-    analysis_file_writer.write(analysis.dict())
     return True
 
 
@@ -327,6 +231,8 @@ if __name__ == "__main__":
     r = RatioGenerator(ALL_SYMBOLS, 5)
     r._process = process_ratio
     r.run(N_DAYS=N_DAYS)
+
+    print(top_10_ratios)
 
 
 #! TODO: Use History class, history cache, StatefulDataProcessor

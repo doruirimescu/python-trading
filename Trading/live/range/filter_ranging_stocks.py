@@ -142,7 +142,6 @@ if __name__ == "__main__":
     for candidate in candidates:
         LOGGER.info(f"{candidate[0]}: {candidate[1]:.3f}")
 
-
 # 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - STRO.US: 2.467
 # 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - OERL.CH_9: 1.427
 # 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - JAMF.US: 1.318
