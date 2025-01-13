@@ -4,6 +4,7 @@ from Trading.utils.custom_logging import get_logger
 from Trading.model.history import History, OHLC
 from datetime import datetime
 from Trading.utils.ratio.combinatorics import get_all_ratios
+import operator
 
 MAIN_LOGGER = get_logger("ratio.py")
 
@@ -128,6 +129,17 @@ class Ratio:
                 return self.dates[j], j
         raise DateNotFoundError("No date found")
 
+    def get_next_date_cross_mean(
+        self, date: datetime, op: operator = operator.gt
+    ) -> Optional[datetime]:
+
+        i = self.dates.index(date)
+        for j in range(i + 1, len(self.dates)):
+            if op(self.ratio_values[j], self.mean):
+                return self.dates[j], j
+        raise DateNotFoundError("No date found")
+
+
     def get_ratio_value_at_date(self, date: datetime):
         i = self.dates.index(date)
         return self.ratio_values[i]
@@ -171,9 +183,6 @@ class RatioGenerator:
     def __init__(self, symbols: List[str], choose_k: Optional[int] = None) -> None:
         self.symbols = symbols
         self.choose_k = choose_k
-        self.numerator_index = 0
-        self.denominator_index = 0
-        self.current_k = 0
         self.candidates = []
 
     @abstractmethod
