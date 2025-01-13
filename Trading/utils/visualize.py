@@ -42,7 +42,8 @@ def plot_trades_gant(all_trades: List[List[Trade]]):
 
 # plot a list of values with dates
 def plot_list_dates(
-    values: List[float], dates: List, title: str, ylabel: str, peaks, show_cursor=True
+    values: List[float], dates: List, title: str, ylabel: str, peaks,
+    std_scaler=1.5, show_cursor=True
 ):
     from datetime import datetime
     import mplcursors
@@ -75,18 +76,17 @@ def plot_list_dates(
     from Trading.utils.calculations import calculate_standard_deviation
 
     std_dev = calculate_standard_deviation(values)
-    STD_SCALER = 1.5
     ax.axhline(
-        average_value + STD_SCALER * std_dev,
+        average_value + std_scaler * std_dev,
         color="green",
         linestyle="--",
-        label=f"Above {STD_SCALER} Std Dev",
+        label=f"Above {std_scaler} Std Dev",
     )
     ax.axhline(
-        average_value - STD_SCALER * std_dev,
+        average_value - std_scaler * std_dev,
         color="red",
         linestyle="--",
-        label=f"Below {STD_SCALER} Std Dev",
+        label=f"Below {std_scaler} Std Dev",
     )
 
     peak_values = peaks["values"]
@@ -96,14 +96,14 @@ def plot_list_dates(
     peaks_above_std = []
     peaks_above_std_dates = []
     for i in range(len(peak_values)):
-        if abs(peak_values[i] - average_value) > STD_SCALER * std_dev:
+        if abs(peak_values[i] - average_value) > std_scaler * std_dev:
             peaks_above_std.append(peak_values[i])
             peaks_above_std_dates.append(peak_dates[i])
     ax.plot(
         peaks_above_std_dates,
         peaks_above_std,
         "go",
-        label=f"Peaks outside {STD_SCALER} Std Dev",
+        label=f"Peaks outside {std_scaler} Std Dev",
     )
 
     plt.xticks(rotation=45)
