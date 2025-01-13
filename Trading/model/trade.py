@@ -216,6 +216,9 @@ def analyze_trades(trades: List[Trade], strategy_summary: StrategySummary):
 
     all_dates = [t.entry_date for t in trades] + [t.exit_date for t in trades]
     all_dates = sorted(list(set(all_dates)))
+    if len(all_dates) < 2:
+        return None
+
     n_days = (all_dates[-1] - all_dates[0]).days
 
     (SHOULD_REINVEST, DESIRED_CASH_INVESTED) = (
