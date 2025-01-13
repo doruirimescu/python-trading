@@ -11,6 +11,7 @@ class MaxDrawdown:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+
 @dataclass
 class TradeOrder:
     cmd: int  # 0 buy, 1 sell
@@ -19,13 +20,16 @@ class TradeOrder:
     volume: float
     symbol: str
 
+
 @dataclass
 class BuyTradeOrder(TradeOrder):
     cmd: int = field(default=0, init=False)
 
+
 @dataclass
 class SellTradeOrder(TradeOrder):
     cmd: int = field(default=1, init=False)
+
 
 @dataclass
 class Trade:
@@ -65,17 +69,32 @@ class Trade:
         return {k: str(v) for k, v in asdict(self).items()}
 
     def get_orders(self) -> Tuple[BuyTradeOrder, SellTradeOrder]:
-        return (BuyTradeOrder(date=self.entry_date, price=self.open_price, volume=self.volume, symbol=self.symbol),
-                SellTradeOrder(date=self.exit_date, price=self.close_price, volume=self.volume, symbol=self.symbol))
+        return (
+            BuyTradeOrder(
+                date=self.entry_date,
+                price=self.open_price,
+                volume=self.volume,
+                symbol=self.symbol,
+            ),
+            SellTradeOrder(
+                date=self.exit_date,
+                price=self.close_price,
+                volume=self.volume,
+                symbol=self.symbol,
+            ),
+        )
+
 
 # create BuyTrade that inherits from Trade, has cmd=0
 @dataclass
 class BuyTrade(Trade):
     cmd: int = field(default=0, init=False)
 
+
 @dataclass
 class SellTrade(Trade):
     cmd: int = field(default=1, init=False)
+
 
 class StrategySummary:
     def __init__(
@@ -131,20 +150,25 @@ class TradesAnalysisResult:
         print("---------------------------------------")
         print(f"From: {self.from_date.date()} to {self.to_date.date()}")
         print(f"Total net profit: {self.total_net_profit:.2f} {self.profit_currency}")
-        print(f"Total cash invested: {self.total_cash_invested:.2f} {self.profit_currency}")
+        print(
+            f"Total cash invested: {self.total_cash_invested:.2f} {self.profit_currency}"
+        )
         print(
             f"Average cash invested per trade: {self.average_cash_per_trade:.2f} {self.profit_currency}"
         )
         print(
             f"Max drawdown: {self.max_drawdown:.2f} {self.profit_currency} between {self.drawdown_date_start} and {self.drawdown_date_end}"
         )
-        print(f"A number of {self.n_trades} trades were made during {self.n_days} days (with overlaps)")
+        print(
+            f"A number of {self.n_trades} trades were made during {self.n_days} days (with overlaps)"
+        )
         print(
             f"Profit trades: {self.n_profit_trades}, Loss trades: {self.n_loss_trades} Win ratio: {100*self.n_profit_trades/self.n_trades:.2f}%"
         )
         print(f"Reward to risk ratio: {self.rewards_to_risk_ratio:.2f}")
         print(f"Average trade duration: {self.average_trade_duration_days:.2f} days")
         print(f"Annualized returns: {self.annualized_return:.2f}%")
+
 
 def aggregate_analysis_results(results: List[TradesAnalysisResult]):
     total_net_profit = 0
@@ -198,18 +222,18 @@ def aggregate_analysis_results(results: List[TradesAnalysisResult]):
         annualized_return=annualized_return,
         profit_currency=results[0].profit_currency,
         average_cash_per_trade=average_cash_per_trade,
-
         max_drawdown=results[0].max_drawdown,
         drawdown_date_start=results[0].drawdown_date_start,
         drawdown_date_end=results[0].drawdown_date_end,
-
         rewards_to_risk_ratio=rewards_to_risk_ratio,
         average_trade_duration_days=average_trade_duration_days,
-
     )
     return tar
 
-def analyze_trades(trades: List[Trade], strategy_summary: StrategySummary):
+
+def analyze_trades(
+    trades: List[Trade], strategy_summary: StrategySummary
+) -> Optional[TradesAnalysisResult]:
     from Trading.symbols.constants import (
         XTB_ALL_SYMBOLS_DICT,
     )
@@ -300,9 +324,13 @@ def analyze_trades(trades: List[Trade], strategy_summary: StrategySummary):
         trade_analysis_result.rewards_to_risk_ratio = 100
 
     annualized_return = (
+        (
             trade_analysis_result.total_net_profit
-        / trade_analysis_result.total_cash_invested
-    ) * 365 / trade_analysis_result.n_days
+            / trade_analysis_result.total_cash_invested
+        )
+        * 365
+        / trade_analysis_result.n_days
+    )
     trade_analysis_result.annualized_return = 100 * annualized_return
 
     return trade_analysis_result
