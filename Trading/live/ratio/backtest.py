@@ -27,7 +27,7 @@ def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisR
             current_holding == CurrentHolding.NONE
             and abs(current_value - ratio.mean) >= std_scaler * ratio.std
         ):
-            logger.info(f"Found a peak at date: {entry_date}")
+            logger.debug(f"Found a peak at date: {entry_date}")
             if current_value > ratio.mean:
                 #! At high peak, buy the denominator
                 entry_prices = ratio.get_denominator_prices_at_date(entry_date)
@@ -56,7 +56,7 @@ def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisR
                 next_date_at_mean, index = ratio.get_next_date_cross_mean(entry_date, operator.gt)
                 exit_prices = ratio.get_numerator_prices_at_date(next_date_at_mean)
 
-            logger.info(f"Closing on: {next_date_at_mean}")
+            logger.debug(f"Closing on: {next_date_at_mean}")
             for i, p in enumerate(exit_prices):
                 trades[-1][i].exit_date = next_date_at_mean
                 trades[-1][i].close_price = p
@@ -65,7 +65,7 @@ def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisR
                 )
             current_holding = CurrentHolding.NONE
         except DateNotFoundError:
-            logger.info(f"No date found at mean for {entry_date}")
+            logger.debug(f"No date found at mean for {entry_date}")
             trades.pop()
             break
 
@@ -74,7 +74,7 @@ def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisR
     for trade_tuple in trades:
         # if the trade_tuple does not have a closing price, we should not analyze it
         trade_tuple = [t for t in trade_tuple if t.close_price]
-        # logger.info(f"Trade tuple: {trade_tuple}")
+        # logger.debug(f"Trade tuple: {trade_tuple}")
         analysis = analyze_trades(
             trade_tuple, StrategySummary(False, 1000, 1, "USD", "STC")
         )
