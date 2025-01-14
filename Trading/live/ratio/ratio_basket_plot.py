@@ -53,12 +53,24 @@ CRITERION = Criterion(
 )
 
 
+def _construct_ratio(ratio: Ratio):
+    for symbol in ratio.numerator:
+        ratio.add_history(symbol, HISTORIES_DICT[symbol])
+
+    for symbol in ratio.denominator:
+        ratio.add_history(symbol, HISTORIES_DICT[symbol])
+
+    ratio.eliminate_nonintersecting_dates()
+
+
 class RatioProcessor(StatefulDataProcessor):
     def __init__(
         self, json_file_rw, logger, should_reload_aggregate=True, should_reprocess=False
     ):
         global top_10_ratios
-        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess, print_interval=100)
+        super().__init__(
+            json_file_rw, logger, should_reprocess=should_reprocess, print_interval=100
+        )
 
         if should_reload_aggregate:
             ratios_from_file = self.data.get("top_10_ratios")
@@ -72,7 +84,7 @@ class RatioProcessor(StatefulDataProcessor):
         n, d = item
         ratio = Ratio(list(n), list(d))
 
-        __construct_ratio(ratio)
+        _construct_ratio(ratio)
         # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
         ratio.calculate_ratio()
         # MAIN_LOGGER.info(f"Calculated ratio: {ratio.ratio_values[0:10]}")
@@ -86,7 +98,7 @@ class RatioProcessor(StatefulDataProcessor):
             return False
 
         dates = [str(x) for x in ratio_dates]
-        peak_dict = __calculate_mean_crossing_peaks(ratio_values, dates)
+        peak_dict = _calculate_mean_crossing_peaks(ratio_values, dates)
         if not peak_dict:
             # MAIN_LOGGER.info("No peaks found")
             self.data[str(item)] = None
@@ -113,14 +125,30 @@ class RatioProcessor(StatefulDataProcessor):
 
         if trade_analysis_result:
             ar = trade_analysis_result.annualized_return
-            top_10_ratios.push([ar, iteration_info, trade_analysis_result,])
+            top_10_ratios.push(
+                [
+                    ar,
+                    iteration_info,
+                    trade_analysis_result,
+                ]
+            )
             self.data[str(item)] = trade_analysis_result
-            self.data['top_10_ratios'] = top_10_ratios.model_dump()
+            self.data["top_10_ratios"] = top_10_ratios.model_dump()
         else:
             self.data[str(item)] = None
 
+        plot_list_dates(
+            ratio.ratio_values,
+            dates,
+            f"Iteration number {iteration_info}",
+            "Ratio Value",
+            peak_dict,
+            std_scaler=STD_SCALER,
+            show_cursor=True,
+        )
 
-def __calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
+
+def _calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     peaks = [ratios[0]]
     peak_days = [datetime.fromisoformat(days[0])]
     mean = calculate_mean(ratios)
@@ -159,17 +187,6 @@ def __calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     return peak_dict
 
 
-def __construct_ratio(ratio: Ratio):
-    for symbol in ratio.numerator:
-        ratio.add_history(symbol, HISTORIES_DICT[symbol])
-
-    for symbol in ratio.denominator:
-        ratio.add_history(symbol, HISTORIES_DICT[symbol])
-
-    ratio.eliminate_nonintersecting_dates()
-
-
-
 def analyze_indices():
     ratio_permutations_indices = [
         1250026,
@@ -186,21 +203,21 @@ def analyze_indices():
     for i in ratio_permutations_indices:
         r = get_ith_ratio(ALL_SYMBOLS, 5, i)
         r = Ratio(list(r[0]), list(r[1]))
-        __construct_ratio(r)
+        _construct_ratio(r)
         r.calculate_ratio()
 
         dates = [str(x) for x in r.dates]
-        peak_dict = __calculate_mean_crossing_peaks(r.ratio_values, dates)
+        peak_dict = _calculate_mean_crossing_peaks(r.ratio_values, dates)
 
         plot_list_dates(
-        r.ratio_values,
-        dates,
-        f"Iteration number {i}",
-        "Ratio Value",
-        peak_dict,
-        std_scaler=STD_SCALER,
-        show_cursor=True,
-    )
+            r.ratio_values,
+            dates,
+            f"Iteration number {i}",
+            "Ratio Value",
+            peak_dict,
+            std_scaler=STD_SCALER,
+            show_cursor=True,
+        )
 
 
 if __name__ == "__main__":
@@ -252,12 +269,14 @@ if __name__ == "__main__":
 
     MAIN_LOGGER.info(f"Total number of symbols: {len(ALL_SYMBOLS)}")
 
-    # __analyze_indices()
+    # _analyze_indices()
 
     from Trading.utils.ratio.combinatorics import get_all_ratios
 
     all_ratios = get_all_ratios(ALL_SYMBOLS, 5)[0:10000]
-    file_rw = JsonFileRW(RATIO_STOCKS_PATH.joinpath(f"{str(GET_DATA_BEFORE_DATE.date())}_ratios.json"))
+    file_rw = JsonFileRW(
+        RATIO_STOCKS_PATH.joinpath(f"{str(GET_DATA_BEFORE_DATE.date())}_ratios.json")
+    )
     r = RatioProcessor(file_rw, MAIN_LOGGER)
     all_ratios = [str(x) for x in all_ratios]
     r.run(all_ratios)
