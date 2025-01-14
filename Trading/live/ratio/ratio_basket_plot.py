@@ -1,28 +1,24 @@
 from Trading.live.client.client import XTBLoggingClient
-from Trading.config.config import USERNAME, PASSWORD, MODE
+from Trading.config.config import USERNAME, PASSWORD, MODE, RATIO_STOCKS_PATH
 from Trading.instrument import Instrument
 from Trading.model.timeframes import Timeframe
 from Trading.utils.visualize import plot_list_dates
 from Trading.utils.ratio.combinatorics import get_ith_ratio
-from Trading.utils.ratio.ratio import RatioGenerator
 from Trading.model.datasource import DataSourceEnum
 from Trading.live.caching.caching import get_last_n_candles_from_date
 from typing import Optional, Dict
 from dotenv import load_dotenv
-import operator
 import os
 import logging
-import sys
 from datetime import datetime, date
 from dataclasses import dataclass
 from typing import List
-from Trading.utils.ratio.ratio import Ratio, DateNotFoundError, CurrentHolding
+from Trading.utils.ratio.ratio import Ratio
 from Trading.utils.calculations import calculate_mean
 from Trading.live.ratio.backtest import backtest_ratio
 from Trading.live.ratio.heap import Heap
-
-def exit():
-    sys.exit(0)
+from stateful_data_processor.file_rw import JsonFileRW
+from stateful_data_processor.processor import StatefulDataProcessor
 
 #! Used for in-memory caching
 HISTORIES_DICT = {}
@@ -31,7 +27,10 @@ DATA_SOURCE = DataSourceEnum.XTB
 GET_DATA_BEFORE_DATE = datetime(2025, 1, 1)
 STD_SCALER = 1.5
 
+N_CHOOSE_K = 5
+
 top_10_ratios = Heap(10, lambda x: x[0])
+
 
 @dataclass
 class Criterion:
@@ -52,6 +51,82 @@ CRITERION = Criterion(
     max_peak_offset=0.01,
     max_days_between_swings=365 * 2,
 )
+
+
+class RatioProcessor(StatefulDataProcessor):
+    def __init__(
+        self, json_file_rw, logger, should_reload_ordering=False, should_reprocess=False
+    ):
+        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess)
+
+    def process_item(self, item, iteration_index):
+        global top_10_ratios
+        if iteration_index % 10000 == 0:
+            MAIN_LOGGER.info(f"Processed {iteration_index} / {len(self.data)}")
+        n, d = item
+        ratio = Ratio(list(n), list(d))
+
+        construct_ratio(ratio)
+        # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
+        ratio.calculate_ratio()
+        # MAIN_LOGGER.info(f"Calculated ratio: {ratio.ratio_values[0:10]}")
+        ratio_values = ratio.ratio_values
+        ratio_dates = ratio.dates
+
+        average_ratio = sum(ratio_values) / len(ratio_values)
+
+        if abs(average_ratio - 1.0) >= CRITERION.maximum_average_ratio_deviation:
+            self.data[str(ratio)] = None
+            return False
+
+        dates = [str(x) for x in ratio_dates]
+        peak_dict = calculate_mean_crossing_peaks(ratio_values, dates)
+        if not peak_dict:
+            # MAIN_LOGGER.info("No peaks found")
+            self.data[str(ratio)] = None
+            return False
+        n_peaks = len(peak_dict["values"])
+
+        if n_peaks <= CRITERION.min_n_peaks:
+            # MAIN_LOGGER.info("Not enough peaks found")
+            self.data[str(ratio)] = None
+            return False
+
+        if peak_dict["mean_swing_size"] <= CRITERION.min_average_swing_size:
+            # MAIN_LOGGER.info("Average swing size too small")
+            self.data[str(ratio)] = None
+            return False
+
+        peak_offset = abs(sum(peak_dict["values"]) - n_peaks * average_ratio)
+
+        if peak_offset >= CRITERION.max_peak_offset:
+            # MAIN_LOGGER.info("Peak offset too large")
+            self.data[str(ratio)] = None
+            return False
+
+        # print(
+        #     f"Found a ratio with at least one swing per year: {ratio.numerator} / {ratio.denominator}"
+        # )
+
+        trade_analysis_result = backtest_ratio(ratio, STD_SCALER, self.logger)
+        iteration_info = f"k: {N_CHOOSE_K} index: {iteration_index}"
+
+        if trade_analysis_result:
+            ar = trade_analysis_result.annualized_return
+            top_10_ratios.push((ar, iteration_info, trade_analysis_result))
+            self.data[str(ratio)] = trade_analysis_result
+        else:
+            self.data[str(ratio)] = None
+
+        # plot_list_dates(
+        #     ratio_values,
+        #     dates,
+        #     f"Iteration number {iteration_info}",
+        #     "Ratio Value",
+        #     peak_dict,
+        #     std_scaler=STD_SCALER,
+        #     show_cursor=True,
+        # )
 
 
 def calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
@@ -93,7 +168,7 @@ def calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     return peak_dict
 
 
-def construct_ratio(ratio: Ratio, N_DAYS: int):
+def construct_ratio(ratio: Ratio):
     for symbol in ratio.numerator:
         ratio.add_history(symbol, HISTORIES_DICT[symbol])
 
@@ -103,8 +178,8 @@ def construct_ratio(ratio: Ratio, N_DAYS: int):
     ratio.eliminate_nonintersecting_dates()
 
 
-def process_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
-    construct_ratio(ratio, N_DAYS)
+def process_ratio(ratio: Ratio, iteration_info: str = ""):
+    construct_ratio(ratio)
     # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
     ratio.calculate_ratio()
     # MAIN_LOGGER.info(f"Calculated ratio: {ratio.ratio_values[0:10]}")
@@ -146,17 +221,38 @@ def process_ratio(ratio: Ratio, N_DAYS: int, iteration_info: str = ""):
         ar = trade_analysis_result.annualized_return
         top_10_ratios.push((ar, iteration_info, trade_analysis_result))
 
-    # plot_list_dates(
-    #     ratio_values,
-    #     dates,
-    #     f"Iteration number {iteration_info}",
-    #     "Ratio Value",
-    #     peak_dict,
-    #     std_scaler=STD_SCALER,
-    #     show_cursor=True,
-    # )
+    plot_list_dates(
+        ratio_values,
+        dates,
+        f"Iteration number {iteration_info}",
+        "Ratio Value",
+        peak_dict,
+        std_scaler=STD_SCALER,
+        show_cursor=True,
+    )
 
     return True
+
+
+def analyze_indices():
+    ratio_permutations_indices = [
+        1250026,
+        1632784,
+        722555,
+        1233727,
+        492143,
+        191787,
+        1205160,
+        1864742,
+        1156050,
+        183115,
+    ]
+    for i, ratio in enumerate(ratio_permutations_indices):
+        r = get_ith_ratio(ALL_SYMBOLS, 5, ratio)
+        r = Ratio(list(r[0]), list(r[1]))
+        construct_ratio(r)
+        r.calculate_ratio()
+        process_ratio(r)
 
 
 if __name__ == "__main__":
@@ -191,6 +287,7 @@ if __name__ == "__main__":
         "EXR.US_9",
         "HST.US_9",
     ]
+
     # Populate the history dict
     MAIN_LOGGER.info("Populating the history dict")
     for symbol in ALL_SYMBOLS:
@@ -205,34 +302,20 @@ if __name__ == "__main__":
 
     USE_MANUAL = False
 
-    if USE_MANUAL:
-        NOMINATOR_SYMBOLS = ["PLD.US_9", "CCI.US_9", "EQIX.US_9", "WELL.US", "SPG.US_9"]
-        DENOMINATOR_SYMBOLS = [
-            "PLD.US_9",
-            "CCI.US_9",
-            "DLR.US_9",
-            "EXR.US_9",
-            "HST.US_9",
-        ]
-        calculate_ratio(NOMINATOR_SYMBOLS, DENOMINATOR_SYMBOLS, N_DAYS, f"{1}_{1}")
-        exit()
-
     MAIN_LOGGER.info(f"Total number of symbols: {len(ALL_SYMBOLS)}")
 
-    # ratio_permutations_indices = [338, 641, 635, 676, 2532]  # 338, 641, 635, 676, 2532
+    # analyze_indices()
 
-    # for i, ratio in enumerate(ratio_permutations_indices):
-    #     r = get_ith_ratio(ALL_SYMBOLS, 5, ratio)
+    from Trading.utils.ratio.combinatorics import get_all_ratios
 
-    #     calculate_ratio(
-    #         Ratio(list(r[0]), list(r[1])), N_DAYS, ratio_permutations_indices[i]
-    #     )
-
-    r = RatioGenerator(ALL_SYMBOLS, 5)
-    r._process = process_ratio
-    r.run(N_DAYS=N_DAYS)
-
+    all_ratios = get_all_ratios(ALL_SYMBOLS, 5)
+    file_rw = JsonFileRW(RATIO_STOCKS_PATH.joinpath(f"{str(GET_DATA_BEFORE_DATE.date())}_ratios.json"))
+    r = RatioProcessor(file_rw, None)
+    r.run(all_ratios)
     print(top_10_ratios)
 
 
 #! TODO: Use History class, history cache, StatefulDataProcessor
+
+# Best indices:
+# 1250026 1632784 722555 1233727 492143 191787 1205160 1864742 1156050 183115

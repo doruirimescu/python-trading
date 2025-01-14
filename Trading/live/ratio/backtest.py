@@ -10,13 +10,6 @@ from Trading.model.trade import (
         TradesAnalysisResult,
     )
 
-trades_file_writer = JsonFileRW(
-    "/home/doru/personal/trading/Trading/live/ratio/trades.json"
-)
-analysis_file_writer = JsonFileRW(
-    "/home/doru/personal/trading/Trading/live/ratio/analysis.json"
-)
-
 def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisResult]:
     trades = []
     if ratio.ratio_values != ratio.calculate_ratio():
@@ -91,17 +84,12 @@ def backtest_ratio(ratio: Ratio, std_scaler, logger) -> Optional[TradesAnalysisR
 
     if not tuple_analyses:
         return None
-    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
     trade_analysis_result = aggregate_analysis_results(tuple_analyses)
-    trade_analysis_result.print()
-    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    print()
 
-    trades = [trade for trade_tuple in trades for trade in trade_tuple]
-    trades_dict = dict()
-    trades_dict["trades"] = [t.dict() for t in trades]
+    # print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # trade_analysis_result.print()
+    # print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # print()
 
-    trades_file_writer.write(trades_dict)
-    trade_analysis_result = analyze_trades(trades, StrategySummary(False, 1000, 1, "USD", "STC"))
-    analysis_file_writer.write(trade_analysis_result.dict())
     return trade_analysis_result

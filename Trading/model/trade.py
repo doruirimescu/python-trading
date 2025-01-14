@@ -119,9 +119,8 @@ class StrategySummary:
     def print(self):
         pass
 
-
-@dataclass
-class TradesAnalysisResult:
+from pydantic import BaseModel
+class TradesAnalysisResult(BaseModel):
     from_date: Optional[datetime] = None
     to_date: Optional[datetime] = None
     total_net_profit: Optional[float] = None
@@ -136,7 +135,7 @@ class TradesAnalysisResult:
     rewards_to_risk_ratio: Optional[float] = None
     average_cash_per_trade: Optional[float] = None
     annualized_return: Optional[float] = None
-    n_years: Optional[int] = None
+    n_years: Optional[float] = None
     n_days: Optional[int] = None
     n_trades: Optional[int] = None
     profit_currency: Optional[str] = None
@@ -184,7 +183,7 @@ def aggregate_analysis_results(results: List[TradesAnalysisResult]):
     average_cash_per_trade = 0
     rewards_to_risk_ratio = 0
     average_trade_duration_days = 0
-    print(f"A total of {len(results)} results were aggregated")
+    # print(f"A total of {len(results)} results were aggregated")
     for result in results:
         total_net_profit += result.total_net_profit
         total_cash_invested += result.total_cash_invested
