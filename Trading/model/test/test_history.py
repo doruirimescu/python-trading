@@ -167,3 +167,22 @@ class TestHistory(TestCase):
         self.assertEqual(history.high, [1.3, 1.4, 1.5])
         self.assertEqual(history.low, [1.1, 1.2, 1.3])
         self.assertEqual(history.close, [1.3, 1.4, 1.5])
+
+    def test_normalize(self):
+        history = History(
+            symbol="EURUSD",
+            timeframe="1M",
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)],
+            open=[10, 20, 30],
+            high=[10, 30, 40],
+            low=[10, 2, 3],
+            close=[25, 10, 5],
+        )
+        normalized = history.normalize()
+        self.assertEqual(normalized.symbol, "EURUSD")
+        self.assertEqual(normalized.timeframe, "1M")
+        self.assertEqual(normalized.date, [datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)])
+        self.assertEqual(normalized.open, [1, 2, 3])
+        self.assertEqual(normalized.high, [1, 3, 4])
+        self.assertEqual(normalized.low, [1, 0.2, 0.3])
+        self.assertEqual(normalized.close, [1, 0.4, 0.2])

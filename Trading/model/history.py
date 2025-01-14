@@ -32,7 +32,10 @@ class History(BaseModel):
     # post init
     def model_post_init(self, __context):
         self.to_numpy()
-        self.len = len(self.date)
+        if self.date:
+            self.len = len(self.date)
+        else:
+            self.len = 0
 
     def get_range_ratio(self):
         return self.high_np.max() / self.low_np.min()
@@ -154,6 +157,21 @@ class History(BaseModel):
         )  # Remove duplicates and sort by date
         self.date, self.open, self.high, self.low, self.close = map(
             list, zip(*combined)
+        )
+
+    def normalize(self):
+        new_open = list(self.open_np / self.open_np[0])
+        new_high = list(self.high_np / self.high_np[0])
+        new_low =  list(self.low_np / self.low_np[0])
+        new_close = list(self.close_np / self.close_np[0])
+        return History(
+            symbol=self.symbol,
+            timeframe=self.timeframe,
+            date=self.date,
+            open=new_open,
+            high=new_high,
+            low=new_low,
+            close=new_close,
         )
 
     def __getitem__(self, item):
