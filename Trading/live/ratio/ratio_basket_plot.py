@@ -29,7 +29,7 @@ STD_SCALER = 1.5
 
 N_CHOOSE_K = 5
 
-top_10_ratios = Heap(10, lambda x: x[0])
+top_10_ratios = Heap(max_len=10)
 
 
 @dataclass
@@ -55,18 +55,24 @@ CRITERION = Criterion(
 
 class RatioProcessor(StatefulDataProcessor):
     def __init__(
-        self, json_file_rw, logger, should_reload_ordering=False, should_reprocess=False
+        self, json_file_rw, logger, should_reload_aggregate=True, should_reprocess=False
     ):
-        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess)
+        global top_10_ratios
+        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess, print_interval=100)
+
+        if should_reload_aggregate:
+            ratios_from_file = self.data.get("top_10_ratios")
+            if ratios_from_file:
+                top_10_ratios = Heap.deserialize(ratios_from_file)
+                print(f"LOADING FROM FILE: {len(top_10_ratios.data)}")
 
     def process_item(self, item, iteration_index):
         global top_10_ratios
-        if iteration_index % 10000 == 0:
-            MAIN_LOGGER.info(f"Processed {iteration_index} / {len(self.data)}")
+        item = eval(item)
         n, d = item
         ratio = Ratio(list(n), list(d))
 
-        construct_ratio(ratio)
+        __construct_ratio(ratio)
         # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
         ratio.calculate_ratio()
         # MAIN_LOGGER.info(f"Calculated ratio: {ratio.ratio_values[0:10]}")
@@ -76,60 +82,45 @@ class RatioProcessor(StatefulDataProcessor):
         average_ratio = sum(ratio_values) / len(ratio_values)
 
         if abs(average_ratio - 1.0) >= CRITERION.maximum_average_ratio_deviation:
-            self.data[str(ratio)] = None
+            self.data[str(item)] = None
             return False
 
         dates = [str(x) for x in ratio_dates]
-        peak_dict = calculate_mean_crossing_peaks(ratio_values, dates)
+        peak_dict = __calculate_mean_crossing_peaks(ratio_values, dates)
         if not peak_dict:
             # MAIN_LOGGER.info("No peaks found")
-            self.data[str(ratio)] = None
+            self.data[str(item)] = None
             return False
         n_peaks = len(peak_dict["values"])
 
         if n_peaks <= CRITERION.min_n_peaks:
             # MAIN_LOGGER.info("Not enough peaks found")
-            self.data[str(ratio)] = None
+            self.data[str(item)] = None
             return False
 
         if peak_dict["mean_swing_size"] <= CRITERION.min_average_swing_size:
-            # MAIN_LOGGER.info("Average swing size too small")
-            self.data[str(ratio)] = None
+            self.data[str(item)] = None
             return False
 
         peak_offset = abs(sum(peak_dict["values"]) - n_peaks * average_ratio)
 
         if peak_offset >= CRITERION.max_peak_offset:
-            # MAIN_LOGGER.info("Peak offset too large")
-            self.data[str(ratio)] = None
+            self.data[str(item)] = None
             return False
-
-        # print(
-        #     f"Found a ratio with at least one swing per year: {ratio.numerator} / {ratio.denominator}"
-        # )
 
         trade_analysis_result = backtest_ratio(ratio, STD_SCALER, self.logger)
         iteration_info = f"k: {N_CHOOSE_K} index: {iteration_index}"
 
         if trade_analysis_result:
             ar = trade_analysis_result.annualized_return
-            top_10_ratios.push((ar, iteration_info, trade_analysis_result))
-            self.data[str(ratio)] = trade_analysis_result
+            top_10_ratios.push([ar, iteration_info, trade_analysis_result,])
+            self.data[str(item)] = trade_analysis_result
+            self.data['top_10_ratios'] = top_10_ratios.model_dump()
         else:
-            self.data[str(ratio)] = None
-
-        # plot_list_dates(
-        #     ratio_values,
-        #     dates,
-        #     f"Iteration number {iteration_info}",
-        #     "Ratio Value",
-        #     peak_dict,
-        #     std_scaler=STD_SCALER,
-        #     show_cursor=True,
-        # )
+            self.data[str(item)] = None
 
 
-def calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
+def __calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     peaks = [ratios[0]]
     peak_days = [datetime.fromisoformat(days[0])]
     mean = calculate_mean(ratios)
@@ -168,7 +159,7 @@ def calculate_mean_crossing_peaks(ratios, days) -> Optional[Dict]:
     return peak_dict
 
 
-def construct_ratio(ratio: Ratio):
+def __construct_ratio(ratio: Ratio):
     for symbol in ratio.numerator:
         ratio.add_history(symbol, HISTORIES_DICT[symbol])
 
@@ -177,61 +168,6 @@ def construct_ratio(ratio: Ratio):
 
     ratio.eliminate_nonintersecting_dates()
 
-
-def process_ratio(ratio: Ratio, iteration_info: str = ""):
-    construct_ratio(ratio)
-    # MAIN_LOGGER.info(f"Calculating ratio: {ratio.numerator} / {ratio.denominator}")
-    ratio.calculate_ratio()
-    # MAIN_LOGGER.info(f"Calculated ratio: {ratio.ratio_values[0:10]}")
-    ratio_values = ratio.ratio_values
-    ratio_dates = ratio.dates
-
-    average_ratio = sum(ratio_values) / len(ratio_values)
-
-    if abs(average_ratio - 1.0) >= CRITERION.maximum_average_ratio_deviation:
-        return False
-
-    dates = [str(x) for x in ratio_dates]
-    peak_dict = calculate_mean_crossing_peaks(ratio_values, dates)
-    if not peak_dict:
-        # MAIN_LOGGER.info("No peaks found")
-        return False
-    n_peaks = len(peak_dict["values"])
-
-    if n_peaks <= CRITERION.min_n_peaks:
-        # MAIN_LOGGER.info("Not enough peaks found")
-        return False
-
-    if peak_dict["mean_swing_size"] <= CRITERION.min_average_swing_size:
-        # MAIN_LOGGER.info("Average swing size too small")
-        return False
-
-    peak_offset = abs(sum(peak_dict["values"]) - n_peaks * average_ratio)
-
-    if peak_offset >= CRITERION.max_peak_offset:
-        # MAIN_LOGGER.info("Peak offset too large")
-        return False
-
-    print(
-        f"Found a ratio with at least one swing per year: {ratio.numerator} / {ratio.denominator}"
-    )
-
-    trade_analysis_result = backtest_ratio(ratio, STD_SCALER, MAIN_LOGGER)
-    if trade_analysis_result:
-        ar = trade_analysis_result.annualized_return
-        top_10_ratios.push((ar, iteration_info, trade_analysis_result))
-
-    plot_list_dates(
-        ratio_values,
-        dates,
-        f"Iteration number {iteration_info}",
-        "Ratio Value",
-        peak_dict,
-        std_scaler=STD_SCALER,
-        show_cursor=True,
-    )
-
-    return True
 
 
 def analyze_indices():
@@ -247,12 +183,24 @@ def analyze_indices():
         1156050,
         183115,
     ]
-    for i, ratio in enumerate(ratio_permutations_indices):
-        r = get_ith_ratio(ALL_SYMBOLS, 5, ratio)
+    for i in ratio_permutations_indices:
+        r = get_ith_ratio(ALL_SYMBOLS, 5, i)
         r = Ratio(list(r[0]), list(r[1]))
-        construct_ratio(r)
+        __construct_ratio(r)
         r.calculate_ratio()
-        process_ratio(r)
+
+        dates = [str(x) for x in r.dates]
+        peak_dict = __calculate_mean_crossing_peaks(r.ratio_values, dates)
+
+        plot_list_dates(
+        r.ratio_values,
+        dates,
+        f"Iteration number {i}",
+        "Ratio Value",
+        peak_dict,
+        std_scaler=STD_SCALER,
+        show_cursor=True,
+    )
 
 
 if __name__ == "__main__":
@@ -260,7 +208,7 @@ if __name__ == "__main__":
     logging.basicConfig(format=FORMAT)
 
     MAIN_LOGGER = logging.getLogger("Main logger")
-    MAIN_LOGGER.setLevel(logging.DEBUG)
+    MAIN_LOGGER.setLevel(logging.INFO)
     MAIN_LOGGER.propagate = True
 
     load_dotenv()
@@ -304,13 +252,14 @@ if __name__ == "__main__":
 
     MAIN_LOGGER.info(f"Total number of symbols: {len(ALL_SYMBOLS)}")
 
-    # analyze_indices()
+    # __analyze_indices()
 
     from Trading.utils.ratio.combinatorics import get_all_ratios
 
-    all_ratios = get_all_ratios(ALL_SYMBOLS, 5)
+    all_ratios = get_all_ratios(ALL_SYMBOLS, 5)[0:10000]
     file_rw = JsonFileRW(RATIO_STOCKS_PATH.joinpath(f"{str(GET_DATA_BEFORE_DATE.date())}_ratios.json"))
-    r = RatioProcessor(file_rw, None)
+    r = RatioProcessor(file_rw, MAIN_LOGGER)
+    all_ratios = [str(x) for x in all_ratios]
     r.run(all_ratios)
     print(top_10_ratios)
 
