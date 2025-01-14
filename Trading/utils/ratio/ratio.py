@@ -96,14 +96,18 @@ class Ratio:
         n_dates = len(numerator_histories[0]["date"])
         numerator_total = [0] * n_dates
         for symbol in self.numerator:
-            normalized_prices = self.normalized_histories[symbol]
+            normalized_prices = self.normalized_histories[symbol].get_ohlc(
+                OHLC.from_str(self.ohlc)
+            )
             numerator_total = [
                 x + y for x, y in zip(numerator_total, normalized_prices)
             ]
 
         denominator_total = [0] * n_dates
         for symbol in self.denominator:
-            normalized_prices = self.normalized_histories[symbol]
+            normalized_prices = self.normalized_histories[symbol].get_ohlc(
+                OHLC.from_str(self.ohlc)
+            )
             denominator_total = [
                 x + y for x, y in zip(denominator_total, normalized_prices)
             ]
@@ -140,16 +144,13 @@ class Ratio:
                 return self.dates[j], j
         raise DateNotFoundError("No date found")
 
-
     def get_ratio_value_at_date(self, date: datetime):
         i = self.dates.index(date)
         return self.ratio_values[i]
 
     def _normalize_prices(self, symbol):
         history = self.histories[symbol]
-        self.normalized_histories[symbol] = [
-            x / history[self.ohlc][0] for x in history[self.ohlc]
-        ]
+        self.normalized_histories[symbol] = history.normalize()
 
     def _get_price_at_date(self, date: datetime, symbol: str):
         history = self.histories[symbol]

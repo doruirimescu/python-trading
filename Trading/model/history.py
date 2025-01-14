@@ -12,6 +12,10 @@ class OHLC(Enum):
     LOW = "low"
     CLOSE = "close"
 
+    @classmethod
+    def from_str(cls, value: str):
+        return cls(value)
+
 
 class History(BaseModel):
     symbol: Optional[str] = None
@@ -29,6 +33,7 @@ class History(BaseModel):
     close_np: Optional[np.ndarray] | Any = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # post init
     def model_post_init(self, __context):
         self.to_numpy()
@@ -65,6 +70,18 @@ class History(BaseModel):
             return self.low_np.std()
         elif ohlc == OHLC.CLOSE:
             return self.close_np.std()
+
+    def get_ohlc(self, ohlc: OHLC):
+        if ohlc == OHLC.OPEN:
+            return self.open
+        elif ohlc == OHLC.HIGH:
+            return self.high
+        elif ohlc == OHLC.LOW:
+            return self.low
+        elif ohlc == OHLC.CLOSE:
+            return self.close
+        else:
+            raise ValueError(f"Invalid OHLC value {ohlc}")
 
     def get_lowest(self, ohlc: OHLC):
         if ohlc == OHLC.OPEN:
@@ -162,7 +179,7 @@ class History(BaseModel):
     def normalize(self):
         new_open = list(self.open_np / self.open_np[0])
         new_high = list(self.high_np / self.high_np[0])
-        new_low =  list(self.low_np / self.low_np[0])
+        new_low = list(self.low_np / self.low_np[0])
         new_close = list(self.close_np / self.close_np[0])
         return History(
             symbol=self.symbol,
