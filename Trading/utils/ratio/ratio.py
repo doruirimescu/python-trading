@@ -66,7 +66,8 @@ class Ratio:
                 try:
                     i = self.histories[symbol]["date"].index(d)
                     self.histories[symbol]["date"].pop(i)
-                    self.histories[symbol][self.ohlc].pop(i)
+                    for o in OHLC:
+                        self.histories[symbol][o.value].pop(i)
                 except ValueError:
                     pass
             self._normalize_prices(symbol)
