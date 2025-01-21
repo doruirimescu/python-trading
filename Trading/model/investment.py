@@ -20,6 +20,7 @@ class PreciousMetalInvestMentType(str, Enum):
     jewelry = ("jewelry",)
     tableware = ("tableware",)
     bullion = "bullion"
+    medal = "medal"
 
 
 class PreciousMetal(str, Enum):
