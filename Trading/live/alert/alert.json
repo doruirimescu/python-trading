@@ -411,7 +411,7 @@
         "description": "Alert when Golden Ocean spot is lt than 100",
         "is_handled": true,
         "is_triggered": true,
-        "message": "GOGL.NO_9 bid price of 99.6 is < 100.0 from datasource: XTB",
+        "message": "GOGL.NO_9 bid price of 99.26 is < 100.0 from datasource: XTB",
         "name": "Golden Ocean",
         "operator": "lt",
         "schedule": "* * * * *",
