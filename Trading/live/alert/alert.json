@@ -6,7 +6,7 @@
         "description": "Alert when Acerinox spot is gt than 10.24",
         "is_handled": true,
         "is_triggered": true,
-        "message": "ACX1.ES_4 ask price of 10.9 is > 10.24 from datasource: XTB",
+        "message": "ACX1.ES_4 ask price of 10.96 is > 10.24 from datasource: XTB",
         "name": "Acerinox",
         "operator": "gt",
         "schedule": "* * * * *",
