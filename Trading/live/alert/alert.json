@@ -1041,7 +1041,7 @@
         "description": "Alert when SILVER spot is gt than 33",
         "is_handled": true,
         "is_triggered": true,
-        "message": "SILVER bid price of 33.819 is > 33.0 from datasource: XTB",
+        "message": "SILVER bid price of 33.79 is > 33.0 from datasource: XTB",
         "name": "SILVER",
         "operator": "gt",
         "schedule": "* * * * *",
