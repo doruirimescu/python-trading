@@ -1,8 +1,7 @@
 import re
-from Trading.utils.html import to_beautiful_soup
 from stateful_data_processor.processor import StatefulDataProcessor
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 from bs4 import BeautifulSoup
 
 
