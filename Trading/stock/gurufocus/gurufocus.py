@@ -1,10 +1,10 @@
-import requests
 import re
-from bs4 import BeautifulSoup
-from dataclasses import dataclass, asdict
+from Trading.utils.html import to_beautiful_soup
+from stateful_data_processor.processor import StatefulDataProcessor
+from pydantic import BaseModel
 
-@dataclass
-class GurufocusAnalysis:
+
+class GurufocusAnalysis(BaseModel):
     company_name: str = None
     ticker: str = None
     market_cap: str = None
@@ -14,26 +14,14 @@ class GurufocusAnalysis:
     gf_value: float = None
     altman_z_score: float = None
 
-    def __iter__(self):
-        return iter(asdict(self).items())
-def download_html(url, filename="gurufocus_page.html"):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(response.text)
-
-    return filename
-
-
 
 MARKET_CAP_REGEX = re.compile(
     r"Market Cap\s*[:\-]?\s*\$?\s*([\d\.]+\s*[MBT]?)", re.IGNORECASE
 )
-def extract_stock_info(html_file_path: str) -> GurufocusAnalysis:
-    with open(html_file_path, "r", encoding="utf-8") as file:
-        soup = BeautifulSoup(file, "html.parser")
+
+
+def extract_stock_info(html: str) -> GurufocusAnalysis:
+    soup = to_beautiful_soup(html)
 
     data = {
         "company_name": None,
@@ -133,11 +121,12 @@ def extract_stock_info(html_file_path: str) -> GurufocusAnalysis:
     return GurufocusAnalysis(**data)
 
 
-# Example usage
-# if __name__ == "__main__":
-# #     url = "https://www.gurufocus.com/stock/GOGL/summary"
-# # html_file = download_html(url)
-# # print(f"Downloaded HTML to {html_file}")
-#     html_path = "gurufocus_page.html"  # Adjust path if needed
-#     info = extract_stock_info(html_path)
-#     print(info)
+class GurufocusAnalyzer(StatefulDataProcessor):
+    def __init__(self, json_file_writer=None, logger=None):
+        super().__init__(json_file_writer, logger=logger)
+        self.data = {}
+
+    def process_item(self, item, iteration_index, data):
+        url = item
+        stock_info = extract_stock_info(url)
+        self.data[stock_info.ticker] = stock_info.dict()
