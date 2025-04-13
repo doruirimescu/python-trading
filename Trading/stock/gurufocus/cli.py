@@ -15,7 +15,12 @@ LOGGER = get_logger(__file__)
 
 # DEBUG=true cli.py analyze --names '["pdco", "paypal", "johnson&johnson", "mcdonalds", "pepsi", "uniper", "palantir"]'
 class GuruFocusCLI(Named, JsonFileWriter):
-    def __init__(self, name: Optional[str] = None, names: Optional[List[str]] = None, filename: Optional[str] = None):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        names: Optional[List[str]] = None,
+        filename: Optional[str] = None,
+    ):
         Named.__init__(self, name=name, names=names)
         if filename is None:
             filename = GURUFOCUS_DOWNLOADS_PATH / "gurufocus.json"
@@ -34,18 +39,7 @@ class GuruFocusCLI(Named, JsonFileWriter):
 
         gf_analyzer = GurufocusAnalyzer(self.json_file_writer)
         gf_analyzer.run(items=urls, data={})
-        # for url in urls:
-        #     LOGGER.info(f"Scraping {url}")
-        #     download_html(url, filename="gurufocus_page.html")
-        #     html_file_path = "gurufocus_page.html"
-        #     stock_info = extract_stock_info(html_file_path)
-        #     if os.path.exists(html_file_path):
-        #         os.remove(html_file_path)
-        #     if not stock_info:
-        #         LOGGER.error(f"Failed to extract stock info from {url}")
-        #         continue
-        #     LOGGER.info(stock_info)
-        #     time.sleep(0.1)
+
 
 if __name__ == "__main__":
     fire.Fire(GuruFocusCLI)
