@@ -6,9 +6,9 @@ from Trading.utils.cli import Named, JsonFileWriter
 from Trading.utils.custom_logging import get_logger
 from Trading.config.config import GURUFOCUS_DOWNLOADS_PATH
 from typing import Optional, List
-import os
 import fire
-import time
+from Trading.utils.time import get_datetime_now_cet
+from Trading.utils.html import scrape_urls_async
 
 LOGGER = get_logger(__file__)
 
@@ -23,7 +23,7 @@ class GuruFocusCLI(Named, JsonFileWriter):
     ):
         Named.__init__(self, name=name, names=names)
         if filename is None:
-            filename = GURUFOCUS_DOWNLOADS_PATH / "gurufocus.json"
+            filename = GURUFOCUS_DOWNLOADS_PATH / f"{str(get_datetime_now_cet())}gurufocus.json"
         JsonFileWriter.__init__(self, filename=filename)
 
     def analyze(self):
@@ -38,8 +38,11 @@ class GuruFocusCLI(Named, JsonFileWriter):
         LOGGER.debug(f"URLs: {urls}")
 
         gf_analyzer = GurufocusAnalyzer(self.json_file_writer)
-        gf_analyzer.run(items=urls, data={})
+        urls_soups = scrape_urls_async(urls)
+        gf_analyzer.run(items=urls_soups.values(), data={})
 
 
 if __name__ == "__main__":
     fire.Fire(GuruFocusCLI)
+
+# DEBUG=true python3 cli.py analyze --names '["pdco", "paypal", "johnson&johnson", "mcdonalds", "pepsi", "uniper", "palantir", "amd", "nvidia", "apple", "microsoft", "google", "amazon", "meta", "tesla", "on semiconductor", "asml", "qualcomm", "broadcom", "marvell", "infineon", "nokia", "ericsson", "siemens", "philips", "schneider electric", "abb", "general electric", "honeywell", "rockwell automation"]'

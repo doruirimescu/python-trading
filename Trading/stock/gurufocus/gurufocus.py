@@ -2,17 +2,19 @@ import re
 from Trading.utils.html import to_beautiful_soup
 from stateful_data_processor.processor import StatefulDataProcessor
 from pydantic import BaseModel
+from typing import List, Optional
+from bs4 import BeautifulSoup
 
 
 class GurufocusAnalysis(BaseModel):
-    company_name: str = None
-    ticker: str = None
-    market_cap: str = None
-    financial_strength: float = None
-    piotroski_f_score: float = None
-    gf_value_rank: float = None
-    gf_value: float = None
-    altman_z_score: float = None
+    company_name: Optional[str] = None
+    ticker: Optional[str] = None
+    market_cap: Optional[str] = None
+    financial_strength: Optional[float] = None
+    piotroski_f_score: Optional[float] = None
+    gf_value_rank: Optional[float] = None
+    gf_value: Optional[float] = None
+    altman_z_score: Optional[float] = None
 
 
 MARKET_CAP_REGEX = re.compile(
@@ -20,9 +22,7 @@ MARKET_CAP_REGEX = re.compile(
 )
 
 
-def extract_stock_info(html: str) -> GurufocusAnalysis:
-    soup = to_beautiful_soup(html)
-
+def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
     data = {
         "company_name": None,
         "ticker": None,
@@ -126,7 +126,6 @@ class GurufocusAnalyzer(StatefulDataProcessor):
         super().__init__(json_file_writer, logger=logger)
         self.data = {}
 
-    def process_item(self, item, iteration_index, data):
-        url = item
-        stock_info = extract_stock_info(url)
+    def process_item(self, item: BeautifulSoup, iteration_index, data):
+        stock_info = extract_stock_info(item)
         self.data[stock_info.ticker] = stock_info.dict()
