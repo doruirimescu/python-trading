@@ -4,8 +4,24 @@ from Trading.utils.ratio.ratio import Ratio, DateNotFoundError
 from Trading.model.history import History
 from datetime import datetime
 
-HISTORY_A = {"date": [datetime(2021, 1, 1), datetime(2021, 1, 2)], "close": [1, 2]}
-HISTORY_B = History(**{"date": [datetime(2021, 1, 1), datetime(2021, 1, 2)], "close": [2, 3]})
+HISTORY_A = History(
+    **{
+        "date": [datetime(2021, 1, 1), datetime(2021, 1, 2)],
+        "open": [1, 2],
+        "close": [1, 2],
+        "high": [1, 2],
+        "low": [1, 2],
+    }
+)
+HISTORY_B = History(
+    **{
+        "date": [datetime(2021, 1, 1), datetime(2021, 1, 2)],
+        "open": [1, 2],
+        "close": [2, 3],
+        "high": [2, 3],
+        "low": [1, 2],
+    }
+)
 
 
 class TestRatio(unittest.TestCase):
@@ -86,22 +102,38 @@ class TestRatio(unittest.TestCase):
         r.calculate_ratio()
         normalized_numerator = [1, 2]
         normalized_denominator = [2 / 2, 3 / 2]
-        self.assertEqual(r.normalized_histories["a"], normalized_numerator)
-        self.assertEqual(r.normalized_histories["b"], normalized_denominator)
+        self.assertEqual(r.normalized_histories["a"].open, normalized_numerator)
+        self.assertEqual(r.normalized_histories["b"].close, normalized_denominator)
         self.assertAlmostEqual(r.mean, (1 + 4 / 3) / 2, 2)
 
     def test_calculate_ratio_two_symbols(self):
         num_1 = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[1, 2, 3]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)],
+            close=[1, 2, 3],
+            open=[1, 2, 3],
+            high=[1, 2, 3],
+            low=[1, 2, 3],
         )
         num_2 = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[1, 2, 3]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)],
+            close=[1, 2, 3],
+            open=[1, 2, 3],
+            high=[1, 2, 3],
+            low=[1, 2, 3],
         )
         den_1 = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[2, 3, 4]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)],
+            close=[2, 3, 4],
+            open=[1, 2, 3],
+            high=[1, 2, 3],
+            low=[1, 2, 3],
         )
         den_2 = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)], close=[2, 3, 4]
+            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3)],
+            close=[2, 3, 4],
+            open=[1, 2, 3],
+            high=[1, 2, 3],
+            low=[1, 2, 3],
         )
         r = Ratio(["num_1", "num_2"], ["den_1", "den_2"])
         r.add_history("num_1", num_1)
@@ -115,10 +147,10 @@ class TestRatio(unittest.TestCase):
         normalied_num_2 = [c / num_2.close[0] for c in num_2.close]
         normalied_den_1 = [c / den_1.close[0] for c in den_1.close]
         normalied_den_2 = [c / den_2.close[0] for c in den_2.close]
-        self.assertEqual(r.normalized_histories["num_1"], normalied_num_1)
-        self.assertEqual(r.normalized_histories["num_2"], normalied_num_2)
-        self.assertEqual(r.normalized_histories["den_1"], normalied_den_1)
-        self.assertEqual(r.normalized_histories["den_2"], normalied_den_2)
+        self.assertEqual(r.normalized_histories["num_1"].close, normalied_num_1)
+        self.assertEqual(r.normalized_histories["num_2"].close, normalied_num_2)
+        self.assertEqual(r.normalized_histories["den_1"].close, normalied_den_1)
+        self.assertEqual(r.normalized_histories["den_2"].close, normalied_den_2)
 
         ratio_values = list()
         for i in range(3):
@@ -131,32 +163,78 @@ class TestRatio(unittest.TestCase):
     def test_get_next_date_at_mean(self):
         r = Ratio(["num"], ["den"])
         num = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
+            date=[
+                datetime(2021, 1, 1),
+                datetime(2021, 1, 2),
+                datetime(2021, 1, 3),
+                datetime(2021, 1, 4),
+                datetime(2021, 1, 5),
+            ],
             close=[1, 2, 4, 2, 1],
+            open=[1, 2, 4, 2, 1],
+            high=[1, 2, 4, 2, 1],
+            low=[1, 2, 4, 2, 1],
         )
         den = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
+            date=[
+                datetime(2021, 1, 1),
+                datetime(2021, 1, 2),
+                datetime(2021, 1, 3),
+                datetime(2021, 1, 4),
+                datetime(2021, 1, 5),
+            ],
             close=[1, 1, 1, 1, 1],
+            open=[1, 1, 1, 1, 1],
+            high=[1, 1, 1, 1, 1],
+            low=[1, 1, 1, 1, 1],
         )
         r.add_history("num", num)
         r.add_history("den", den)
         r.eliminate_nonintersecting_dates()
         r.calculate_ratio()
-        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 1)), (datetime(2021, 1, 2),1,))
-        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 2)), (datetime(2021, 1, 4), 3))
-        self.assertEqual(r.get_next_date_at_mean(datetime(2021, 1, 3)), (datetime(2021, 1, 4), 3))
+        self.assertEqual(
+            r.get_next_date_at_mean(datetime(2021, 1, 1)),
+            (
+                datetime(2021, 1, 2),
+                1,
+            ),
+        )
+        self.assertEqual(
+            r.get_next_date_at_mean(datetime(2021, 1, 2)), (datetime(2021, 1, 4), 3)
+        )
+        self.assertEqual(
+            r.get_next_date_at_mean(datetime(2021, 1, 3)), (datetime(2021, 1, 4), 3)
+        )
         with self.assertRaises(DateNotFoundError):
             r.get_next_date_at_mean(datetime(2021, 1, 4))
 
     def test_get_ratio_value_at_date(self):
         r = Ratio(["num"], ["den"])
         num = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
+            date=[
+                datetime(2021, 1, 1),
+                datetime(2021, 1, 2),
+                datetime(2021, 1, 3),
+                datetime(2021, 1, 4),
+                datetime(2021, 1, 5),
+            ],
             close=[1, 2, 4, 2, 1],
+            open=[1, 2, 4, 2, 1],
+            high=[1, 2, 4, 2, 1],
+            low=[1, 2, 4, 2, 1],
         )
         den = History(
-            date=[datetime(2021, 1, 1), datetime(2021, 1, 2), datetime(2021, 1, 3), datetime(2021, 1, 4), datetime(2021, 1, 5)],
+            date=[
+                datetime(2021, 1, 1),
+                datetime(2021, 1, 2),
+                datetime(2021, 1, 3),
+                datetime(2021, 1, 4),
+                datetime(2021, 1, 5),
+            ],
             close=[1, 1, 1, 1, 1],
+            open=[1, 1, 1, 1, 1],
+            high=[1, 1, 1, 1, 1],
+            low=[1, 1, 1, 1, 1],
         )
         r.add_history("num", num)
         r.add_history("den", den)
