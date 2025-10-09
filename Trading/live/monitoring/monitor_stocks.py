@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 from Trading.live.client.client import XTBTradingClient
 from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT
 from Trading.config.config import USERNAME, PASSWORD, MODE
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.symbols.alphaspread.search.url import get_alphaspread_symbol_url
 from Trading.stock.alphaspread.alphaspread import (
     analyze_url,
 )
@@ -27,7 +27,7 @@ def get_alphaspread_url(xtb_symbol):
     #remove _US9 from the symbol
     xtb_symbol = xtb_symbol.replace(".US_9", "")
     xtb_symbol = xtb_symbol.replace(".US", "")
-    from Trading.stock.alphaspread.url import get_alphaspread_url_from_ticker
+    from Trading.symbols.alphaspread.search.url import get_alphaspread_url_from_ticker
     try:
         symbol, url = get_alphaspread_url_from_ticker(xtb_symbol)
         return symbol, url

@@ -1,5 +1,5 @@
 from Trading.stock.alphaspread.alphaspread import analyze_url
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url, get_alphaspread_url_from_ticker
+from Trading.symbols.alphaspread.search.url import get_alphaspread_symbol_url, get_alphaspread_url_from_ticker
 
 
 

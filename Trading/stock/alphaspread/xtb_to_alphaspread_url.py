@@ -2,7 +2,7 @@ import json
 from typing import List
 import time
 from Trading.symbols.constants import XTB_STOCK_SYMBOLS_DICT, ALPHASPREAD_URL_PATH, ALPHASPREAD_URL_DICT
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.symbols.alphaspread.search.url import get_alphaspread_symbol_url
 
 def xtb_symbols() -> List:
     # Filter only symbols from the given countries

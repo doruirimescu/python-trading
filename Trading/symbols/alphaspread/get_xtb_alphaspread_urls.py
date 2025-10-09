@@ -1,5 +1,5 @@
 from Trading.symbols.constants import XTB_STOCK_TICKERS, XTB_STOCK_SYMBOLS_DICT, ALPHASPREAD_URL_DICT, ALPHASPREAD_URL_PATH
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.symbols.alphaspread.search.url import get_alphaspread_symbol_url
 import json
 
 with open(ALPHASPREAD_URL_PATH, "r") as f:

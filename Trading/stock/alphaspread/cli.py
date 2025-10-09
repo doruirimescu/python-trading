@@ -1,7 +1,7 @@
 # add cli parser for the symbol
 import argparse
 from Trading.stock.alphaspread.alphaspread import analyze_url
-from Trading.stock.alphaspread.url import get_alphaspread_url
+from Trading.symbols.alphaspread.search.url import get_alphaspread_url
 
 
 # Create a parser object

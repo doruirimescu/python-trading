@@ -1,5 +1,5 @@
 from Trading.symbols.constants import ALPHASPREAD_URL_DICT, append_to_alphaspread_url_dict
-from Trading.stock.alphaspread.search_alphaspread_symbol_url import search_alphaspread_symbol_url
+from Trading.symbols.alphaspread.search.search_alphaspread_symbol_url import search_alphaspread_symbol_url
 from typing import Tuple
 
 def get_alphaspread_url_from_ticker(ticker: str) -> Tuple[str, str]:

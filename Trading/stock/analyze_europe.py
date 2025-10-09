@@ -3,7 +3,7 @@ from typing import List, Optional
 from alphaspread import analyze_url
 from Trading.stock.constants import EUROPE_ANALYSIS_FILENAME
 from Trading.symbols.constants import XTB_STOCK_SYMBOLS
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.symbols.alphaspread.search.url import get_alphaspread_symbol_url
 
 def get_europe_symbols(countries_list: Optional[List] = None ) -> List:
     with open(XTB_STOCK_SYMBOLS, "r") as f:
