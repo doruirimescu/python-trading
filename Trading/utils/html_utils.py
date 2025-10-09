@@ -21,6 +21,7 @@ DEFAULT_UA = (
 def load_html(url) -> str:
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
+    return response.text
 
 def to_beautiful_soup(url: str) -> BeautifulSoup:
     html = load_html(url)
@@ -119,6 +120,9 @@ async def gather_rendered_html(
     Concurrently render the given URLs (headless browser) and parse into BeautifulSoup.
     Returns {url: soup} for successes (failed URLs are omitted).
     """
+    urls = [u for u in urls if isinstance(u, str) and u.startswith(("http://", "https://"))]
+    if not urls:
+        return {}
     sem = asyncio.Semaphore(concurrency)
 
     async with async_playwright() as p:
@@ -140,7 +144,12 @@ async def gather_rendered_html(
     return {url: soup for url, soup in results if soup is not None}
 
 def scrape_urls_async(urls: List[str], concurrency: int = 10) -> Dict[str, BeautifulSoup]:
-    return asyncio.run(gather_rendered_html(urls, concurrency))
+    # defensive filtering
+    clean_urls = [u for u in urls if isinstance(u, str) and u.startswith(("http://", "https://"))]
+    if not clean_urls:
+        raise ValueError("No valid URLs to scrape (got only None/invalid).")
+    return asyncio.run(gather_rendered_html(clean_urls, concurrency))
+
 
 from playwright.sync_api import sync_playwright
 def download_rendered_html(url: str, filename: str, wait_selector: str = "body"):
@@ -161,3 +170,12 @@ def download_rendered_html(url: str, filename: str, wait_selector: str = "body")
             return filename
         finally:
             browser.close()
+
+def download_html(url, filename: str):
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(response.text)
+
+    return filename

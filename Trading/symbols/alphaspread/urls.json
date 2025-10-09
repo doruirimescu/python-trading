@@ -2610,5 +2610,6 @@
     "URI": null,
     "ARM": "https://www.alphaspread.com/security/nasdaq/ARM/summary",
     "GRAL": "https://www.alphaspread.com/security/nasdaq/GRALV/summary",
-    "OBDC": "https://www.alphaspread.com/security/NYSE/OWL/summary"
+    "OBDC": "https://www.alphaspread.com/security/NYSE/OWL/summary",
+    "zim integrated shipping services": "https://www.alphaspread.com/security/nyse/zim/summary"
 }

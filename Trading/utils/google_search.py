@@ -19,8 +19,32 @@ def get_first_google_result_auth(query: str, api_key: str, cx: str, gl: str = "u
     except StopIteration:
         raise GoogleSearchFailed(query)
 
-def get_first_google_result(query, gl="us", hl="en"):
-    return get_first_google_result_auth(query, GOOGLE_API_KEY, GOOGLE_CX, gl, hl)
+# def get_first_google_result(query, gl="us", hl="en"):
+#     return get_first_google_result_auth(query, GOOGLE_API_KEY, GOOGLE_CX, gl, hl)
+
+
+def get_first_google_result(query: str, sleep_interval_s: float = 0) -> str:
+    """Google search for query and return the first result
+
+    Args:
+        query (str): The query to search for
+
+    Raises:
+        GoogleSearchFailed: If the search fails
+
+    Returns:
+        str: The first result of the search
+    """
+    try:
+        from googlesearch import search
+        search_results = search(query, num_results=1, sleep_interval=sleep_interval_s)
+        print("Search results:", list(search_results))
+        first_result = next(search_results)
+        return first_result
+    except StopIteration:
+        raise GoogleSearchFailed(query)
+    except Exception as e:
+        raise GoogleSearchFailed(query)
 
 class SearchResult:
     def __init__(self, url, title, description):
@@ -166,3 +190,45 @@ def get_first_google_result_batch_sync(
                 queries, gl=gl, hl=hl, timeout=timeout, concurrency=concurrency
             )
         )
+
+class GoogleSearcher:
+    def __init__(self, sleep_interval_s: float = 0) -> None:
+        self.n_searches = 0
+        self.current_user_agent_index = 0
+        self.sleep_interval_s = sleep_interval_s
+
+    def __increment_user_agent_index(self):
+        self.current_user_agent_index += 1
+        if self.current_user_agent_index >= len(user_agent_list):
+            self.current_user_agent_index = 0
+
+    def __get_current_user_agent(self):
+        if self.n_searches % 3 == 0:
+            self.__increment_user_agent_index()
+        return user_agent_list[self.current_user_agent_index]
+
+    def get_first_google_result(self, query: str) -> str:
+        self.n_searches += 1
+        try:
+            ua = self.__get_current_user_agent()
+            search_results = search(query, num_results=1, sleep_interval=self.sleep_interval_s,
+                                    user_agent=ua)
+            return search_results
+        except StopIteration:
+            raise GoogleSearchFailed(query)
+        except requests.exceptions.HTTPError as e:
+            self.__increment_user_agent_index()
+            LOGGER.error(e)
+
+            if self.current_user_agent_index == 0:
+                raise GoogleSearchFailed(query)
+            return self.get_first_google_result(query)
+
+        except Exception as e:
+            LOGGER.error(e)
+            raise GoogleSearchFailed(query)
+        return ""
+
+if __name__ == "__main__":
+    print(get_first_google_result("alpha spread apple"))
+    print(get_first_google_result("yahoo finance apple"))

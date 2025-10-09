@@ -1,5 +1,5 @@
-from Trading.symbols.constants import ALPHASPREAD_URL_DICT
-from Trading.symbols.google_search_symbol import get_alphaspread_symbol_url
+from Trading.symbols.constants import ALPHASPREAD_URL_DICT, append_to_alphaspread_url_dict
+from Trading.stock.alphaspread.search_alphaspread_symbol_url import search_alphaspread_symbol_url
 from typing import Tuple
 
 def get_alphaspread_url_from_ticker(ticker: str) -> Tuple[str, str]:
@@ -15,4 +15,7 @@ def get_alphaspread_url(stock_name: str) -> Tuple[str, str]:
         return get_alphaspread_url_from_ticker(stock_name)
     except Exception as e:
         print(f"Could not find alphaspread url for {stock_name}")
-        return get_alphaspread_symbol_url(stock_name)
+        symbol, url = search_alphaspread_symbol_url("alphaspread " + stock_name + " sumamry")
+        if symbol and url:
+            append_to_alphaspread_url_dict({stock_name: url})
+            return (symbol, url)
