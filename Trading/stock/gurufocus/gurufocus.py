@@ -3,7 +3,6 @@ from stateful_data_processor.processor import StatefulDataProcessor
 from pydantic import BaseModel
 from typing import Optional
 from bs4 import BeautifulSoup
-from Trading.utils.html_utils import to_beautiful_soup
 
 
 class GurufocusAnalysis(BaseModel):
@@ -22,11 +21,6 @@ MARKET_CAP_REGEX = re.compile(
     r"Market Cap\s*[:\-]?\s*\$?\s*([\d\.]+\s*[MBT]?)", re.IGNORECASE
 )
 
-def get_gf_score(gf_ticker: str):
-    url = f"https://www.gurufocus.com/term/gf-score/{gf_ticker}"
-    soup = to_beautiful_soup(url)
-
-
 def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
     data = {
         "company_name": None,
@@ -43,6 +37,8 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
     title_tag = soup.find("title")
     if title_tag:
         title_text = title_tag.get_text()
+        if "Symbol Lookup" in title_text:
+            return None
         if "(" in title_text and ")" in title_text:
             name_part, ticker_part = title_text.split("(")
             data["company_name"] = name_part.strip()
@@ -123,7 +119,6 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
                         pass
             break
 
-
     return GurufocusAnalysis(**data)
 
 
@@ -134,4 +129,9 @@ class GurufocusAnalyzer(StatefulDataProcessor):
 
     def process_item(self, item: BeautifulSoup, iteration_index, data):
         stock_info = extract_stock_info(item)
+        if stock_info is None or stock_info.ticker is None:
+            # get only item title
+            title = item.find("title")
+            self.logger.warning(f"Could not extract ticker from item: {title}")
+            return
         self.data[stock_info.ticker] = stock_info.dict()
