@@ -3,6 +3,8 @@ from Trading.stock.alphaspread.search_alphaspread_symbol_url import search_alpha
 from typing import Tuple
 
 def get_alphaspread_url_from_ticker(ticker: str) -> Tuple[str, str]:
+    """Use this if you already have the ticker and want to get the url from the constants file.
+    """
     if ticker in ALPHASPREAD_URL_DICT and ALPHASPREAD_URL_DICT[ticker]:
         if ticker.lower() not in ALPHASPREAD_URL_DICT[ticker].lower():
             print(f"+++ Careful with {ticker} and {ALPHASPREAD_URL_DICT[ticker]}")
@@ -17,5 +19,5 @@ def get_alphaspread_url(stock_name: str) -> Tuple[str, str]:
         print(f"Could not find alphaspread url for {stock_name}")
         symbol, url = search_alphaspread_symbol_url("alphaspread " + stock_name + " sumamry")
         if symbol and url:
-            append_to_alphaspread_url_dict({stock_name: url})
+            append_to_alphaspread_url_dict({symbol.upper(): url})
             return (symbol, url)
