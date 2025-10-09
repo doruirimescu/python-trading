@@ -3,6 +3,7 @@ from stateful_data_processor.processor import StatefulDataProcessor
 from pydantic import BaseModel
 from typing import Optional
 from bs4 import BeautifulSoup
+from Trading.utils.html_utils import to_beautiful_soup
 
 
 class GurufocusAnalysis(BaseModel):
@@ -14,11 +15,16 @@ class GurufocusAnalysis(BaseModel):
     gf_value_rank: Optional[float] = None
     gf_value: Optional[float] = None
     altman_z_score: Optional[float] = None
+    gf_score: Optional[float] = None
 
 
 MARKET_CAP_REGEX = re.compile(
     r"Market Cap\s*[:\-]?\s*\$?\s*([\d\.]+\s*[MBT]?)", re.IGNORECASE
 )
+
+def get_gf_score(gf_ticker: str):
+    url = f"https://www.gurufocus.com/term/gf-score/{gf_ticker}"
+    soup = to_beautiful_soup(url)
 
 
 def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
@@ -116,6 +122,7 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
                     except ValueError:
                         pass
             break
+
 
     return GurufocusAnalysis(**data)
 
