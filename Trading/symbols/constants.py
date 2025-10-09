@@ -3,6 +3,8 @@
 import json
 import os
 from pathlib import Path
+from Trading.utils.custom_logging import get_logger
+LOGGER = get_logger(__file__)
 
 __CURRENT_FILE_PATH = Path(os.path.dirname(os.path.realpath(__file__)))
 
@@ -62,6 +64,13 @@ ALPHASPREAD_URL_PATH = ALPHASPREAD_PATH.joinpath("urls.json")
 
 with open(ALPHASPREAD_URL_PATH, "r") as f:
     ALPHASPREAD_URL_DICT = json.load(f)
+
+def append_to_alphaspread_url_dict(ticker_urls: dict):
+    for ticker, url in ticker_urls.items():
+        ALPHASPREAD_URL_DICT[ticker] = url
+    with open(ALPHASPREAD_URL_PATH, "w") as f:
+        json.dump(ALPHASPREAD_URL_DICT, f, indent=4)
+    LOGGER.info(f"Appended {len(ticker_urls)} entries to {ALPHASPREAD_URL_PATH}")
 
 # YAHOO FINANCE
 YAHOO_FINANCE_SYMBOLS_PATH = __CURRENT_FILE_PATH.joinpath("yfinance/")
