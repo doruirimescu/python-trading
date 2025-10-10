@@ -125,13 +125,14 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
 class GurufocusAnalyzer(StatefulDataProcessor):
     def __init__(self, json_file_writer=None, logger=None):
         super().__init__(json_file_writer, logger=logger)
-        self.data = {}
 
-    def process_item(self, item: BeautifulSoup, iteration_index, data):
-        stock_info = extract_stock_info(item)
+    def process_item(self, item: str, soup: BeautifulSoup | str, iteration_index):
+        self.logger.info(f"Item: {item}, soup length: {len(str(soup)) if soup else 'None'}")
+        if isinstance(soup, str):
+            soup = BeautifulSoup(soup, "html.parser")
+        stock_info = extract_stock_info(soup)
         if stock_info is None or stock_info.ticker is None:
             # get only item title
-            title = item.find("title")
-            self.logger.warning(f"Could not extract ticker from item: {title}")
+            self.logger.warning(f"Could not extract ticker from item: {item}")
             return
-        self.data[stock_info.ticker] = stock_info.dict()
+        self.data[item] = stock_info.dict()
