@@ -30,6 +30,7 @@ RATIO_STOCKS_PATH = TMP_PATH.joinpath("ratio_stocks/")
 ALERTS_PATH = CURRENT_FILE_PATH.joinpath("../live/alert/alert.json")
 CACHING_PATH = TMP_PATH.joinpath("caching")
 GURUFOCUS_DOWNLOADS_PATH = TMP_PATH.joinpath("gurufocus")
+YFINANCE_DOWNLOADS_PATH = TMP_PATH.joinpath("yfinance")
 
 # Google Search configurations
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

@@ -51,7 +51,7 @@ class Alert(BaseModel):
         if not self._should_trigger(*args, **kwargs) or self.is_handled:
             return False
         if self.action == AlertAction.SEND_EMAIL:
-            send_email(subject=self.name, body=self.message)
+            send_email(subject=self.name, body=self.message + "\n" + self.description)
         elif self.action == AlertAction.PRINT_MESSAGE:
             from Trading.utils.custom_logging import get_logger
             logger = get_logger("AlertLogger")
