@@ -8,22 +8,24 @@ on:
         required: true
         default: 'master'
   schedule:
-    - cron: '15 */2 * * 1-5' # Every 2nd hour on every day-of-week from Monday through Friday
+    - cron: '15 */2 * * 1-5' # Every 2nd hour Mon–Fri (runs in UTC)
+
+# If you rely on GITHUB_TOKEN instead of a PAT for pushes, uncomment:
+# permissions:
+#   contents: write
+
 jobs:
   alert-job:
     runs-on: ubuntu-latest
+
     container:
       image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName || 'master' }}
 
     steps:
-      - name: Set default branch name
-        id: vars
-        run: echo "::set-output name=branchName::${{ github.event.inputs.branchName || 'master' }}"
-
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          path: 'python-trading' # Checkout the repository into the 'app' directory
+          path: 'python-trading'
 
       - name: Create .env file
         run: |
@@ -38,11 +40,6 @@ jobs:
           echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' >> Trading/utils/.env
           echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' >> Trading/utils/.env
           echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' >> Trading/utils/.env
-
-          echo "XTB_USERNAME=${{ secrets.XTB_USERNAME }}" >> $GITHUB_ENV
-          echo "XTB_PASSWORD=${{ secrets.XTB_PASSWORD }}" >> $GITHUB_ENV
-          echo "XTB_MODE=${{ secrets.XTB_MODE }}" >> $GITHUB_ENV
-          echo "BROKER_TIMEZONE=${{ secrets.BROKER_TIMEZONE }}" >> $GITHUB_ENV
 
       - name: Run alert scripts
         run: |
