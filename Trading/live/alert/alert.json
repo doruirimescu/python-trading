@@ -388,5 +388,31 @@
         "symbol": "UPBD",
         "threshold_value": 30.4,
         "type": "spot"
+    },
+    {
+        "name": "Shiller Pe Alert",
+        "description": "Should not invest when Shiller PE is above 40",
+        "schedule": "* * * * *",
+        "type": "shiller_pe",
+        "data_source": "multpl",
+        "operator": "gt",
+        "threshold_value": 40.0,
+        "action": "SEND_EMAIL",
+        "message": "Alert when Shiller PE is above 40",
+        "is_handled": false,
+        "is_triggered": false
+    },
+    {
+        "name": "Shiller Pe Alert",
+        "description": "Should restart investing when Shiller PE is below 35.1",
+        "schedule": "* * * * *",
+        "type": "shiller_pe",
+        "data_source": "multpl",
+        "operator": "lt",
+        "threshold_value": 35.1,
+        "action": "SEND_EMAIL",
+        "message": "Alert when Shiller PE is below 35.1",
+        "is_handled": false,
+        "is_triggered": false
     }
 ]

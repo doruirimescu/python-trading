@@ -66,7 +66,8 @@ class Alert(BaseModel):
         data = self.model_dump()
         data['operator'] = self.operator.__name__
         data['action'] = self.action.name
-        data['bid_ask'] = self.bid_ask.name
+        if getattr(self, 'bid_ask', None):
+            data['bid_ask'] = self.bid_ask.name
         return json.dumps(data)
 
     @classmethod
@@ -85,6 +86,8 @@ class Alert(BaseModel):
         except KeyError:
             raise ValidationError(f"Invalid action name: {data['action']}")
 
+        if 'bid_ask' not in data:
+            return cls(**data)
         try:
             data['bid_ask'] = BidAsk.from_str(data['bid_ask'])
         except KeyError:
