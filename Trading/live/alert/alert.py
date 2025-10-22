@@ -1,6 +1,6 @@
-from Trading.live.client.client import LoggingClient
+
 from typing import Optional
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, ConfigDict
 import json
 from enum import Enum
 from typing import Callable, Optional
@@ -91,13 +91,13 @@ class Alert(BaseModel):
             raise ValidationError(f"Invalid bid_ask name: {data['bid_ask']}")
         return cls(**data)
 
-class XTBSpotAlert(Alert):
+class SpotAlert(Alert):
     symbol: str
     bid_ask: BidAsk
 
-    def are_conditions_valid(self, client: LoggingClient) -> bool:
-        is_market_open = client.is_market_open(self.symbol)
-        return is_market_open
+    @abstractmethod
+    def are_conditions_valid(self, **kwargs) -> bool:
+        ...
 
     def _trigger(self, bid_ask: str, price: float):
         self.is_triggered = True
@@ -109,8 +109,16 @@ class XTBSpotAlert(Alert):
         self.is_handled = False
         # self.message = None
 
-    def _should_trigger(self, client: LoggingClient) -> bool:
-        bid, ask = client.get_current_price(self.symbol)
+    @abstractmethod
+    def _is_market_open(self, **kwargs) -> bool:
+        ...
+
+    @abstractmethod
+    def _get_current_price(self) -> float:
+        ...
+
+    def _should_trigger(self) -> bool:
+        bid, ask = self._get_current_price()
         result = False
         bid_ask = ""
         if self.bid_ask == BidAsk.BID:

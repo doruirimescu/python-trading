@@ -32,3 +32,8 @@ mpl-finance
 kaleido
 
 googlesearch-python
+
+rich
+playwright
+
+yfinance==0.2.66
