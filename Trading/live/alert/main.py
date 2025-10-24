@@ -54,4 +54,4 @@ if __name__ == "__main__":
         if alert.type == DISABLED['type'] and alert.data_source == DISABLED['data_source']:
             continue
         alert.evaluate()
-    # dump_alerts_to_json(alerts)
+    dump_alerts_to_json(alerts)
