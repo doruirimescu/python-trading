@@ -335,7 +335,7 @@
         "description": "Should not invest when Shiller PE is above 40",
         "is_handled": true,
         "is_triggered": true,
-        "message": "Shiller PE value of 40.3 is > 40.0 from datasource: multpl",
+        "message": "Shiller PE value of 40.58 is > 40.0 from datasource: multpl",
         "name": "Shiller Pe Alert",
         "operator": "gt",
         "schedule": "* * * * *",
