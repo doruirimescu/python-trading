@@ -129,6 +129,10 @@ $$
 \lambda \leq \frac{1}{1 - (1 - D)(1 - MM)}
 $$
 
+$$
+\lambda \leq \frac{1}{D + MM(1 - D)}
+$$
+
 ---
 
 ## 5. Numerical Example: 50% Drawdown Scenario
@@ -139,15 +143,7 @@ Using the specified assumptions:
 - $MM = 0.25$
 
 $$
-\lambda_{\max} = \frac{1}{1 - (1 - 0.50)(1 - 0.25)}
-$$
-
-$$
-\lambda_{\max} = \frac{1}{1 - (0.50)(0.75)}
-$$
-
-$$
-\lambda_{\max} = \frac{1}{1 - 0.375}
+\lambda_{\max} = \frac{1}{0.50 + 0.25(1-0.5)}
 $$
 
 $$
