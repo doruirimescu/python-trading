@@ -11,7 +11,7 @@ from mrscore.io.history import OHLC
 from mrscore.io.ratio import RatioSpec, build_equal_weight_basket
 from mrscore.io.yfinance_loader import YFinanceLoader, YFinanceLoadRequest
 from mrscore.utils.logging import get_logger
-from mrscore.viz import plot_ratio_jobs
+from mrscore.viz import plot_ratio_jobs, plot_equity_curve
 
 # Pick ONE of these imports depending on where you placed it:
 # from mrscore.app.composition_root import build_app
@@ -213,6 +213,8 @@ def main():
                 result.total_return * 100.0,
                 len(result.trades or []),
             )
+            if result.equity_curve:
+                plot_equity_curve(result=result, title=f"Equity Curve | {job_id}", show=True)
 
     plot_ratio_jobs(
         ru=ru,

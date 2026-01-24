@@ -8,7 +8,7 @@ import numpy as np
 from mrscore.config.models import MeanEstimatorConfig, VisualizationConfig
 from mrscore.core.ratio_universe import RatioJob, RatioUniverse
 from mrscore.core.results import Direction
-from mrscore.backtest.types import Trade
+from mrscore.backtest.types import BacktestResult, Trade
 from mrscore.components.mean.rolling_sma import RollingSMA
 from mrscore.components.mean.ema import EMA
 from mrscore.utils.logging import get_logger
@@ -228,3 +228,44 @@ def plot_ratio_jobs(
             plt.show()
         else:
             plt.close(fig)
+
+
+def plot_equity_curve(
+    *,
+    result: BacktestResult,
+    title: Optional[str] = None,
+    show: bool = True,
+    save_dir: Optional[str] = None,
+) -> None:
+    if not result.equity_curve:
+        logger.warning("No equity curve to plot for job_id=%s", result.job_id)
+        return
+
+    try:
+        import matplotlib.pyplot as plt
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError("matplotlib is required for plotting. Install with: pip install matplotlib") from exc
+
+    xs = []
+    ys = []
+    for pt in result.equity_curve:
+        xs.append(pt.time if pt.time is not None else pt.index)
+        ys.append(pt.equity)
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(xs, ys, linewidth=1.2, label="equity")
+    ax.set_title(title or f"Equity Curve | {result.job_id}")
+    ax.set_xlabel("Time" if result.equity_curve[0].time is not None else "Index")
+    ax.set_ylabel("Equity")
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="best")
+
+    if save_dir is not None:
+        safe_title = (title or f"Equity Curve | {result.job_id}").replace("/", "-").replace(" ", "_")
+        path = f"{save_dir}/{safe_title}.png"
+        fig.savefig(path, dpi=150, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
