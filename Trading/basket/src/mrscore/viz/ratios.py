@@ -7,6 +7,8 @@ import numpy as np
 
 from mrscore.config.models import MeanEstimatorConfig, VisualizationConfig
 from mrscore.core.ratio_universe import RatioJob, RatioUniverse
+from mrscore.core.results import Direction
+from mrscore.backtest.types import Trade
 from mrscore.components.mean.rolling_sma import RollingSMA
 from mrscore.components.mean.ema import EMA
 from mrscore.utils.logging import get_logger
@@ -21,6 +23,7 @@ class RatioPlot:
     title: str
     series: np.ndarray
     dates: np.ndarray
+    mode: str
     score: Optional[float] = None
 
 
@@ -113,10 +116,53 @@ def build_ratio_plots(
                     title=f"{title} | {mode} | mean={series_mean:.6f}",
                     series=series,
                     dates=dates,
+                    mode=mode,
                     score=score,
                 )
             )
     return plots
+
+
+def _plot_trade_markers(
+    *,
+    ax,
+    plot: RatioPlot,
+    trades: Iterable[Trade],
+) -> None:
+    if plot.mode == "returns":
+        return
+
+    labels_used: set[str] = set()
+    for tr in trades:
+        color = "tab:green" if tr.direction == Direction.UP else "tab:red"
+
+        entry_idx = tr.entry_index
+        if 0 <= entry_idx < plot.series.size:
+            label = f"entry_{tr.direction.value}"
+            ax.scatter(
+                plot.dates[entry_idx],
+                plot.series[entry_idx],
+                marker="^",
+                s=40,
+                color=color,
+                label=label if label not in labels_used else "_nolegend_",
+                zorder=5,
+            )
+            labels_used.add(label)
+
+        exit_idx = tr.exit_index
+        if 0 <= exit_idx < plot.series.size:
+            label = f"exit_{tr.direction.value}"
+            ax.scatter(
+                plot.dates[exit_idx],
+                plot.series[exit_idx],
+                marker="x",
+                s=40,
+                color=color,
+                label=label if label not in labels_used else "_nolegend_",
+                zorder=5,
+            )
+            labels_used.add(label)
 
 
 def plot_ratio_jobs(
@@ -126,6 +172,7 @@ def plot_ratio_jobs(
     config: VisualizationConfig,
     scores: Optional[dict[RatioJob, float]] = None,
     mean_config: Optional[MeanEstimatorConfig] = None,
+    trades_by_job: Optional[dict[RatioJob, list[Trade]]] = None,
     show: bool = True,
     save_dir: Optional[str] = None,
 ) -> None:
@@ -162,6 +209,10 @@ def plot_ratio_jobs(
             rolling = _compute_mean_series(plot.series, mean_config)
             if rolling is not None:
                 ax.plot(plot.dates, rolling, linestyle="--", linewidth=1.0, color="tab:orange", label="configured_mean")
+        if trades_by_job:
+            trades = trades_by_job.get(plot.job)
+            if trades:
+                _plot_trade_markers(ax=ax, plot=plot, trades=trades)
         ax.set_title(plot.title)
         ax.set_xlabel("Time")
         ax.set_ylabel("Value")

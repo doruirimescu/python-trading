@@ -198,12 +198,15 @@ def main():
         top_k=top_k,
     )
 
+    trades_by_job = None
     if app.backtester is not None:
         bt_results = []
+        trades_by_job = {}
         for job in jobs:
             spec, job_id = _job_to_ratio_spec(ru, job)
             result = app.backtester.run_one(panel=panel_raw, ratio_spec=spec, job_id=job_id)
             bt_results.append(result)
+            trades_by_job[job] = result.trades or []
             logger.info(
                 "Backtest %s: return=%.2f%% trades=%d",
                 job_id,
@@ -217,6 +220,7 @@ def main():
         config=cfg.visualization,
         scores=scores,
         mean_config=cfg.mean_estimator,
+        trades_by_job=trades_by_job,
         show=True,
     )
 
