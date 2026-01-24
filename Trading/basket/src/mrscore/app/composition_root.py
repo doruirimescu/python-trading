@@ -4,37 +4,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from model.config_model import RootConfig
-
-
-# ============================================================
-# Concrete component implementations (placeholders)
-# Replace these imports/classes with your real implementations.
-# ============================================================
-
-class RollingSMA:
-    def __init__(self, *, window: int) -> None:
-        self.window = window
-
-class EWMA:
-    def __init__(self, *, window: int, min_volatility: float, volatility_unit: str) -> None:
-        self.window = window
-        self.min_volatility = min_volatility
-        self.volatility_unit = volatility_unit
-
-class ZScoreDeviationDetector:
-    def __init__(self, *, threshold: float, min_absolute_move: float) -> None:
-        self.threshold = threshold
-        self.min_absolute_move = min_absolute_move
-
-class SoftBandReversionCriteria:
-    def __init__(self, *, z_tolerance: float) -> None:
-        self.z_tolerance = z_tolerance
-
-class CompositeFailureCriteria:
-    def __init__(self, *, max_duration: int | None, max_zscore: float | None) -> None:
-        self.max_duration = max_duration
-        self.max_zscore = max_zscore
+from mrscore.components.deviation.zscore import ZScoreDeviationDetector
+from mrscore.components.failure.composite import CompositeFailureCriteria
+from mrscore.components.mean.rolling_sma import RollingSMA
+from mrscore.components.reversion.soft_band import SoftBandReversionCriteria
+from mrscore.components.volatility.ewma import EWMA
+from mrscore.config.models import RootConfig
 
 
 # ============================================================

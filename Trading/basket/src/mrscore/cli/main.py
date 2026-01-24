@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from model.config_loader import ConfigError, load_config
-from composition_root import build_app
+from mrscore.app.composition_root import build_app
+from mrscore.config.loader import load_config
+from mrscore.config.models import RootConfig
+from mrscore.utils.errors import ConfigError
 
 
 CONFIG_FILENAME = "config.yaml"
 
 
-def load_runtime_config() -> object:
-    config_path = Path(__file__).with_name(CONFIG_FILENAME)
+def load_runtime_config() -> RootConfig:
+    config_path = Path(__file__).resolve().parents[3] / CONFIG_FILENAME
     return load_config(config_path)
 
 
@@ -21,9 +23,9 @@ def main() -> int:
         print(f"Failed to load {CONFIG_FILENAME}: {exc}")
         return 1
 
-    print(f"Loaded {CONFIG_FILENAME} (version {runtime_config.raw.config_version})")
+    print(f"Loaded {CONFIG_FILENAME} (version {runtime_config.config_version})")
 
-    app = build_app(runtime_config.raw)
+    app = build_app(runtime_config)
     print("Application successfully composed with the following components:")
     print(f"- Mean Estimator: {type(app.mean_estimator).__name__}")
     print(f"- Volatility Estimator: {type(app.volatility_estimator).__name__}")

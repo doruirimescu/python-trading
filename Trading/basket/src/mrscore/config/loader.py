@@ -1,34 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping
 
 from pydantic import ValidationError
 
-from model.config_model import RootConfig
-
-
-class ConfigError(Exception):
-    """Base class for configuration-related failures."""
-
-
-class ConfigLoadError(ConfigError):
-    """Raised when YAML cannot be loaded or is malformed."""
-
-
-class ConfigValidationError(ConfigError):
-    """Raised when RootConfig schema validation fails."""
-
-
-@dataclass(frozen=True)
-class RuntimeConfig:
-    """
-    Fully schema-validated configuration.
-
-    v1 intentionally stops at schema validation (no registry/resolution).
-    """
-    raw: RootConfig
+from mrscore.config.models import RootConfig
+from mrscore.utils.errors import ConfigLoadError, ConfigValidationError
 
 
 def load_yaml_file(path: str | Path) -> Dict[str, Any]:
@@ -63,7 +41,6 @@ def parse_root_config(config_dict: Mapping[str, Any]) -> RootConfig:
         raise ConfigValidationError(f"Config schema validation failed: {e}") from e
 
 
-def load_config(path: str | Path) -> RuntimeConfig:
+def load_config(path: str | Path) -> RootConfig:
     config_dict = load_yaml_file(path)
-    root = parse_root_config(config_dict)
-    return RuntimeConfig(raw=root)
+    return parse_root_config(config_dict)
