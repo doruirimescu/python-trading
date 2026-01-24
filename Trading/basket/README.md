@@ -68,44 +68,53 @@ engine:
     freeze_mean_on_event: true
     freeze_volatility_on_event: true
     max_active_events: 1
-    data:
-        price_field: close
-        returns_mode: log
-        min_bars_required: 100
-    mean_estimator:
-        type: rolling_sma
-        params:
-            window: 50
-    volatility_estimator:
-        type: ewma
-        params:
-            window: 30
-            min_volatility: 0.0005
-            volatility_unit: returns
-    deviation_detector:
-        type: zscore
-        params:
-            threshold: 1.75
-            min_absolute_move: 0.002
-    reversion_criteria:
-        type: soft_band
-        params:
-            z_tolerance: 0.4
-    failure_criteria:
-        type: composite
-        params:
-            max_duration: 40
-            max_zscore: 3.5
-    scoring:
-        by_direction: true
-        by_volatility_bucket: true
-        volatility_buckets: 5
-        record_empty_scores: false
-    diagnostics:
-        enabled: true
-        record_event_paths: true
-        record_max_excursion: true
-        record_time_to_resolution: true
+data:
+    price_field: close
+    returns_mode: log
+    min_bars_required: 100
+    tickers: [AAPL, MSFT, GOOG, AMZN, META, TSLA, NVDA]
+    period: 5y
+    interval: 1d
+mean_estimator:
+    type: rolling_sma
+    params:
+        window: 50
+volatility_estimator:
+    type: ewma
+    params:
+        span: 30
+        min_volatility: 0.0005
+        volatility_unit: returns
+deviation_detector:
+    type: zscore
+    params:
+        threshold: 1.75
+        min_absolute_move: 0.002
+reversion_criteria:
+    type: soft_band
+    params:
+        z_tolerance: 0.4
+failure_criteria:
+    type: composite
+    params:
+        max_duration: 40
+        max_zscore: 3.5
+scoring:
+    by_direction: true
+    by_volatility_bucket: true
+    volatility_buckets: 5
+    record_empty_scores: false
+diagnostics:
+    enabled: true
+    record_event_paths: true
+    record_max_excursion: true
+    record_time_to_resolution: true
+visualization:
+    show_ratio: true
+    show_log_ratio: false
+    show_zscore: false
+    show_returns: false
+    top_k: 25
 ```
 
 ### Versioning
