@@ -9,9 +9,12 @@ from mrscore.config.loader import load_config
 from mrscore.io.history import History, OHLC
 from mrscore.io.adapters import build_price_panel, compute_returns_from_prices
 from mrscore.core.ratio_universe import RatioUniverse, RatioJob
+from mrscore.utils.logging import get_logger
 
 # Replace with your actual engine/scorer import once implemented
 # from mrscore.core.engine import MeanReversionEngine
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -41,9 +44,12 @@ def run_ratio_universe(
       - computes per-ratio returns if configured
       - calls into your engine/scorer (placeholder)
     """
+    logger.info("Loading config: %s", config_path)
     runtime = load_config(config_path)
+    logger.info("Config loaded: returns_mode=%s", runtime.data.returns_mode)
 
     # 1) Adapter: build a dense aligned panel (intersection alignment + per-symbol normalization)
+    logger.info("Building aligned panel: symbols=%d field=%s", len(symbols), field.value)
     panel = build_price_panel(
         histories=histories,
         symbols=symbols,
@@ -53,6 +59,7 @@ def run_ratio_universe(
     )
 
     # 2) Universe: do NOT normalize again inside RatioUniverse
+    logger.info("Initializing RatioUniverse")
     ru = RatioUniverse(
         panel=panel,
         normalize_by_first=False,      # already normalized by adapter
@@ -65,6 +72,7 @@ def run_ratio_universe(
     ret_buf = np.empty(T - 1, dtype=np.float64)      # returns series (if needed)
 
     returns_mode = runtime.data.returns_mode  # "log" | "simple" | "none"
+    logger.info("Prepared buffers: T=%d returns_mode=%s", T, returns_mode)
 
     stopped_early = False
 
@@ -113,6 +121,14 @@ def run_ratio_universe(
         return True  # return False to stop early
 
     # 5) Scan universe (stream jobs, reuse RatioUniverse buffer)
+    logger.info(
+        "Scanning ratios: k_num=%d k_den=%d max_jobs=%s disallow_overlap=%s unordered_if_equal_k=%s",
+        k_num,
+        k_den,
+        max_jobs,
+        disallow_overlap,
+        unordered_if_equal_k,
+    )
     processed = ru.scan(
         k_num=k_num,
         k_den=k_den,

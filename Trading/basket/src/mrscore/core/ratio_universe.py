@@ -7,6 +7,10 @@ from typing import Callable, Dict, Iterable, Iterator, List, Optional, Sequence,
 
 import numpy as np
 
+from mrscore.utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 # -----------------------------------------------------------------------------
 # Minimal dependency: a pre-aligned dense price panel (T, N).
@@ -77,6 +81,15 @@ class RatioUniverse:
         if panel.values.shape[0] != len(panel.dates):
             raise ValueError("panel.values rows must match len(panel.dates)")
 
+        logger.info(
+            "Initializing RatioUniverse: T=%d N=%d normalize_by_first=%s eps=%s dtype=%s",
+            panel.values.shape[0],
+            panel.values.shape[1],
+            normalize_by_first,
+            eps,
+            dtype,
+        )
+
         self.dates = panel.dates
         self.symbols = panel.symbols
         self._eps = float(eps)
@@ -90,6 +103,7 @@ class RatioUniverse:
             # Avoid division-by-zero blowups; you can choose a stricter policy later.
             base_safe = np.where(base == 0.0, 1.0, base)
             X = X / base_safe
+            logger.info("Normalized panel by first value (vectorized)")
 
         self._X = X  # shape (T, N)
         self._N = X.shape[1]
@@ -150,6 +164,7 @@ class RatioUniverse:
         Caches all k-combinations of column indices.
         """
         if k in self._basket_libs:
+            logger.info("Using cached basket library for k=%d", k)
             return self._basket_libs[k]
         if k < 1:
             raise ValueError("k must be >= 1")
@@ -161,6 +176,7 @@ class RatioUniverse:
         baskets = np.array(list(combinations(range(self._N), k)), dtype=np.int32)
         lib = BasketLibrary(k=k, baskets=baskets)
         self._basket_libs[k] = lib
+        logger.info("Built basket library for k=%d size=%d", k, lib.size)
         return lib
 
     # ----------------------------
@@ -191,6 +207,15 @@ class RatioUniverse:
 
         lib_num = self.get_basket_library(k_num)
         lib_den = lib_num if (k_num == k_den) else self.get_basket_library(k_den)
+
+        logger.info(
+            "Iterating ratio jobs: k_num=%d k_den=%d unordered_if_equal_k=%s disallow_overlap=%s max_jobs=%s",
+            k_num,
+            k_den,
+            unordered_if_equal_k,
+            disallow_overlap,
+            max_jobs,
+        )
 
         produced = 0
 
@@ -286,6 +311,13 @@ class RatioUniverse:
         processed = 0
         buf = np.empty(self._X.shape[0], dtype=self._X.dtype) if reuse_buffer else None
 
+        logger.info(
+            "Scanning ratio universe: k_num=%d k_den=%d reuse_buffer=%s",
+            k_num,
+            k_den,
+            reuse_buffer,
+        )
+
         for job in self.iter_ratio_jobs(
             k_num=k_num,
             k_den=k_den,
@@ -303,6 +335,7 @@ class RatioUniverse:
             if not process(job, series):
                 break
 
+        logger.info("Completed scan: processed_jobs=%d", processed)
         return processed
 
     # ----------------------------
