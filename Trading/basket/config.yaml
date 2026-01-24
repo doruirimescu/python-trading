@@ -40,6 +40,27 @@ volatility_estimator:
     window: 30
     min_volatility: 0.0005
     volatility_unit: returns
+# Production
+# volatility_estimator:
+#   type: ewma
+#   params:
+#     span: 30
+#     min_periods: 10
+#     min_volatility: 0.0005
+#     volatility_unit: returns
+
+# Advanced Volatility Estimator
+# volatility_estimator:
+#   type: garch11
+#   params:
+#     omega: 1.0e-6
+#     alpha: 0.08
+#     beta: 0.90
+#     min_volatility: 0.0005
+#     min_periods: 10
+#     enforce_stationarity: true
+#     volatility_unit: returns
+
 
 deviation_detector:
   type: zscore

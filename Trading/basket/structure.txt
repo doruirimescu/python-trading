@@ -1,0 +1,65 @@
+basket/
+├── src/
+│   └── mrscore/
+│       ├── app/
+│       │   ├── __init__.py
+│       │   └── composition_root.py
+│       ├── cli/
+│       │   ├── __init__.py
+│       │   └── main.py
+│       ├── components/
+│       │   ├── deviation/
+│       │   │   ├── __init__.py
+│       │   │   └── zscore.py
+│       │   ├── failure/
+│       │   │   ├── __init__.py
+│       │   │   └── composite.py
+│       │   ├── mean/
+│       │   │   ├── __init__.py
+│       │   │   ├── ema.py
+│       │   │   ├── kalman_mean.py
+│       │   │   └── rolling_sma.py
+│       │   ├── reversion/
+│       │   │   ├── __init__.py
+│       │   │   └── soft_band.py
+│       │   ├── volatility/
+│       │   │   ├── __init__.py
+│       │   │   ├── ewma.py
+│       │   │   ├── garch11.py
+│       │   │   └── rolling_std.py
+│       │   └── __init__.py
+│       ├── config/
+│       │   ├── __init__.py
+│       │   ├── loader.py
+│       │   └── models.py
+│       ├── core/
+│       │   ├── __init__.py
+│       │   ├── diagnostics.py
+│       │   ├── engine.py
+│       │   ├── scoring.py
+│       │   └── types.py
+│       ├── io/
+│       │   ├── __init__.py
+│       │   ├── adapters.py
+│       │   └── loaders.py
+│       ├── utils/
+│       │   ├── __init__.py
+│       │   ├── errors.py
+│       │   └── logging.py
+│       └── __init__.py
+├── tests/
+│   ├── test_composition_root.py
+│   ├── test_config_loader.py
+│   ├── test_config_validation.py
+│   ├── test_ema.py
+│   ├── test_engine_synthetic.py
+│   ├── test_ewma.py
+│   ├── test_ewma_vol.py
+│   ├── test_rolling_sma.py
+│   └── test_rolling_std.py
+├── .gitignore
+├── __init__.py
+├── config.yaml
+├── default.rules
+├── pyproject.toml
+└── README.md
