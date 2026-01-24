@@ -43,19 +43,17 @@ class YFinanceLoader:
             raise ValueError("tickers must be non-empty")
 
         logger.info(
-            "Starting yfinance load",
-            extra={
-                "tickers": list(req.tickers),
-                "period": req.period,
-                "interval": req.interval,
-                "auto_adjust": req.auto_adjust,
-            },
+            "Starting yfinance load: tickers=%s period=%s interval=%s auto_adjust=%s",
+            list(req.tickers),
+            req.period,
+            req.interval,
+            req.auto_adjust,
         )
 
         out: Dict[str, History] = {}
 
         for t in req.tickers:
-            logger.info("Requesting ticker history", extra={"ticker": t})
+            logger.info("Requesting ticker history: %s", t)
             try:
                 df = yf.Ticker(t).history(
                     period=req.period,
@@ -63,15 +61,15 @@ class YFinanceLoader:
                     auto_adjust=req.auto_adjust,
                 )
             except Exception as exc:
-                logger.exception("Failed to download ticker history", extra={"ticker": t})
+                logger.exception("Failed to download ticker history: %s", t)
                 raise RuntimeError(f"Failed to load ticker history for {t}") from exc
 
             if df is None or df.empty:
-                logger.error("Ticker returned empty dataframe", extra={"ticker": t})
+                logger.error("Ticker returned empty dataframe: %s", t)
                 raise RuntimeError(f"Ticker {t} returned empty dataframe")
 
             dates = df.index.to_numpy(dtype="datetime64[D]")
-            logger.info("Parsing ticker dataframe", extra={"ticker": t, "rows": len(dates)})
+            logger.info("Parsing ticker dataframe: %s rows=%d", t, len(dates))
             out[t] = _history_from_single_df(t, dates, df)
 
         if not out:
@@ -79,8 +77,9 @@ class YFinanceLoader:
             raise ValueError("No ticker histories could be constructed from yfinance output")
 
         logger.info(
-            "Completed yfinance load",
-            extra={"loaded": sorted(out.keys()), "requested": list(req.tickers)},
+            "Completed yfinance load: loaded=%s requested=%s",
+            sorted(out.keys()),
+            list(req.tickers),
         )
         return out
 
@@ -89,6 +88,7 @@ def _history_from_single_df(ticker: str, dates: np.ndarray, df) -> History:
     """
     df columns are expected to include Open/High/Low/Close (case-insensitive).
     """
+    logger.info("Parsing OHLC columns: %s columns=%s", ticker, list(df.columns))
     # Normalize column names
     colmap = {c.lower().replace(" ", ""): c for c in df.columns}
 
