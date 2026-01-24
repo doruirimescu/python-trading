@@ -3,10 +3,12 @@ basket/
 │   └── mrscore/
 │       ├── app/
 │       │   ├── __init__.py
-│       │   └── composition_root.py
+│       │   ├── composition_root.py
+│       │   └── universe_runner.py
 │       ├── cli/
 │       │   ├── __init__.py
-│       │   └── main.py
+│       │   ├── main.py
+│       │   └── main_2.py
 │       ├── components/
 │       │   ├── deviation/
 │       │   │   ├── __init__.py
@@ -36,18 +38,22 @@ basket/
 │       │   ├── __init__.py
 │       │   ├── diagnostics.py
 │       │   ├── engine.py
+│       │   ├── ratio_universe.py
 │       │   ├── scoring.py
 │       │   └── types.py
 │       ├── io/
 │       │   ├── __init__.py
 │       │   ├── adapters.py
-│       │   └── loaders.py
+│       │   ├── history.py
+│       │   ├── loaders.py
+│       │   └── ratio.py
 │       ├── utils/
 │       │   ├── __init__.py
 │       │   ├── errors.py
 │       │   └── logging.py
 │       └── __init__.py
 ├── tests/
+│   ├── test_aligned_panel.py
 │   ├── test_composition_root.py
 │   ├── test_config_loader.py
 │   ├── test_config_validation.py
@@ -55,6 +61,7 @@ basket/
 │   ├── test_engine_synthetic.py
 │   ├── test_ewma.py
 │   ├── test_ewma_vol.py
+│   ├── test_history.py
 │   ├── test_rolling_sma.py
 │   └── test_rolling_std.py
 ├── .gitignore
@@ -62,4 +69,5 @@ basket/
 ├── config.yaml
 ├── default.rules
 ├── pyproject.toml
-└── README.md
+├── README.md
+└── structure.txt
