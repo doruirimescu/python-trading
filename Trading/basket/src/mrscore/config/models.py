@@ -68,17 +68,52 @@ MeanEstimatorConfig = Annotated[
 # Volatility Estimator
 # ---------------------------
 
-class EWMAParams(StrictBaseModel):
+class RollingStdParams(StrictBaseModel):
     window: int = Field(..., ge=1)
-    min_volatility: float = Field(..., gt=0)
-    volatility_unit: Literal["returns", "price"]
+    min_periods: int = Field(1, ge=1)
+    ddof: Literal[0, 1] = 0
+    min_volatility: float = Field(0.0, ge=0)
+    volatility_unit: Literal["returns", "price"] = "returns"
+
+class VolRollingStdConfig(StrictBaseModel):
+    type: Literal["rolling_std"]
+    params: RollingStdParams
+
+
+class EWMAVolParams(StrictBaseModel):
+    span: int = Field(..., ge=1)
+    min_periods: int = Field(1, ge=1)
+    min_volatility: float = Field(0.0, ge=0)
+    volatility_unit: Literal["returns", "price"] = "returns"
 
 class VolEWMAConfig(StrictBaseModel):
     type: Literal["ewma"]
-    params: EWMAParams
+    params: EWMAVolParams
+
+
+class GARCH11Params(StrictBaseModel):
+    omega: float = Field(..., gt=0)
+    alpha: float = Field(..., ge=0)
+    beta: float = Field(..., ge=0)
+    init_sigma2: float | None = Field(default=None, gt=0)
+    min_volatility: float = Field(0.0, ge=0)
+    min_periods: int = Field(1, ge=1)
+    enforce_stationarity: bool = True
+    volatility_unit: Literal["returns", "price"] = "returns"
+
+    @model_validator(mode="after")
+    def stationarity(self):
+        if self.enforce_stationarity and (self.alpha + self.beta) >= 1.0:
+            raise ValueError("Stationarity requires alpha + beta < 1")
+        return self
+
+class VolGARCH11Config(StrictBaseModel):
+    type: Literal["garch11"]
+    params: GARCH11Params
+
 
 VolatilityEstimatorConfig = Annotated[
-    Union[VolEWMAConfig],
+    Union[VolRollingStdConfig, VolEWMAConfig, VolGARCH11Config],
     Field(discriminator="type"),
 ]
 

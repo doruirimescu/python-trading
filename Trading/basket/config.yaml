@@ -11,10 +11,28 @@ data:
   returns_mode: log
   min_bars_required: 100
 
+# Basic Mean Estimator
 mean_estimator:
   type: rolling_sma
   params:
     window: 50
+
+# Production
+# mean_estimator:
+#   type: ema
+#   params:
+#     span: 50
+#     min_periods: 10
+
+# Advanced Mean Estimator
+# mean_estimator:
+#   type: kalman_mean
+#   params:
+      # process_var: 0.01
+      #     obs_var: 1.0
+      #     init_mean: 0.0
+      #     init_var: 10.0
+      #     min_periods: 5
 
 volatility_estimator:
   type: ewma

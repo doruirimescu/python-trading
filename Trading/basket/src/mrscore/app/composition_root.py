@@ -8,7 +8,7 @@ from mrscore.components.deviation.zscore import ZScoreDeviationDetector
 from mrscore.components.failure.composite import CompositeFailureCriteria
 from mrscore.components.mean import RollingSMA, EMA, KalmanMean
 from mrscore.components.reversion.soft_band import SoftBandReversionCriteria
-from mrscore.components.volatility.ewma import EWMA
+from mrscore.components.volatility import EWMAVol, GARCH11Vol, RollingStd
 from mrscore.config.models import RootConfig
 
 
@@ -69,12 +69,36 @@ def build_app(config: RootConfig) -> App:
     # Volatility estimator
     # ------------------------
     vol_cfg = config.volatility_estimator
-    if vol_cfg.type == "ewma":
-        vol_estimator = EWMA(
-            window=vol_cfg.params.window,
-            min_volatility=vol_cfg.params.min_volatility,
-            volatility_unit=vol_cfg.params.volatility_unit,
+
+    if vol_cfg.type == "rolling_std":
+        p = vol_cfg.params
+        vol_estimator = RollingStd(
+            window=p.window,
+            min_periods=p.min_periods,
+            ddof=p.ddof,
+            min_volatility=p.min_volatility,
         )
+
+    elif vol_cfg.type == "ewma":
+        p = vol_cfg.params
+        vol_estimator = EWMAVol(
+            span=p.span,
+            min_periods=p.min_periods,
+            min_volatility=p.min_volatility,
+        )
+
+    elif vol_cfg.type == "garch11":
+        p = vol_cfg.params
+        vol_estimator = GARCH11Vol(
+            omega=p.omega,
+            alpha=p.alpha,
+            beta=p.beta,
+            init_sigma2=p.init_sigma2,
+            min_volatility=p.min_volatility,
+            min_periods=p.min_periods,
+            enforce_stationarity=p.enforce_stationarity,
+        )
+
     else:  # pragma: no cover
         raise ValueError(f"Unsupported volatility_estimator.type: {vol_cfg.type}")
 
