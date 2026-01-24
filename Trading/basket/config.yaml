@@ -111,8 +111,8 @@ visualization:
   top_k: 5
 
 ratio_universe:
-  k_num: 3
-  k_den: 3
+  k_num: 2
+  k_den: 2
   disallow_overlap: true
   unordered_if_equal_k: true
   max_jobs: 10000

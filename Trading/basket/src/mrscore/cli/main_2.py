@@ -1,6 +1,7 @@
 # main_2.py
 from __future__ import annotations
 
+import csv
 import numpy as np
 
 from mrscore.config.loader import load_config
@@ -164,13 +165,17 @@ def _summarize_trades_for_job(
     ratio_spec: RatioSpec,
     result,
     total_bps: float,
-) -> str:
+) -> tuple[str, list[dict[str, object]]]:
     lines: list[str] = []
+    rows: list[dict[str, object]] = []
     trades = result.trades or []
     if not trades:
-        return f"Summary {job_id}: no trades"
+        return f"Summary {job_id}: no trades", rows
 
-    lines.append(f"Summary {job_id}: trades={len(trades)} total_return={result.total_return:.4f}")
+    lines.append(f"Summary for {job_id}")
+    lines.append(
+        f"  Trades: {len(trades)} | Total return: {result.total_return:.4f} | Initial cash: {result.initial_cash:.2f}"
+    )
     running_equity = float(result.initial_cash)
 
     num_idx = ratio_spec.numerator.indices
@@ -186,11 +191,13 @@ def _summarize_trades_for_job(
         net_profit = float(tr.pnl) - entry_costs - exit_costs
         running_equity += net_profit
 
+        lines.append(f"  Trade {i}: {entry_date} -> {exit_date}")
         lines.append(
-            f"  Trade {i}: {entry_date} -> {exit_date} status={tr.status.value} "
-            f"direction={tr.direction.value} duration={tr.duration} "
-            f"gross_entry={tr.gross_notional_entry:.2f} gross_exit={tr.gross_notional_exit:.2f} "
-            f"pnl={tr.pnl:.2f} costs={entry_costs + exit_costs:.2f} net={net_profit:.2f} "
+            f"    direction={tr.direction.value} status={tr.status.value} duration={tr.duration} "
+            f"gross_entry={tr.gross_notional_entry:.2f} gross_exit={tr.gross_notional_exit:.2f}"
+        )
+        lines.append(
+            f"    pnl={tr.pnl:.2f} costs={entry_costs + exit_costs:.2f} net={net_profit:.2f} "
             f"equity={running_equity:.2f}"
         )
 
@@ -204,8 +211,28 @@ def _summarize_trades_for_job(
                 if qty == 0.0:
                     continue
                 side = "BUY" if qty > 0 else "SELL"
-                lines.append(
-                    f"    {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}"
+                lines.append(f"      {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}")
+                rows.append(
+                    {
+                        "job_id": job_id,
+                        "trade_index": i,
+                        "entry_date": entry_date,
+                        "exit_date": exit_date,
+                        "direction": tr.direction.value,
+                        "status": tr.status.value,
+                        "duration": tr.duration,
+                        "symbol": sym,
+                        "side": side,
+                        "qty": float(qty),
+                        "entry_price": float(px_in),
+                        "exit_price": float(px_out),
+                        "gross_entry": float(tr.gross_notional_entry),
+                        "gross_exit": float(tr.gross_notional_exit),
+                        "pnl": float(tr.pnl),
+                        "costs": float(entry_costs + exit_costs),
+                        "net_profit": float(net_profit),
+                        "running_equity": float(running_equity),
+                    }
                 )
 
         if tr.qty_den is not None and len(tr.qty_den) > 0:
@@ -213,11 +240,31 @@ def _summarize_trades_for_job(
                 if qty == 0.0:
                     continue
                 side = "BUY" if qty > 0 else "SELL"
-                lines.append(
-                    f"    {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}"
+                lines.append(f"      {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}")
+                rows.append(
+                    {
+                        "job_id": job_id,
+                        "trade_index": i,
+                        "entry_date": entry_date,
+                        "exit_date": exit_date,
+                        "direction": tr.direction.value,
+                        "status": tr.status.value,
+                        "duration": tr.duration,
+                        "symbol": sym,
+                        "side": side,
+                        "qty": float(qty),
+                        "entry_price": float(px_in),
+                        "exit_price": float(px_out),
+                        "gross_entry": float(tr.gross_notional_entry),
+                        "gross_exit": float(tr.gross_notional_exit),
+                        "pnl": float(tr.pnl),
+                        "costs": float(entry_costs + exit_costs),
+                        "net_profit": float(net_profit),
+                        "running_equity": float(running_equity),
+                    }
                 )
 
-    return "\n".join(lines)
+    return "\n".join(lines), rows
 
 
 def main():
@@ -291,6 +338,7 @@ def main():
         bt_results = []
         trades_by_job = {}
         equity_by_job = {}
+        trade_rows: list[dict[str, object]] = []
         total_bps = float(cfg.backtest.costs.commission_bps + cfg.backtest.costs.slippage_bps) if cfg.backtest else 0.0
         for job in jobs:
             spec, job_id = _job_to_ratio_spec(ru, job)
@@ -304,7 +352,7 @@ def main():
                 result.total_return * 100.0,
                 len(result.trades or []),
             )
-            summary = _summarize_trades_for_job(
+            summary, rows = _summarize_trades_for_job(
                 job=job,
                 job_id=job_id,
                 panel=panel_raw,
@@ -313,6 +361,16 @@ def main():
                 total_bps=total_bps,
             )
             logger.info("%s", summary)
+            trade_rows.extend(rows)
+
+        if trade_rows:
+            csv_path = "trade_summary.csv"
+            fieldnames = list(trade_rows[0].keys())
+            with open(csv_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(trade_rows)
+            logger.info("Wrote trade summary CSV: %s rows=%d", csv_path, len(trade_rows))
 
     plot_ratio_jobs(
         ru=ru,
