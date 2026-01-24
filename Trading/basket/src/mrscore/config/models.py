@@ -202,6 +202,18 @@ class DiagnosticsConfig(StrictBaseModel):
 
 
 # ---------------------------
+# Visualization
+# ---------------------------
+
+class VisualizationConfig(StrictBaseModel):
+    show_ratio: bool = True
+    show_log_ratio: bool = False
+    show_zscore: bool = False
+    show_returns: bool = False
+    top_k: Optional[int] = Field(default=None, ge=1)
+
+
+# ---------------------------
 # Root
 # ---------------------------
 
@@ -219,3 +231,4 @@ class RootConfig(StrictBaseModel):
 
     scoring: ScoringConfig
     diagnostics: DiagnosticsConfig
+    visualization: VisualizationConfig

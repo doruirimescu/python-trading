@@ -90,3 +90,10 @@ diagnostics:
   record_event_paths: true
   record_max_excursion: true
   record_time_to_resolution: true
+
+visualization:
+  show_ratio: true
+  show_log_ratio: false
+  show_zscore: false
+  show_returns: false
+  top_k: 25
