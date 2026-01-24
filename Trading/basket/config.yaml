@@ -107,3 +107,10 @@ visualization:
   show_zscore: false
   show_returns: false
   top_k: 25
+
+ratio_universe:
+  k_num: 3
+  k_den: 3
+  disallow_overlap: true
+  unordered_if_equal_k: true
+  max_jobs: 10000

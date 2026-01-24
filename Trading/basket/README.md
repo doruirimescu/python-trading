@@ -58,6 +58,7 @@ A valid `config.yaml` has these top-level sections:
 - `reversion_criteria`: What qualifies as a successful reversion (pluggable via `type`)
 - `failure_criteria`: What qualifies as event failure (pluggable via `type`) - `scoring`: Aggregation rules for scoring completed events
 - `diagnostics`: Optional diagnostics capture
+- `ratio_universe`: Controls how ratio baskets are generated and scanned
 
 ### Canonical Example
 
@@ -115,6 +116,12 @@ visualization:
     show_zscore: false
     show_returns: false
     top_k: 25
+ratio_universe:
+    k_num: 3
+    k_den: 3
+    disallow_overlap: true
+    unordered_if_equal_k: true
+    max_jobs: 10000
 ```
 
 ### Versioning

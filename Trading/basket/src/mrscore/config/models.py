@@ -217,6 +217,18 @@ class VisualizationConfig(StrictBaseModel):
 
 
 # ---------------------------
+# Ratio Universe
+# ---------------------------
+
+class RatioUniverseConfig(StrictBaseModel):
+    k_num: int = Field(..., ge=1)
+    k_den: int = Field(..., ge=1)
+    disallow_overlap: bool = True
+    unordered_if_equal_k: bool = True
+    max_jobs: Optional[int] = Field(default=None, ge=1)
+
+
+# ---------------------------
 # Root
 # ---------------------------
 
@@ -235,3 +247,4 @@ class RootConfig(StrictBaseModel):
     scoring: ScoringConfig
     diagnostics: DiagnosticsConfig
     visualization: VisualizationConfig
+    ratio_universe: RatioUniverseConfig
