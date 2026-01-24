@@ -164,7 +164,6 @@ class RatioUniverse:
         Caches all k-combinations of column indices.
         """
         if k in self._basket_libs:
-            logger.info("Using cached basket library for k=%d", k)
             return self._basket_libs[k]
         if k < 1:
             raise ValueError("k must be >= 1")
