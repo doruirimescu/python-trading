@@ -36,8 +36,30 @@ class MeanRollingSMAConfig(StrictBaseModel):
     type: Literal["rolling_sma"]
     params: RollingSMAParams
 
+
+class EMAParams(StrictBaseModel):
+    span: int = Field(..., ge=1)
+    min_periods: int = Field(1, ge=1)
+
+class MeanEMAConfig(StrictBaseModel):
+    type: Literal["ema"]
+    params: EMAParams
+
+
+class KalmanMeanParams(StrictBaseModel):
+    process_var: float = Field(..., gt=0)
+    obs_var: float = Field(..., gt=0)
+    init_mean: float = 0.0
+    init_var: float = Field(1.0, gt=0)
+    min_periods: int = Field(1, ge=1)
+
+class MeanKalmanConfig(StrictBaseModel):
+    type: Literal["kalman_mean"]
+    params: KalmanMeanParams
+
+
 MeanEstimatorConfig = Annotated[
-    Union[MeanRollingSMAConfig],
+    Union[MeanRollingSMAConfig, MeanEMAConfig, MeanKalmanConfig],
     Field(discriminator="type"),
 ]
 

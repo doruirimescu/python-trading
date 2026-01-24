@@ -6,7 +6,7 @@ from typing import Any
 
 from mrscore.components.deviation.zscore import ZScoreDeviationDetector
 from mrscore.components.failure.composite import CompositeFailureCriteria
-from mrscore.components.mean.rolling_sma import RollingSMA
+from mrscore.components.mean import RollingSMA, EMA, KalmanMean
 from mrscore.components.reversion.soft_band import SoftBandReversionCriteria
 from mrscore.components.volatility.ewma import EWMA
 from mrscore.config.models import RootConfig
@@ -51,7 +51,18 @@ def build_app(config: RootConfig) -> App:
     mean_cfg = config.mean_estimator
     if mean_cfg.type == "rolling_sma":
         mean_estimator = RollingSMA(window=mean_cfg.params.window)
-    else:  # pragma: no cover (discriminated union should prevent this)
+    elif mean_cfg.type == "ema":
+        mean_estimator = EMA(span=mean_cfg.params.span, min_periods=mean_cfg.params.min_periods)
+    elif mean_cfg.type == "kalman_mean":
+        p = mean_cfg.params
+        mean_estimator = KalmanMean(
+            process_var=p.process_var,
+            obs_var=p.obs_var,
+            init_mean=p.init_mean,
+            init_var=p.init_var,
+            min_periods=p.min_periods,
+        )
+    else:  # pragma: no cover
         raise ValueError(f"Unsupported mean_estimator.type: {mean_cfg.type}")
 
     # ------------------------
