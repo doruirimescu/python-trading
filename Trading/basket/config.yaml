@@ -10,6 +10,16 @@ data:
   price_field: close
   returns_mode: log
   min_bars_required: 100
+  tickers:
+    - AAPL
+    - MSFT
+    - GOOG
+    - AMZN
+    - META
+    - TSLA
+    - NVDA
+  period: 5y
+  interval: 1d
 
 # Basic Mean Estimator
 mean_estimator:

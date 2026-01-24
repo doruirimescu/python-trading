@@ -29,17 +29,19 @@ def _select_top_k_jobs(
 
 
 def main():
-    tickers = ["AAPL", "MSFT", "GOOG", "AMZN", "META", "TSLA", "NVDA"]
+    config = load_config("config.yaml")
+    tickers = config.data.tickers
+    period = config.data.period
+    interval = config.data.interval
 
     logger.info("Starting main_2: tickers=%s", tickers)
     loader = YFinanceLoader()
     histories = loader.load(
-        YFinanceLoadRequest(tickers=tickers, period="5y", interval="1d", auto_adjust=True)
+        YFinanceLoadRequest(tickers=tickers, period=period, interval=interval, auto_adjust=True)
     )
 
     logger.info("Loaded histories: %d tickers", len(histories))
 
-    config = load_config("config.yaml")
     panel = build_price_panel(
         histories=histories,
         symbols=tickers,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal, Optional, Union, List
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -23,6 +23,9 @@ class DataConfig(StrictBaseModel):
     price_field: str
     returns_mode: Literal["log", "simple", "none"]
     min_bars_required: int = Field(..., ge=1)
+    tickers: List[str]
+    period: str
+    interval: str
 
 
 # ---------------------------

@@ -136,6 +136,9 @@ Defines how inputs are interpreted.
 | `price_field` | str | - | Field/column name used as the price series |
 | `returns_mode` | enum | `log \| simple \| none` | How returns are computed/used (if needed by volatility estimation) |
 | `min_bars_required` | int | `>= 1` | Minimum number of bars required to process a series |
+| `tickers` | list[str] | non-empty | Tickers to fetch from yfinance for universe runs |
+| `period` | str | yfinance period string | Lookback window (e.g., `5y`, `1y`, `6mo`) |
+| `interval` | str | yfinance interval string | Bar size (e.g., `1d`, `1h`) |
 
 ### Pluggable Components: `type` + `params`
 Each pluggable component uses the same shape:
