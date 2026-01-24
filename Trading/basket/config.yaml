@@ -11,13 +11,15 @@ data:
   returns_mode: log
   min_bars_required: 100
   tickers:
-    - AAPL
-    - MSFT
-    - GOOG
-    - AMZN
-    - META
-    - TSLA
-    - NVDA
+    - XOM
+    - CVX
+    - COP
+    - EOG
+    - OXY
+    - DVN
+    - APA
+    - FANG
+    - PR
   period: 5y
   interval: 1d
 
@@ -106,7 +108,7 @@ visualization:
   show_log_ratio: false
   show_zscore: false
   show_returns: false
-  top_k: 25
+  top_k: 5
 
 ratio_universe:
   k_num: 3

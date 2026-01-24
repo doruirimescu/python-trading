@@ -1,5 +1,11 @@
+# main_2.py
+from __future__ import annotations
+
+import numpy as np
+
 from mrscore.config.loader import load_config
 from mrscore.core.ratio_universe import RatioUniverse, RatioJob
+from mrscore.core.ranking import TopKRanker
 from mrscore.io.adapters import build_price_panel
 from mrscore.io.history import OHLC
 from mrscore.io.yfinance_loader import YFinanceLoader, YFinanceLoadRequest
@@ -17,15 +23,37 @@ def _select_top_k_jobs(
     k_den: int,
     max_jobs: int | None,
     top_k: int,
-) -> list[RatioJob]:
-    scored: list[tuple[float, RatioJob]] = []
-    for job in ru.iter_ratio_jobs(k_num=k_num, k_den=k_den, max_jobs=max_jobs):
-        series = ru.compute_ratio_series(job)
-        score = float(series.mean())
-        scored.append((score, job))
+) -> tuple[list[RatioJob], dict[RatioJob, float]]:
+    """
+    Streaming top-k selection:
+      - avoids storing all scores
+      - O(J log K) instead of O(J log J)
+    """
+    ranker = TopKRanker(top_k)
 
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return [job for _, job in scored[:top_k]]
+    # Reuse a buffer to avoid allocating (T,) arrays for every ratio
+    T = ru._X.shape[0]  # note: if you want to avoid using a private field, add ru.length property
+    buf = np.empty(T, dtype=np.float64)
+
+    for job in ru.iter_ratio_jobs(k_num=k_num, k_den=k_den, max_jobs=max_jobs):
+        ru.compute_ratio_series_into(buf, job)
+
+        # --- CURRENT "CRUDE" SCORE ---
+        # Replace this with engine score later (ranker stays unchanged).
+        score = float(np.nanmean(buf))
+
+        ranker.consider(job=job, score=score)
+
+    top = ranker.items_sorted(descending=True)
+
+    # Helpful logging for quick sanity checks
+    if top:
+        logger.info("Top-1 score=%f job=%s", top[0].score, top[0].job)
+        logger.info("Top-%d cutoff score=%f", len(top), top[-1].score)
+
+    jobs = [r.job for r in top]
+    scores = {r.job: r.score for r in top}
+    return jobs, scores
 
 
 def main():
@@ -39,7 +67,6 @@ def main():
     histories = loader.load(
         YFinanceLoadRequest(tickers=tickers, period=period, interval=interval, auto_adjust=True)
     )
-
     logger.info("Loaded histories: %d tickers", len(histories))
 
     panel = build_price_panel(
@@ -53,6 +80,7 @@ def main():
 
     top_k = config.visualization.top_k or 10
     ratio_cfg = config.ratio_universe
+
     logger.info(
         "Selecting top %d ratio jobs for plotting (k_num=%d k_den=%d max_jobs=%s)",
         top_k,
@@ -60,7 +88,8 @@ def main():
         ratio_cfg.k_den,
         ratio_cfg.max_jobs,
     )
-    jobs = _select_top_k_jobs(
+
+    jobs, scores = _select_top_k_jobs(
         ru=ru,
         k_num=ratio_cfg.k_num,
         k_den=ratio_cfg.k_den,
@@ -68,7 +97,15 @@ def main():
         top_k=top_k,
     )
 
-    plot_ratio_jobs(ru=ru, jobs=jobs, config=config.visualization, show=True)
+    plot_ratio_jobs(
+        ru=ru,
+        jobs=jobs,
+        config=config.visualization,
+        scores=scores,
+        mean_config=config.mean_estimator,
+        show=True,
+    )
+
 
 if __name__ == "__main__":
     main()

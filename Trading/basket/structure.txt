@@ -46,11 +46,15 @@ basket/
 │       │   ├── adapters.py
 │       │   ├── history.py
 │       │   ├── loaders.py
-│       │   └── ratio.py
+│       │   ├── ratio.py
+│       │   └── yfinance_loader.py
 │       ├── utils/
 │       │   ├── __init__.py
 │       │   ├── errors.py
 │       │   └── logging.py
+│       ├── viz/
+│       │   ├── __init__.py
+│       │   └── ratios.py
 │       └── __init__.py
 ├── tests/
 │   ├── test_aligned_panel.py
@@ -63,7 +67,9 @@ basket/
 │   ├── test_ewma_vol.py
 │   ├── test_history.py
 │   ├── test_rolling_sma.py
-│   └── test_rolling_std.py
+│   ├── test_rolling_std.py
+│   ├── test_yfinance_live.py
+│   └── test_yfinance_loader.py
 ├── .gitignore
 ├── __init__.py
 ├── config.yaml
