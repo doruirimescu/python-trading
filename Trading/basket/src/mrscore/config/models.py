@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal, Optional, Union, List
+from typing import Annotated, Literal, Optional, Union, List, Tuple
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -227,6 +227,86 @@ class RatioUniverseConfig(StrictBaseModel):
     unordered_if_equal_k: bool = True
     max_jobs: Optional[int] = Field(default=None, ge=1)
 
+# ---------------------------
+# Backtest
+# ---------------------------
+
+class BacktestExecutionConfig(StrictBaseModel):
+    # "close" is simplest; "next_open" can be added once you have open prices
+    fill_price: Literal["close"] = "close"
+    latency_bars: int = Field(0, ge=0)
+
+
+class BacktestCostsConfig(StrictBaseModel):
+    # basis points of traded notional, applied on entry and exit
+    commission_bps: float = Field(0.0, ge=0.0)
+    slippage_bps: float = Field(0.0, ge=0.0)
+    # borrow is optional for MVP; kept for schema stability
+    borrow_bps: float = Field(0.0, ge=0.0)
+
+
+class BacktestSizingConfig(StrictBaseModel):
+    notional_per_trade: float = Field(..., gt=0.0)
+    max_gross_leverage: float = Field(1.0, gt=0.0)
+
+
+class BacktestHedgeConfig(StrictBaseModel):
+    mode: Literal["dollar_neutral"] = "dollar_neutral"
+    # numerator, denominator notional split (must sum to 1.0 for dollar-neutral notionals)
+    leg_split: Tuple[float, float] = (0.5, 0.5)
+
+    @model_validator(mode="after")
+    def validate_leg_split(self):
+        a, b = self.leg_split
+        if a < 0 or b < 0:
+            raise ValueError("hedge.leg_split values must be >= 0")
+        s = a + b
+        if abs(s - 1.0) > 1e-9:
+            raise ValueError("hedge.leg_split must sum to 1.0")
+        return self
+
+
+class RatioMeanReversionStrategyParams(StrictBaseModel):
+    # signal is computed from basket ratio, not from individual legs
+    signal_series: Literal["ratio", "log_ratio"] = "log_ratio"
+
+    # reuse global components by default
+    use_global_deviation_detector: bool = True
+    use_global_reversion_criteria: bool = True
+    use_global_failure_criteria: bool = True
+
+
+class RatioMeanReversionStrategyConfig(StrictBaseModel):
+    type: Literal["ratio_mean_reversion"]
+    params: RatioMeanReversionStrategyParams
+
+
+TradingStrategyConfig = Annotated[
+    Union[RatioMeanReversionStrategyConfig],
+    Field(discriminator="type"),
+]
+
+
+class BacktestOutputConfig(StrictBaseModel):
+    store_equity_curve: bool = True
+    store_trades: bool = True
+
+
+class BacktestConfig(StrictBaseModel):
+    enabled: bool = False
+    initial_cash: float = Field(100_000.0, gt=0.0)
+
+    # MVP: single position per job; portfolio controls are placeholders for next iteration
+    max_concurrent_positions: int = Field(1, ge=1)
+    allow_overlapping_positions: bool = False
+
+    execution: BacktestExecutionConfig = BacktestExecutionConfig()
+    costs: BacktestCostsConfig = BacktestCostsConfig()
+    sizing: BacktestSizingConfig
+    hedge: BacktestHedgeConfig = BacktestHedgeConfig()
+
+    strategy: TradingStrategyConfig
+    output: BacktestOutputConfig = BacktestOutputConfig()
 
 # ---------------------------
 # Root
@@ -248,3 +328,5 @@ class RootConfig(StrictBaseModel):
     diagnostics: DiagnosticsConfig
     visualization: VisualizationConfig
     ratio_universe: RatioUniverseConfig
+
+    backtest: Optional[BacktestConfig] = None

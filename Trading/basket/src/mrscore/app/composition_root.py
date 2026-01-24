@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 from mrscore.components.deviation.zscore import ZScoreDeviationDetector
 from mrscore.components.failure.composite import CompositeFailureCriteria
@@ -10,6 +10,9 @@ from mrscore.components.reversion.soft_band import SoftBandReversionCriteria
 from mrscore.components.volatility import EWMAVol, GARCH11Vol, RollingStd
 from mrscore.config.models import RootConfig
 from mrscore.core.engine import MeanReversionEngine
+
+# NEW
+from mrscore.backtest.backtester import RatioMeanReversionBacktester
 
 
 @dataclass(frozen=True)
@@ -23,6 +26,9 @@ class App:
     failure_criteria: Any
 
     engine: MeanReversionEngine
+
+    # NEW (optional so you can keep backtesting disabled)
+    backtester: Optional[RatioMeanReversionBacktester] = None
 
 
 def build_app(config: RootConfig) -> App:
@@ -115,6 +121,18 @@ def build_app(config: RootConfig) -> App:
         volatility_unit=volatility_unit,
     )
 
+    # NEW: backtester wiring
+    backtester: Optional[RatioMeanReversionBacktester] = None
+    if config.backtest is not None and config.backtest.enabled:
+        backtester = RatioMeanReversionBacktester(
+            config=config,
+            mean_estimator=mean_estimator,
+            volatility_estimator=vol_estimator,
+            deviation_detector=deviation_detector,
+            reversion_criteria=reversion_criteria,
+            failure_criteria=failure_criteria,
+        )
+
     return App(
         config=config,
         mean_estimator=mean_estimator,
@@ -123,4 +141,5 @@ def build_app(config: RootConfig) -> App:
         reversion_criteria=reversion_criteria,
         failure_criteria=failure_criteria,
         engine=engine,
+        backtester=backtester,
     )

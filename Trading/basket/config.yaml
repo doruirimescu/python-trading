@@ -116,3 +116,32 @@ ratio_universe:
   disallow_overlap: true
   unordered_if_equal_k: true
   max_jobs: 10000
+
+backtest:
+  enabled: true
+  initial_cash: 100000
+
+  sizing:
+    notional_per_trade: 10000
+    max_gross_leverage: 2.0
+
+  costs:
+    commission_bps: 0.5
+    slippage_bps: 1.0
+    borrow_bps: 0.0
+
+  hedge:
+    mode: dollar_neutral
+    leg_split: [0.5, 0.5]
+
+  strategy:
+    type: ratio_mean_reversion
+    params:
+      signal_series: log_ratio
+      use_global_deviation_detector: true
+      use_global_reversion_criteria: true
+      use_global_failure_criteria: true
+
+  output:
+    store_equity_curve: true
+    store_trades: true

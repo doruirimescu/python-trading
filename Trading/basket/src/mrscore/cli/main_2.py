@@ -8,6 +8,7 @@ from mrscore.core.ratio_universe import RatioUniverse, RatioJob
 from mrscore.core.ranking import TopKRanker
 from mrscore.io.adapters import build_price_panel
 from mrscore.io.history import OHLC
+from mrscore.io.ratio import RatioSpec, build_equal_weight_basket
 from mrscore.io.yfinance_loader import YFinanceLoader, YFinanceLoadRequest
 from mrscore.utils.logging import get_logger
 from mrscore.viz import plot_ratio_jobs
@@ -125,6 +126,24 @@ def _select_top_k_jobs(
     return jobs, top_scores
 
 
+def _job_to_ratio_spec(ru: RatioUniverse, job: RatioJob) -> tuple[RatioSpec, str]:
+    lib_num = ru.get_basket_library(job.k_num)
+    lib_den = lib_num if job.k_num == job.k_den else ru.get_basket_library(job.k_den)
+
+    num_idx = lib_num.baskets[job.num_id]
+    den_idx = lib_den.baskets[job.den_id]
+
+    num_syms, den_syms = ru.job_to_symbols(job)
+    job_id = f"{'+'.join(num_syms)} / {'+'.join(den_syms)}"
+
+    spec = RatioSpec(
+        numerator=build_equal_weight_basket(num_idx),
+        denominator=build_equal_weight_basket(den_idx),
+        eps=1e-12,
+    )
+    return spec, job_id
+
+
 def main():
     cfg = load_config("config.yaml")  # loader returns RootConfig in your project
     tickers = cfg.data.tickers
@@ -146,14 +165,14 @@ def main():
     )
     logger.info("Loaded histories: %d tickers", len(histories))
 
-    panel = build_price_panel(
+    panel_raw = build_price_panel(
         histories=histories,
         symbols=tickers,
         field=OHLC.CLOSE,
         align="intersection",
-        normalize_by_first=True,
+        normalize_by_first=False,
     )
-    ru = RatioUniverse(panel=panel, normalize_by_first=False, eps=1e-12)
+    ru = RatioUniverse(panel=panel_raw, normalize_by_first=True, eps=1e-12)
 
     top_k = cfg.visualization.top_k or 10
     ratio_cfg = cfg.ratio_universe
@@ -178,6 +197,19 @@ def main():
         max_jobs=ratio_cfg.max_jobs,
         top_k=top_k,
     )
+
+    if app.backtester is not None:
+        bt_results = []
+        for job in jobs:
+            spec, job_id = _job_to_ratio_spec(ru, job)
+            result = app.backtester.run_one(panel=panel_raw, ratio_spec=spec, job_id=job_id)
+            bt_results.append(result)
+            logger.info(
+                "Backtest %s: return=%.2f%% trades=%d",
+                job_id,
+                result.total_return * 100.0,
+                len(result.trades or []),
+            )
 
     plot_ratio_jobs(
         ru=ru,

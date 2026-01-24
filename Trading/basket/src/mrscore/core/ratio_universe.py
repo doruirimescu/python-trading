@@ -316,6 +316,13 @@ class RatioUniverse:
             k_den,
             reuse_buffer,
         )
+        est_total = self.estimate_ratio_count(
+            k_num=k_num,
+            k_den=k_den,
+            unordered_if_equal_k=unordered_if_equal_k,
+            disallow_overlap=disallow_overlap,
+        )
+        logger.info("Ratio universe size estimate: %d", est_total)
 
         for job in self.iter_ratio_jobs(
             k_num=k_num,
@@ -334,7 +341,7 @@ class RatioUniverse:
             if not process(job, series):
                 break
 
-        logger.info("Completed scan: processed_jobs=%d", processed)
+        logger.info("Completed scan: processed_jobs=%d (estimated_total=%d)", processed, est_total)
         return processed
 
     # ----------------------------
