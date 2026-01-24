@@ -1,6 +1,4 @@
-# ============================================================
-# Mean Reversion Scoring Engine Configuration
-# ============================================================
+config_version: 1
 
 engine:
   allow_overlapping_events: false
@@ -10,7 +8,7 @@ engine:
 
 data:
   price_field: close
-  returns_mode: log        # log | simple | none
+  returns_mode: log
   min_bars_required: 100
 
 mean_estimator:
@@ -23,7 +21,7 @@ volatility_estimator:
   params:
     window: 30
     min_volatility: 0.0005
-    volatility_unit: returns   # returns | price
+    volatility_unit: returns
 
 deviation_detector:
   type: zscore

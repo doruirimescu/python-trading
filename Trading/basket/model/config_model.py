@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+from typing import Annotated, Literal, Optional, Union
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+class StrictBaseModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, validate_assignment=True)
+
+
+# ---------------------------
+# Engine / Data (unchanged)
+# ---------------------------
+
+class EngineConfig(StrictBaseModel):
+    allow_overlapping_events: bool
+    freeze_mean_on_event: bool
+    freeze_volatility_on_event: bool
+    max_active_events: int = Field(..., ge=1)
+
+
+class DataConfig(StrictBaseModel):
+    price_field: str
+    returns_mode: Literal["log", "simple", "none"]
+    min_bars_required: int = Field(..., ge=1)
+
+
+# ---------------------------
+# Mean Estimator
+# ---------------------------
+
+class RollingSMAParams(StrictBaseModel):
+    window: int = Field(..., ge=1)
+
+class MeanRollingSMAConfig(StrictBaseModel):
+    type: Literal["rolling_sma"]
+    params: RollingSMAParams
+
+MeanEstimatorConfig = Annotated[
+    Union[MeanRollingSMAConfig],
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------
+# Volatility Estimator
+# ---------------------------
+
+class EWMAParams(StrictBaseModel):
+    window: int = Field(..., ge=1)
+    min_volatility: float = Field(..., gt=0)
+    volatility_unit: Literal["returns", "price"]
+
+class VolEWMAConfig(StrictBaseModel):
+    type: Literal["ewma"]
+    params: EWMAParams
+
+VolatilityEstimatorConfig = Annotated[
+    Union[VolEWMAConfig],
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------
+# Deviation Detector
+# ---------------------------
+
+class ZScoreDetectorParams(StrictBaseModel):
+    threshold: float = Field(..., gt=0)
+    min_absolute_move: float = Field(0.0, ge=0)
+
+class DevZScoreConfig(StrictBaseModel):
+    type: Literal["zscore"]
+    params: ZScoreDetectorParams
+
+DeviationDetectorConfig = Annotated[
+    Union[DevZScoreConfig],
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------
+# Reversion Criteria
+# ---------------------------
+
+class SoftBandReversionParams(StrictBaseModel):
+    z_tolerance: float = Field(..., gt=0)
+
+class RevSoftBandConfig(StrictBaseModel):
+    type: Literal["soft_band"]
+    params: SoftBandReversionParams
+
+ReversionCriteriaConfig = Annotated[
+    Union[RevSoftBandConfig],
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------
+# Failure Criteria
+# ---------------------------
+
+class CompositeFailureParams(StrictBaseModel):
+    max_duration: Optional[int] = Field(default=None, gt=0)
+    max_zscore: Optional[float] = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def at_least_one(self):
+        if self.max_duration is None and self.max_zscore is None:
+            raise ValueError("At least one failure condition must be specified")
+        return self
+
+class FailCompositeConfig(StrictBaseModel):
+    type: Literal["composite"]
+    params: CompositeFailureParams
+
+FailureCriteriaConfig = Annotated[
+    Union[FailCompositeConfig],
+    Field(discriminator="type"),
+]
+
+
+# ---------------------------
+# Scoring / Diagnostics (unchanged)
+# ---------------------------
+
+class ScoringConfig(StrictBaseModel):
+    by_direction: bool
+    by_volatility_bucket: bool
+    volatility_buckets: Optional[int] = Field(default=None, ge=1)
+    record_empty_scores: bool
+
+    @model_validator(mode="after")
+    def validate_buckets(self):
+        if self.by_volatility_bucket and self.volatility_buckets is None:
+            raise ValueError("volatility_buckets must be set when by_volatility_bucket is true")
+        return self
+
+
+class DiagnosticsConfig(StrictBaseModel):
+    enabled: bool
+    record_event_paths: bool = False
+    record_max_excursion: bool = False
+    record_time_to_resolution: bool = False
+
+
+# ---------------------------
+# Root
+# ---------------------------
+
+class RootConfig(StrictBaseModel):
+    config_version: Literal[1]
+
+    engine: EngineConfig
+    data: DataConfig
+
+    mean_estimator: MeanEstimatorConfig
+    volatility_estimator: VolatilityEstimatorConfig
+    deviation_detector: DeviationDetectorConfig
+    reversion_criteria: ReversionCriteriaConfig
+    failure_criteria: FailureCriteriaConfig
+
+    scoring: ScoringConfig
+    diagnostics: DiagnosticsConfig

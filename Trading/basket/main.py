@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from model.config_loader import ConfigError, load_config
+from composition_root import build_app
 
 
 CONFIG_FILENAME = "config.yaml"
@@ -21,6 +22,14 @@ def main() -> int:
         return 1
 
     print(f"Loaded {CONFIG_FILENAME} (version {runtime_config.raw.config_version})")
+
+    app = build_app(runtime_config.raw)
+    print("Application successfully composed with the following components:")
+    print(f"- Mean Estimator: {type(app.mean_estimator).__name__}")
+    print(f"- Volatility Estimator: {type(app.volatility_estimator).__name__}")
+    print(f"- Deviation Detector: {type(app.deviation_detector).__name__}")
+    print(f"- Reversion Criteria: {type(app.reversion_criteria).__name__}")
+    print(f"- Failure Criteria: {type(app.failure_criteria).__name__}")
     return 0
 
 
