@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mrscore.core.types import Direction
+from mrscore.core.results import Direction
 
 
 class ZScoreDeviationDetector:
@@ -9,9 +9,9 @@ class ZScoreDeviationDetector:
       - abs(z) >= threshold
       - abs_move >= min_absolute_move
 
-    Direction convention (aligned with core.types.Direction):
-      - z >= +threshold => SHORT (price above mean; bet on reversion down)
-      - z <= -threshold => LONG  (price below mean; bet on reversion up)
+    Direction convention (aligned with core.results.Direction):
+      - z >= +threshold => DOWN (price above mean; bet on reversion down)
+      - z <= -threshold => UP   (price below mean; bet on reversion up)
     """
 
     def __init__(self, *, threshold: float, min_absolute_move: float) -> None:
@@ -39,4 +39,4 @@ class ZScoreDeviationDetector:
         if abs(z) < self.threshold:
             return None
 
-        return Direction.SHORT if z > 0.0 else Direction.LONG
+        return Direction.DOWN if z > 0.0 else Direction.UP

@@ -93,8 +93,11 @@ class TestYFinanceLoader(unittest.TestCase):
             },
         )
 
+        fake_ticker = mock.Mock()
+        fake_ticker.history.return_value = df
+
         fake_yf = mock.Mock()
-        fake_yf.download.return_value = df
+        fake_yf.Ticker.return_value = fake_ticker
 
         loader = YFinanceLoader()
         req = YFinanceLoadRequest(tickers=["TEST"])
@@ -111,12 +114,15 @@ class TestYFinanceLoader(unittest.TestCase):
         dates = np.array(["2024-01-01"], dtype="datetime64[D]")
         df = _FakeDF(columns=["Open"], index=_FakeIndex(dates), data={"Open": [1.0]}, empty=True)
 
+        fake_ticker = mock.Mock()
+        fake_ticker.history.return_value = df
+
         fake_yf = mock.Mock()
-        fake_yf.download.return_value = df
+        fake_yf.Ticker.return_value = fake_ticker
 
         loader = YFinanceLoader()
         req = YFinanceLoadRequest(tickers=["TEST"])
 
         with mock.patch.dict("sys.modules", {"yfinance": fake_yf}):
-            with self.assertRaises(ValueError):
+            with self.assertRaises(RuntimeError):
                 loader.load(req)

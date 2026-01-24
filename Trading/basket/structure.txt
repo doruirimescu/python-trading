@@ -1,62 +1,64 @@
 basket/
-├── src/
-│   └── mrscore/
-│       ├── app/
+├── src
+│   └── mrscore
+│       ├── app
 │       │   ├── __init__.py
 │       │   ├── composition_root.py
 │       │   └── universe_runner.py
-│       ├── cli/
+│       ├── cli
 │       │   ├── __init__.py
 │       │   ├── main.py
 │       │   └── main_2.py
-│       ├── components/
-│       │   ├── deviation/
+│       ├── components
+│       │   ├── deviation
 │       │   │   ├── __init__.py
 │       │   │   └── zscore.py
-│       │   ├── failure/
+│       │   ├── failure
 │       │   │   ├── __init__.py
 │       │   │   └── composite.py
-│       │   ├── mean/
+│       │   ├── mean
 │       │   │   ├── __init__.py
 │       │   │   ├── ema.py
 │       │   │   ├── kalman_mean.py
 │       │   │   └── rolling_sma.py
-│       │   ├── reversion/
+│       │   ├── reversion
 │       │   │   ├── __init__.py
 │       │   │   └── soft_band.py
-│       │   ├── volatility/
+│       │   ├── volatility
 │       │   │   ├── __init__.py
 │       │   │   ├── ewma.py
 │       │   │   ├── garch11.py
 │       │   │   └── rolling_std.py
 │       │   └── __init__.py
-│       ├── config/
+│       ├── config
 │       │   ├── __init__.py
 │       │   ├── loader.py
 │       │   └── models.py
-│       ├── core/
+│       ├── core
 │       │   ├── __init__.py
 │       │   ├── diagnostics.py
 │       │   ├── engine.py
+│       │   ├── ranking.py
 │       │   ├── ratio_universe.py
+│       │   ├── results.py
 │       │   ├── scoring.py
 │       │   └── types.py
-│       ├── io/
+│       ├── io
 │       │   ├── __init__.py
 │       │   ├── adapters.py
 │       │   ├── history.py
 │       │   ├── loaders.py
 │       │   ├── ratio.py
 │       │   └── yfinance_loader.py
-│       ├── utils/
+│       ├── utils
 │       │   ├── __init__.py
 │       │   ├── errors.py
 │       │   └── logging.py
-│       ├── viz/
+│       ├── viz
 │       │   ├── __init__.py
 │       │   └── ratios.py
 │       └── __init__.py
-├── tests/
+├── tests
 │   ├── test_aligned_panel.py
 │   ├── test_composition_root.py
 │   ├── test_config_loader.py
@@ -71,9 +73,9 @@ basket/
 │   ├── test_yfinance_live.py
 │   └── test_yfinance_loader.py
 ├── .gitignore
+├── README.md
 ├── __init__.py
 ├── config.yaml
 ├── default.rules
 ├── pyproject.toml
-├── README.md
 └── structure.txt
