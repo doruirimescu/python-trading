@@ -11,7 +11,7 @@ from mrscore.io.history import OHLC
 from mrscore.io.ratio import RatioSpec, build_equal_weight_basket
 from mrscore.io.yfinance_loader import YFinanceLoader, YFinanceLoadRequest
 from mrscore.utils.logging import get_logger
-from mrscore.viz import plot_ratio_jobs, plot_equity_curve
+from mrscore.viz import plot_ratio_jobs
 
 # Pick ONE of these imports depending on where you placed it:
 # from mrscore.app.composition_root import build_app
@@ -199,22 +199,23 @@ def main():
     )
 
     trades_by_job = None
+    equity_by_job = None
     if app.backtester is not None:
         bt_results = []
         trades_by_job = {}
+        equity_by_job = {}
         for job in jobs:
             spec, job_id = _job_to_ratio_spec(ru, job)
             result = app.backtester.run_one(panel=panel_raw, ratio_spec=spec, job_id=job_id)
             bt_results.append(result)
             trades_by_job[job] = result.trades or []
+            equity_by_job[job] = result
             logger.info(
                 "Backtest %s: return=%.2f%% trades=%d",
                 job_id,
                 result.total_return * 100.0,
                 len(result.trades or []),
             )
-            if result.equity_curve:
-                plot_equity_curve(result=result, title=f"Equity Curve | {job_id}", show=True)
 
     plot_ratio_jobs(
         ru=ru,
@@ -223,6 +224,7 @@ def main():
         scores=scores,
         mean_config=cfg.mean_estimator,
         trades_by_job=trades_by_job,
+        equity_by_job=equity_by_job,
         show=True,
     )
 

@@ -126,7 +126,7 @@ class RatioMeanReversionBacktester:
         bt = self.config.backtest
         assert bt is not None
 
-        dates = panel.index if hasattr(panel, "index") else None
+        dates = panel.dates if hasattr(panel, "dates") else (panel.index if hasattr(panel, "index") else None)
 
         # Basket leg "prices"
         num_px = compute_basket_series(panel, ratio_spec.numerator).astype(np.float64)

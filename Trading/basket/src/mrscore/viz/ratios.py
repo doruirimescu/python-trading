@@ -165,6 +165,68 @@ def _plot_trade_markers(
             labels_used.add(label)
 
 
+def _plot_trade_markers_equity(
+    *,
+    ax,
+    xs: list,
+    ys: list,
+    trades: Iterable[Trade],
+) -> None:
+    labels_used: set[str] = set()
+    for tr in trades:
+        color = "tab:green" if tr.direction == Direction.UP else "tab:red"
+
+        entry_idx = tr.entry_index
+        if 0 <= entry_idx < len(xs):
+            label = f"entry_{tr.direction.value}"
+            ax.scatter(
+                xs[entry_idx],
+                ys[entry_idx],
+                marker="^",
+                s=40,
+                color=color,
+                label=label if label not in labels_used else "_nolegend_",
+                zorder=5,
+            )
+            labels_used.add(label)
+
+        exit_idx = tr.exit_index
+        if 0 <= exit_idx < len(xs):
+            label = f"exit_{tr.direction.value}"
+            ax.scatter(
+                xs[exit_idx],
+                ys[exit_idx],
+                marker="x",
+                s=40,
+                color=color,
+                label=label if label not in labels_used else "_nolegend_",
+                zorder=5,
+            )
+            labels_used.add(label)
+
+
+def _plot_equity_curve_on_ax(
+    *,
+    ax,
+    result: BacktestResult,
+    trades: Optional[Iterable[Trade]],
+) -> None:
+    xs: list = []
+    ys: list = []
+    for pt in result.equity_curve or []:
+        xs.append(pt.time if pt.time is not None else pt.index)
+        ys.append(pt.equity)
+
+    ax.plot(xs, ys, linewidth=1.2, label="equity")
+    ax.set_title(f"Equity | {result.job_id}")
+    ax.set_xlabel("Time" if result.equity_curve and result.equity_curve[0].time is not None else "Index")
+    ax.set_ylabel("Equity")
+    ax.grid(True, alpha=0.3)
+    if trades:
+        _plot_trade_markers_equity(ax=ax, xs=xs, ys=ys, trades=trades)
+    ax.legend(loc="best")
+
+
 def plot_ratio_jobs(
     *,
     ru: RatioUniverse,
@@ -173,6 +235,7 @@ def plot_ratio_jobs(
     scores: Optional[dict[RatioJob, float]] = None,
     mean_config: Optional[MeanEstimatorConfig] = None,
     trades_by_job: Optional[dict[RatioJob, list[Trade]]] = None,
+    equity_by_job: Optional[dict[RatioJob, BacktestResult]] = None,
     show: bool = True,
     save_dir: Optional[str] = None,
 ) -> None:
@@ -193,7 +256,12 @@ def plot_ratio_jobs(
     for plot in plots:
         if stop_plotting:
             break
-        fig, ax = plt.subplots(figsize=(10, 4))
+        result = equity_by_job.get(plot.job) if equity_by_job else None
+        if result and result.equity_curve:
+            fig, (ax_ratio, ax_eq) = plt.subplots(nrows=2, figsize=(10, 6), sharex=True)
+        else:
+            fig, ax_ratio = plt.subplots(figsize=(10, 4))
+            ax_eq = None
 
         def on_key(event) -> None:
             nonlocal stop_plotting
@@ -202,22 +270,34 @@ def plot_ratio_jobs(
                 plt.close("all")
 
         fig.canvas.mpl_connect("key_press_event", on_key)
-        ax.plot(plot.dates, plot.series, linewidth=1.2, label="ratio")
+        ax_ratio.plot(plot.dates, plot.series, linewidth=1.2, label="ratio")
         mean_value = float(np.nanmean(plot.series))
-        ax.axhline(mean_value, linestyle="--", linewidth=1.0, color="tab:gray", label="mean")
+        ax_ratio.axhline(mean_value, linestyle="--", linewidth=1.0, color="tab:gray", label="mean")
         if mean_config is not None and plot.series.size > 0:
             rolling = _compute_mean_series(plot.series, mean_config)
             if rolling is not None:
-                ax.plot(plot.dates, rolling, linestyle="--", linewidth=1.0, color="tab:orange", label="configured_mean")
+                ax_ratio.plot(
+                    plot.dates,
+                    rolling,
+                    linestyle="--",
+                    linewidth=1.0,
+                    color="tab:orange",
+                    label="configured_mean",
+                )
         if trades_by_job:
             trades = trades_by_job.get(plot.job)
             if trades:
-                _plot_trade_markers(ax=ax, plot=plot, trades=trades)
-        ax.set_title(plot.title)
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Value")
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc="best")
+                _plot_trade_markers(ax=ax_ratio, plot=plot, trades=trades)
+        ax_ratio.set_title(plot.title)
+        if ax_eq is None:
+            ax_ratio.set_xlabel("Time")
+        ax_ratio.set_ylabel("Value")
+        ax_ratio.grid(True, alpha=0.3)
+        ax_ratio.legend(loc="best")
+
+        if ax_eq is not None:
+            trades = trades_by_job.get(plot.job) if trades_by_job else None
+            _plot_equity_curve_on_ax(ax=ax_eq, result=result, trades=trades)
 
         if save_dir is not None:
             safe_title = plot.title.replace("/", "-").replace(" ", "_")
