@@ -41,7 +41,7 @@ def run_ratio_universe(
       - computes per-ratio returns if configured
       - calls into your engine/scorer (placeholder)
     """
-    runtime = load_config(config_path).raw
+    runtime = load_config(config_path)
 
     # 1) Adapter: build a dense aligned panel (intersection alignment + per-symbol normalization)
     panel = build_price_panel(
@@ -87,7 +87,7 @@ def run_ratio_universe(
             if returns_mode == "simple":
                 # ret = p1/p0 - 1
                 np.divide(ratio_buf[1:], ratio_buf[:-1], out=ret_buf)
-                ret_buf -= 1.0
+                ret_buf[:] -= 1.0
             elif returns_mode == "log":
                 # ret = log(p1) - log(p0)
                 # Note: np.log allocates unless you provide an out buffer.
@@ -95,7 +95,7 @@ def run_ratio_universe(
                 # For simplicity here, we accept two logs; optimize later if needed.
                 np.log(ratio_buf[1:], out=ret_buf)              # ret_buf = log(p1)
                 tmp = np.log(ratio_buf[:-1])                    # allocates; optimize later if this becomes hot
-                ret_buf -= tmp
+                ret_buf[:] -= tmp
             else:
                 raise ValueError(f"Invalid returns_mode: {returns_mode}")
             returns = ret_buf

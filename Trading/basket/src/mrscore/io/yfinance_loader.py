@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, Literal, Optional, Sequence
+from typing import Dict, Literal, Optional, Sequence
 
 import numpy as np
 
 from mrscore.io.history import History
+from mrscore.utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -38,81 +42,46 @@ class YFinanceLoader:
         if not req.tickers:
             raise ValueError("tickers must be non-empty")
 
-        # One batched call
-        df = yf.download(
-            tickers=list(req.tickers),
-            period=req.period,
-            interval=req.interval,
-            auto_adjust=req.auto_adjust,
-            group_by=req.group_by,
-            threads=req.threads,
-            progress=req.progress,
+        logger.info(
+            "Starting yfinance load",
+            extra={
+                "tickers": list(req.tickers),
+                "period": req.period,
+                "interval": req.interval,
+                "auto_adjust": req.auto_adjust,
+            },
         )
-
-        if df is None or df.empty:
-            raise ValueError("yfinance returned no data")
-
-        # Convert index -> np.datetime64[D] (daily) or ns if you later need intraday
-        # For now, cast to day resolution consistently.
-        dates = df.index.to_numpy(dtype="datetime64[D]")
 
         out: Dict[str, History] = {}
 
-        # yfinance output shapes:
-        # - single ticker: columns = ["Open","High","Low","Close","Adj Close","Volume"] (not MultiIndex)
-        # - multiple tickers: MultiIndex columns: (field, ticker) OR (ticker, field) depending on group_by
-        cols = df.columns
-
-        if getattr(cols, "nlevels", 1) == 1:
-            # Single ticker case: df is one table
-            t = req.tickers[0]
-            out[t] = _history_from_single_df(t, dates, df)
-            return out
-
-        # MultiIndex case
-        if req.group_by == "ticker":
-            # columns: (ticker, field)
-            # Example: df[ticker]["Open"]
-            for t in req.tickers:
-                if t not in df.columns.get_level_values(0):
-                    continue
-                sub = df[t]
-                if sub is None or sub.empty:
-                    continue
-                out[t] = _history_from_single_df(t, dates, sub)
-        else:
-            # group_by="column": columns: (field, ticker)
-            # Example: df["Open"][ticker]
-            fields = df.columns.get_level_values(0)
-            for t in req.tickers:
-                if t not in df.columns.get_level_values(1):
-                    continue
-                sub = df.xs(t, axis=1, level=1, drop_level=True)
-                if sub is None or sub.empty:
-                    continue
-                out[t] = _history_from_single_df(t, dates, sub)
-
-        if len(out) < len(req.tickers):
-            # Retry missing tickers individually to reduce flaky batch failures.
-            missing = [t for t in req.tickers if t not in out]
-            for t in missing:
-                single = yf.download(
-                    tickers=[t],
+        for t in req.tickers:
+            logger.info("Requesting ticker history", extra={"ticker": t})
+            try:
+                df = yf.Ticker(t).history(
                     period=req.period,
                     interval=req.interval,
                     auto_adjust=req.auto_adjust,
-                    group_by="ticker",
-                    threads=False,
-                    progress=req.progress,
                 )
-                if single is None or single.empty:
-                    continue
-                single_dates = single.index.to_numpy(dtype="datetime64[D]")
-                out[t] = _history_from_single_df(t, single_dates, single)
+            except Exception as exc:
+                logger.exception("Failed to download ticker history", extra={"ticker": t})
+                raise RuntimeError(f"Failed to load ticker history for {t}") from exc
+
+            if df is None or df.empty:
+                logger.error("Ticker returned empty dataframe", extra={"ticker": t})
+                raise RuntimeError(f"Ticker {t} returned empty dataframe")
+
+            dates = df.index.to_numpy(dtype="datetime64[D]")
+            logger.info("Parsing ticker dataframe", extra={"ticker": t, "rows": len(dates)})
+            out[t] = _history_from_single_df(t, dates, df)
 
         if not out:
+            logger.error("No ticker histories could be constructed from yfinance output")
             raise ValueError("No ticker histories could be constructed from yfinance output")
 
+        logger.info(
+            "Completed yfinance load",
+            extra={"loaded": sorted(out.keys()), "requested": list(req.tickers)},
+        )
         return out
 
 

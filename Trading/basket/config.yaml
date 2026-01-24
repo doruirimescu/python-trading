@@ -37,7 +37,7 @@ mean_estimator:
 volatility_estimator:
   type: ewma
   params:
-    window: 30
+    span: 30
     min_volatility: 0.0005
     volatility_unit: returns
 # Production
