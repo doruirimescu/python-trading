@@ -1,0 +1,190 @@
+# ============================================================
+# Codex Ruleset: Mean Reversion Scoring Engine (Python)
+# File: default.rules
+# Scope: Core analytics engine, research-grade
+# Severity Levels: CRITICAL, HIGH, MEDIUM
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1. ARCHITECTURE RULES
+# ------------------------------------------------------------
+
+RULE ARCH-001 [CRITICAL]:
+Each class MUST have exactly one responsibility.
+A class MAY NOT combine estimation, detection, event management, scoring, or orchestration.
+
+RULE ARCH-002 [CRITICAL]:
+Only the Engine is allowed to iterate over the time axis.
+All other components MUST be called with scalar values or lightweight structs.
+
+RULE ARCH-003 [CRITICAL]:
+All logic MUST be event-based.
+Bar-based counting, per-timestep scoring, or threshold counting is forbidden.
+
+
+# ------------------------------------------------------------
+# 2. DATA HANDLING RULES
+# ------------------------------------------------------------
+
+RULE DATA-001 [CRITICAL]:
+Pandas is FORBIDDEN inside engine loops, estimators, detectors, resolvers, and scorers.
+Allowed usage is limited to data ingestion and post-run diagnostics export.
+
+RULE DATA-002 [CRITICAL]:
+No dynamic memory allocation is allowed inside hot loops.
+Forbidden operations include list append, dict creation, object instantiation, and resizing arrays.
+
+RULE DATA-003 [CRITICAL]:
+All computations MUST be causal.
+At index t, no component may access data at index > t.
+
+
+# ------------------------------------------------------------
+# 3. MEAN & VOLATILITY ESTIMATION RULES
+# ------------------------------------------------------------
+
+RULE EST-001 [CRITICAL]:
+Mean and volatility estimators MUST conform to a common interface and be fully swappable.
+The engine MUST NOT branch on estimator type.
+
+RULE EST-002 [HIGH]:
+Estimators MUST explicitly declare whether they are stateless or stateful.
+Hidden or implicit internal state is forbidden.
+
+RULE EST-003 [HIGH]:
+Volatility estimators MUST declare their unit conventions (price or returns).
+Deviation logic MUST be consistent with those units.
+
+
+# ------------------------------------------------------------
+# 4. DEVIATION DETECTION RULES
+# ------------------------------------------------------------
+
+RULE DEV-001 [CRITICAL]:
+Only one deviation event may be active at a time unless explicitly configured otherwise.
+
+RULE DEV-002 [CRITICAL]:
+Deviation thresholds MUST be dimensionless (e.g. z-scores).
+Fixed-percentage thresholds are allowed only as secondary guards.
+
+RULE DEV-003 [HIGH]:
+Deviation events MUST be edge-triggered.
+Continuous threshold breaches MUST NOT create multiple events.
+
+
+# ------------------------------------------------------------
+# 5. EVENT LIFECYCLE RULES
+# ------------------------------------------------------------
+
+RULE EVT-001 [CRITICAL]:
+Mean and volatility freezing behavior MUST be explicitly configured and recorded at event start.
+
+RULE EVT-002 [CRITICAL]:
+Every event MUST resolve as exactly one of:
+REVERTED, FAILED, or ABORTED.
+
+RULE EVT-003 [HIGH]:
+Event failures MUST have explicit reasons.
+Implicit or undefined failure states are forbidden.
+
+
+# ------------------------------------------------------------
+# 6. REVERSION RULES
+# ------------------------------------------------------------
+
+RULE REV-001 [CRITICAL]:
+Reversion MUST be defined via a tolerance band.
+Exact equality with the mean is forbidden.
+
+RULE REV-002 [HIGH]:
+Reversion logic MUST be symmetric by default.
+Directional asymmetry MUST be explicitly configured.
+
+
+# ------------------------------------------------------------
+# 7. SCORING RULES
+# ------------------------------------------------------------
+
+RULE SCORE-001 [CRITICAL]:
+Scoring MUST be strictly post-hoc.
+The scorer MUST NOT influence event detection or resolution.
+
+RULE SCORE-002 [HIGH]:
+Directional scores (upward and downward deviations) MUST be computed.
+
+RULE SCORE-003 [HIGH]:
+All scores MUST include full parameter provenance.
+Scores without configuration context are invalid.
+
+
+# ------------------------------------------------------------
+# 8. DIAGNOSTICS RULES
+# ------------------------------------------------------------
+
+RULE DIAG-001 [MEDIUM]:
+Diagnostics MUST be optional and fully isolatable from core execution.
+
+RULE DIAG-002 [HIGH]:
+Diagnostics MUST be serializable to primitive formats
+(dict, NumPy arrays, or pandas DataFrames).
+
+
+# ------------------------------------------------------------
+# 9. CONFIGURATION (YAML) RULES
+# ------------------------------------------------------------
+
+RULE CFG-001 [CRITICAL]:
+Configuration files are the single source of truth.
+Hardcoded parameters inside logic are forbidden.
+
+RULE CFG-002 [CRITICAL]:
+All configuration MUST be schema-validated.
+Unknown keys, missing keys, or invalid types MUST raise errors.
+
+RULE CFG-003 [HIGH]:
+All components MUST be resolved via registries using configuration type keys.
+Conditional logic in the engine is forbidden.
+
+
+# ------------------------------------------------------------
+# 10. PARALLELISM RULES
+# ------------------------------------------------------------
+
+RULE PAR-001 [CRITICAL]:
+Parallelism MUST occur at the asset level only.
+Shared mutable state across processes is forbidden.
+
+RULE PAR-002 [CRITICAL]:
+The engine MUST be pure:
+Inputs in, outputs out, no global side effects.
+
+
+# ------------------------------------------------------------
+# 11. PERFORMANCE RULES
+# ------------------------------------------------------------
+
+RULE PERF-001 [CRITICAL]:
+Each time series MUST be scanned exactly once per run.
+
+RULE PERF-002 [HIGH]:
+Runtime complexity MUST scale linearly with number of bars and number of assets.
+Quadratic or hidden multi-pass behavior is forbidden.
+
+
+# ------------------------------------------------------------
+# 12. FORWARD-COMPATIBILITY RULES
+# ------------------------------------------------------------
+
+RULE FWD-001 [HIGH]:
+Core logic MUST NOT rely on Python-specific behavior that prevents porting
+(e.g. monkey-patching, dynamic attribute injection).
+
+RULE FWD-002 [HIGH]:
+All interfaces MUST use explicit inputs and outputs based on primitive types.
+Language-neutral design is mandatory.
+
+
+# ============================================================
+# END OF RULESET
+# ============================================================
