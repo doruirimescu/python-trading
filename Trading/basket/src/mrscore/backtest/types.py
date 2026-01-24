@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
+import numpy as np
+
 from mrscore.core.results import Direction, EventStatus
 
 
@@ -24,8 +26,8 @@ class Trade:
     exit_num: float
     exit_den: float
 
-    qty_num: float  # signed quantity (short negative)
-    qty_den: float
+    qty_num: np.ndarray  # signed per-constituent quantities (short negative)
+    qty_den: np.ndarray
 
     gross_notional_entry: float
     gross_notional_exit: float

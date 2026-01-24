@@ -21,6 +21,10 @@ from mrscore.app.composition_root import build_app
 logger = get_logger(__name__)
 
 
+def _bps_cost(notional: float, bps: float) -> float:
+    return abs(notional) * (bps / 10_000.0)
+
+
 def _compute_returns_inplace(
     *,
     prices: np.ndarray,
@@ -62,7 +66,7 @@ def _select_top_k_jobs(
     k_den: int,
     max_jobs: int | None,
     top_k: int,
-) -> tuple[list[RatioJob], dict[RatioJob, float]]:
+) -> tuple[list[RatioJob], dict[RatioJob, float], int]:
     """
     Streaming top-k selection by REAL engine score.
 
@@ -89,6 +93,7 @@ def _select_top_k_jobs(
     # Track scores for plotting
     scores: dict[RatioJob, float] = {}
 
+    processed = 0
     for job in ru.iter_ratio_jobs(k_num=k_num, k_den=k_den, max_jobs=max_jobs):
         ru.compute_ratio_series_into(price_buf, job)
 
@@ -113,6 +118,7 @@ def _select_top_k_jobs(
         ranker.consider(job=job, score=score)
         # store score for this job if it makes it into the heap; to keep it simple, store always
         scores[job] = score
+        processed += 1
 
     top = ranker.items_sorted(descending=True)
 
@@ -123,7 +129,7 @@ def _select_top_k_jobs(
     jobs = [r.job for r in top]
     # Only return scores for the selected top jobs (keeps plot legend clean)
     top_scores = {r.job: r.score for r in top}
-    return jobs, top_scores
+    return jobs, top_scores, processed
 
 
 def _job_to_ratio_spec(ru: RatioUniverse, job: RatioJob) -> tuple[RatioSpec, str]:
@@ -142,6 +148,76 @@ def _job_to_ratio_spec(ru: RatioUniverse, job: RatioJob) -> tuple[RatioSpec, str
         eps=1e-12,
     )
     return spec, job_id
+
+
+def _format_date(value) -> str:
+    if value is None:
+        return "n/a"
+    return str(value)
+
+
+def _summarize_trades_for_job(
+    *,
+    job: RatioJob,
+    job_id: str,
+    panel,
+    ratio_spec: RatioSpec,
+    result,
+    total_bps: float,
+) -> str:
+    lines: list[str] = []
+    trades = result.trades or []
+    if not trades:
+        return f"Summary {job_id}: no trades"
+
+    lines.append(f"Summary {job_id}: trades={len(trades)} total_return={result.total_return:.4f}")
+    running_equity = float(result.initial_cash)
+
+    num_idx = ratio_spec.numerator.indices
+    den_idx = ratio_spec.denominator.indices
+    num_syms = [panel.symbols[i] for i in num_idx]
+    den_syms = [panel.symbols[i] for i in den_idx]
+
+    for i, tr in enumerate(trades, start=1):
+        entry_date = _format_date(tr.entry_time)
+        exit_date = _format_date(tr.exit_time)
+        entry_costs = _bps_cost(tr.gross_notional_entry, total_bps)
+        exit_costs = float(tr.costs)
+        net_profit = float(tr.pnl) - entry_costs - exit_costs
+        running_equity += net_profit
+
+        lines.append(
+            f"  Trade {i}: {entry_date} -> {exit_date} status={tr.status.value} "
+            f"direction={tr.direction.value} duration={tr.duration} "
+            f"gross_entry={tr.gross_notional_entry:.2f} gross_exit={tr.gross_notional_exit:.2f} "
+            f"pnl={tr.pnl:.2f} costs={entry_costs + exit_costs:.2f} net={net_profit:.2f} "
+            f"equity={running_equity:.2f}"
+        )
+
+        entry_num_px = panel.values[tr.entry_index, num_idx]
+        exit_num_px = panel.values[tr.exit_index, num_idx]
+        entry_den_px = panel.values[tr.entry_index, den_idx]
+        exit_den_px = panel.values[tr.exit_index, den_idx]
+
+        if tr.qty_num is not None and len(tr.qty_num) > 0:
+            for sym, qty, px_in, px_out in zip(num_syms, tr.qty_num, entry_num_px, exit_num_px):
+                if qty == 0.0:
+                    continue
+                side = "BUY" if qty > 0 else "SELL"
+                lines.append(
+                    f"    {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}"
+                )
+
+        if tr.qty_den is not None and len(tr.qty_den) > 0:
+            for sym, qty, px_in, px_out in zip(den_syms, tr.qty_den, entry_den_px, exit_den_px):
+                if qty == 0.0:
+                    continue
+                side = "BUY" if qty > 0 else "SELL"
+                lines.append(
+                    f"    {side} {sym} qty={qty:.6f} entry={px_in:.4f} exit={px_out:.4f}"
+                )
+
+    return "\n".join(lines)
 
 
 def main():
@@ -187,7 +263,7 @@ def main():
         vol_unit,
     )
 
-    jobs, scores = _select_top_k_jobs(
+    jobs, scores, processed_jobs = _select_top_k_jobs(
         ru=ru,
         engine=engine,
         returns_mode=returns_mode,
@@ -197,6 +273,17 @@ def main():
         max_jobs=ratio_cfg.max_jobs,
         top_k=top_k,
     )
+    total_possible = ru.estimate_ratio_count(
+        k_num=ratio_cfg.k_num,
+        k_den=ratio_cfg.k_den,
+        unordered_if_equal_k=ratio_cfg.unordered_if_equal_k,
+        disallow_overlap=ratio_cfg.disallow_overlap,
+    )
+    logger.info(
+        "Ratio jobs considered: %d of ~%d possible (C(N,k) based upper bound; overlap filter may reduce actual)",
+        processed_jobs,
+        total_possible,
+    )
 
     trades_by_job = None
     equity_by_job = None
@@ -204,6 +291,7 @@ def main():
         bt_results = []
         trades_by_job = {}
         equity_by_job = {}
+        total_bps = float(cfg.backtest.costs.commission_bps + cfg.backtest.costs.slippage_bps) if cfg.backtest else 0.0
         for job in jobs:
             spec, job_id = _job_to_ratio_spec(ru, job)
             result = app.backtester.run_one(panel=panel_raw, ratio_spec=spec, job_id=job_id)
@@ -216,6 +304,15 @@ def main():
                 result.total_return * 100.0,
                 len(result.trades or []),
             )
+            summary = _summarize_trades_for_job(
+                job=job,
+                job_id=job_id,
+                panel=panel_raw,
+                ratio_spec=spec,
+                result=result,
+                total_bps=total_bps,
+            )
+            logger.info("%s", summary)
 
     plot_ratio_jobs(
         ru=ru,

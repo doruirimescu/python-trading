@@ -56,8 +56,8 @@ class _OpenHolding:
     leg: str  # "num" | "den"
     entry_index: int
     entry_time: Optional[Any]
-    entry_price: float
-    qty: float
+    entry_prices: np.ndarray
+    qty: np.ndarray
     gross_notional_entry: float
 
     # For reporting / Trade struct compatibility
@@ -131,6 +131,8 @@ class RatioMeanReversionBacktester:
         # Basket leg "prices"
         num_px = compute_basket_series(panel, ratio_spec.numerator).astype(np.float64)
         den_px = compute_basket_series(panel, ratio_spec.denominator).astype(np.float64)
+        num_leg_px = panel.values[:, ratio_spec.numerator.indices].astype(np.float64)
+        den_leg_px = panel.values[:, ratio_spec.denominator.indices].astype(np.float64)
 
         # Base ratio series (positive)
         ratio = compute_ratio_series(panel, ratio_spec).astype(np.float64)
@@ -188,15 +190,16 @@ class RatioMeanReversionBacktester:
         def current_equity(t_idx: int) -> float:
             if holding is None:
                 return cash
-            px = float(num_px[t_idx]) if holding.leg == "num" else float(den_px[t_idx])
-            return cash + holding.qty * px
+            leg_px = num_leg_px[t_idx] if holding.leg == "num" else den_leg_px[t_idx]
+            return float(cash + np.sum(holding.qty * leg_px))
 
         def sell_holding(t_idx: int) -> float:
             nonlocal cash, holding
             assert holding is not None
-            px = float(num_px[t_idx]) if holding.leg == "num" else float(den_px[t_idx])
-            proceeds = holding.qty * px
-            sell_cost = _bps_cost(proceeds, total_bps)
+            leg_px = num_leg_px[t_idx] if holding.leg == "num" else den_leg_px[t_idx]
+            proceeds = float(np.sum(holding.qty * leg_px))
+            gross = float(np.sum(np.abs(holding.qty * leg_px)))
+            sell_cost = _bps_cost(gross, total_bps)
             cash += proceeds - sell_cost
             # Close trade record
             if trades is not None:
@@ -207,12 +210,12 @@ class RatioMeanReversionBacktester:
 
                 if holding.leg == "num":
                     qty_num = holding.qty
-                    qty_den = 0.0
-                    pnl = holding.qty * (exit_num - holding.entry_price)
+                    qty_den = np.zeros(den_leg_px.shape[1], dtype=np.float64)
+                    pnl = float(np.sum(holding.qty * (leg_px - holding.entry_prices)))
                 else:
-                    qty_num = 0.0
+                    qty_num = np.zeros(num_leg_px.shape[1], dtype=np.float64)
                     qty_den = holding.qty
-                    pnl = holding.qty * (exit_den - holding.entry_price)
+                    pnl = float(np.sum(holding.qty * (leg_px - holding.entry_prices)))
 
                 tr = Trade(
                     job_id=job_id,
@@ -231,7 +234,7 @@ class RatioMeanReversionBacktester:
                     qty_num=qty_num,
                     qty_den=qty_den,
                     gross_notional_entry=float(holding.gross_notional_entry),
-                    gross_notional_exit=float(proceeds),
+                    gross_notional_exit=float(gross),
                     pnl=float(pnl),
                     costs=float(sell_cost),
                 )
@@ -245,7 +248,7 @@ class RatioMeanReversionBacktester:
             if leg not in ("num", "den"):
                 raise ValueError("leg must be 'num' or 'den'")
 
-            buy_px = float(num_px[t_idx]) if leg == "num" else float(den_px[t_idx])
+            leg_px = num_leg_px[t_idx] if leg == "num" else den_leg_px[t_idx]
             eq = cash  # we are in cash before buy_leg is called
 
             # Pay costs on the buy notional; invest remaining cash
@@ -254,15 +257,19 @@ class RatioMeanReversionBacktester:
             if invest <= 0.0:
                 raise ValueError("Insufficient equity after costs to open position")
 
-            qty = invest / buy_px
+            if np.any(leg_px <= 0.0):
+                raise ValueError("Non-positive price encountered in leg; cannot size equal-dollar positions")
+
+            per_const = invest / float(leg_px.size)
+            qty = per_const / leg_px
             cash = 0.0
 
             holding = _OpenHolding(
                 leg=leg,
                 entry_index=t_idx,
                 entry_time=(dates[t_idx] if dates is not None else None),
-                entry_price=buy_px,
-                qty=qty,
+                entry_prices=np.asarray(leg_px, dtype=np.float64),
+                qty=np.asarray(qty, dtype=np.float64),
                 gross_notional_entry=invest,
                 entry_num=float(num_px[t_idx]),
                 entry_den=float(den_px[t_idx]),
