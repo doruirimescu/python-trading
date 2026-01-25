@@ -6,6 +6,13 @@ engine:
   freeze_volatility_on_event: true
   max_active_events: 1
 
+ratio_universe:
+  k_num: 2
+  k_den: 2
+  disallow_overlap: true
+  unordered_if_equal_k: true
+  max_jobs: 10000
+
 data:
   price_field: close
   returns_mode: log
@@ -109,13 +116,6 @@ visualization:
   show_zscore: false
   show_returns: false
   top_k: 5
-
-ratio_universe:
-  k_num: 2
-  k_den: 2
-  disallow_overlap: true
-  unordered_if_equal_k: true
-  max_jobs: 10000
 
 backtest:
   enabled: true

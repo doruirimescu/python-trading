@@ -27,9 +27,60 @@ Instead of counting "how many bars are above/below a threshold," the tool models
 - Composition root:
   - Constructs concrete components (mean, vol, detector, criteria) from the validated config.
 - Core engine (to be implemented next):
-  - Iterates over the series once, manages one active event by default, produces results and diagnostics.
+  - Iterates over the series once, manages event lifecycles, produces scores and diagnostics.
 - Components (implementations):
   - Mean estimator(s), volatility estimator(s), deviation detectors, reversion criteria, and failure criteria.
+
+## Engine
+
+The engine is the single-pass event loop that turns a time series into mean-reversion scores. It streams prices left-to-right (no look-ahead), updates the mean/volatility estimators, detects deviation events, and tracks each event until it resolves. It is intentionally minimal: all domain behavior comes from the pluggable components and the config.
+
+### What the engine does
+- **Streaming, causal evaluation:** processes each bar in order, never using future data.
+- **Warmup and readiness:** ignores bars until `data.min_bars_required` is met and both estimators report `is_ready()`.
+- **Z-score normalization:** computes `z = (price - mean) / volatility` using the configured volatility unit (price- or returns-based).
+- **Event lifecycle management:**
+  - **Open:** a deviation detector returns a direction (`UP`/`DOWN`) at a bar.
+  - **Active:** the event remains open while the price stays outside the reversion band.
+  - **Revert:** reversion criteria say the z-score is back within tolerance.
+  - **Fail:** failure criteria trigger (timeout, excessive excursion, etc.).
+  - **Expire:** the series ends while the event is still open.
+  - If reversion and failure both occur on the same bar, **reversion wins**.
+- **Scoring and outputs:** aggregates event outcomes into a score plus optional breakdowns (direction, volatility buckets). When `diagnostics.enabled` is true, per-event summaries are attached to the result.
+
+### Engine parameters (`config.engine`)
+These parameters control orchestration and concurrency; they do not change the component math itself.
+
+| Field | Type | Meaning | Behavioral impact |
+|---|---|---|---|
+| `allow_overlapping_events` | bool | Allow more than one active event at a time | When `true`, the engine can open new events while others are still active (subject to `max_active_events`). When `false`, the engine waits until all active events resolve before opening a new one. |
+| `max_active_events` | int (`>= 1`) | Hard cap on simultaneous active events | Acts as the upper bound even if overlapping is allowed. With `allow_overlapping_events=false`, this should typically remain `1`. |
+| `freeze_mean_on_event` | bool | Freeze the mean estimator while any event is active | When `true`, the mean stops updating once an event opens, so reversion is measured to the event-start mean. When `false`, the mean continues to evolve each bar. |
+| `freeze_volatility_on_event` | bool | Freeze the volatility estimator while any event is active | When `true`, the volatility estimate is held constant during active events, stabilizing z-scores. When `false`, volatility continues to update each bar. |
+
+Operational notes:
+- Freezing applies while **any** event is active, not per-event.
+- If both `freeze_mean_on_event` and `freeze_volatility_on_event` are `true`, the engine evaluates reversion against a fixed baseline (mean + volatility) captured at event start.
+
+### Engine example (single series)
+Below is a minimal, conceptual example of how a single event is detected and resolved. The numbers are illustrative.
+
+```text
+Setup:
+- min_bars_required = 100
+- deviation threshold (z) = 1.75
+- reversion tolerance (z) = 0.4
+- allow_overlapping_events = false
+- max_active_events = 1
+- freeze_mean_on_event = true
+- freeze_volatility_on_event = true
+
+Timeline:
+t=100: mean=100, vol=2, price=104 -> z=+2.0  => event opens (UP)
+t=101: price=103, mean/vol frozen         => z=+1.5  => still active
+t=102: price=101, mean/vol frozen         => z=+0.5  => still active
+t=103: price=100.7, mean/vol frozen       => z=+0.35 => reversion => event closed (REVERTED)
+```
 
 ## Intended use cases
 - Screening and ranking symbols by mean-reversion tendency under consistent definitions.
