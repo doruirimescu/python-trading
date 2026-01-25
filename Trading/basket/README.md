@@ -82,6 +82,24 @@ t=102: price=101, mean/vol frozen         => z=+0.5  => still active
 t=103: price=100.7, mean/vol frozen       => z=+0.35 => reversion => event closed (REVERTED)
 ```
 
+## Backtester
+
+The backtester provides a lightweight rotation-style simulation for ratio trades. It uses the same mean/volatility/deviation components as the engine, but interprets deviation signals as *rotation instructions* rather than event lifecycles.
+
+### What it does
+- Builds a ratio (or log-ratio) signal from the chosen numerator/denominator baskets.
+- Computes a z-score signal using the configured mean and volatility estimators.
+- When the signal indicates the ratio is **low**, it rotates into the **numerator** basket.
+- When the signal indicates the ratio is **high**, it rotates into the **denominator** basket.
+- Only one leg is held at a time (no simultaneous long/short pair).
+
+### Trade status note
+Backtest trades are currently recorded with a single status (`EXPIRED`) for both:
+- routine rotations (switching from one leg to the other), and
+- end-of-series forced closes.
+
+Because this status is not informative today, the trade summary CSV omits it.
+
 ## Intended use cases
 - Screening and ranking symbols by mean-reversion tendency under consistent definitions.
 - Comparing the stability of mean reversion across volatility regimes and parameter sets.
