@@ -2,22 +2,28 @@ config_version: 1
 
 engine:
   allow_overlapping_events: false
-  freeze_mean_on_event: true
-  freeze_volatility_on_event: true
+  freeze_mean_on_event: false
+  freeze_volatility_on_event: false
   max_active_events: 1
 
 ratio_universe:
-  k_num: 2
-  k_den: 2
+  k_num: 4
+  k_den: 4
   disallow_overlap: true
   unordered_if_equal_k: true
-  max_jobs: 10000
+  max_jobs: 50000
 
 data:
   price_field: close
   returns_mode: log
   min_bars_required: 100
   tickers:
+    - BTC-USD
+    - GC=F
+    - SI=F
+    - XRP-USD
+    - SOL-USD
+    - ADA-USD
     - XOM
     - CVX
     - COP

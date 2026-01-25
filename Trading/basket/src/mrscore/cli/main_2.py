@@ -7,7 +7,7 @@ import numpy as np
 from mrscore.config.loader import load_config
 from mrscore.core.ratio_universe import RatioUniverse, RatioJob
 from mrscore.core.ranking import TopKRanker
-from mrscore.io.adapters import build_price_panel
+from mrscore.io.adapters import AlignedPanel, build_price_panel
 from mrscore.io.history import OHLC
 from mrscore.io.ratio import RatioSpec, build_equal_weight_basket
 from mrscore.io.yfinance_loader import YFinanceLoader, YFinanceLoadRequest
@@ -161,7 +161,7 @@ def _summarize_trades_for_job(
     *,
     job: RatioJob,
     job_id: str,
-    panel,
+    raw_panel,
     ratio_spec: RatioSpec,
     result,
     total_bps: float,
@@ -180,8 +180,8 @@ def _summarize_trades_for_job(
 
     num_idx = ratio_spec.numerator.indices
     den_idx = ratio_spec.denominator.indices
-    num_syms = [panel.symbols[i] for i in num_idx]
-    den_syms = [panel.symbols[i] for i in den_idx]
+    num_syms = [raw_panel.symbols[i] for i in num_idx]
+    den_syms = [raw_panel.symbols[i] for i in den_idx]
 
     for i, tr in enumerate(trades, start=1):
         entry_date = _format_date(tr.entry_time)
@@ -201,10 +201,11 @@ def _summarize_trades_for_job(
             f"equity={running_equity:.2f}"
         )
 
-        entry_num_px = panel.values[tr.entry_index, num_idx]
-        exit_num_px = panel.values[tr.exit_index, num_idx]
-        entry_den_px = panel.values[tr.entry_index, den_idx]
-        exit_den_px = panel.values[tr.exit_index, den_idx]
+        # Use original (unnormalized) prices for reporting.
+        entry_num_px = raw_panel.values[tr.entry_index, num_idx]
+        exit_num_px = raw_panel.values[tr.exit_index, num_idx]
+        entry_den_px = raw_panel.values[tr.entry_index, den_idx]
+        exit_den_px = raw_panel.values[tr.exit_index, den_idx]
 
         if tr.qty_num is not None and len(tr.qty_num) > 0:
             for sym, qty, px_in, px_out in zip(num_syms, tr.qty_num, entry_num_px, exit_num_px):
@@ -295,7 +296,12 @@ def main():
         align="intersection",
         normalize_by_first=False,
     )
-    ru = RatioUniverse(panel=panel_raw, normalize_by_first=True, eps=1e-12)
+    panel_for_ru = AlignedPanel(
+        dates=panel_raw.dates,
+        symbols=panel_raw.symbols,
+        values=panel_raw.values.copy(),
+    )
+    ru = RatioUniverse(panel=panel_for_ru, normalize_by_first=True, eps=1e-12)
 
     top_k = cfg.visualization.top_k or 10
     ratio_cfg = cfg.ratio_universe
@@ -355,7 +361,7 @@ def main():
             summary, rows = _summarize_trades_for_job(
                 job=job,
                 job_id=job_id,
-                panel=panel_raw,
+                raw_panel=panel_raw,
                 ratio_spec=spec,
                 result=result,
                 total_bps=total_bps,
