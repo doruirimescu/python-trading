@@ -271,6 +271,8 @@ def main():
     tickers = cfg.data.tickers
     period = cfg.data.period
     interval = cfg.data.interval
+    ending_date = cfg.data.ending_date
+    cache_cfg = cfg.data.cache
 
     # Build composed application (engine + components)
     app = build_app(cfg)
@@ -283,7 +285,15 @@ def main():
     logger.info("Starting main_2: tickers=%s", tickers)
     loader = YFinanceLoader()
     histories = loader.load(
-        YFinanceLoadRequest(tickers=tickers, period=period, interval=interval, auto_adjust=True)
+        YFinanceLoadRequest(
+            tickers=tickers,
+            period=period,
+            interval=interval,
+            auto_adjust=True,
+            ending_date=ending_date,
+            cache_enabled=cache_cfg.enabled,
+            cache_path=cache_cfg.path,
+        )
     )
     logger.info("Loaded histories: %d tickers", len(histories))
 

@@ -35,6 +35,10 @@ data:
     - PR
   period: 5y
   interval: 1d
+  ending_date: "2025-05-05"  # optional YYYY-MM-DD
+  cache:
+    enabled: false
+    path: .cache/yfinance
 
 # Basic Mean Estimator
 mean_estimator:

@@ -145,6 +145,10 @@ data:
     tickers: [AAPL, MSFT, GOOG, AMZN, META, TSLA, NVDA]
     period: 5y
     interval: 1d
+    ending_date: null
+    cache:
+        enabled: false
+        path: .cache/yfinance
 mean_estimator:
     type: rolling_sma
     params:
@@ -224,6 +228,9 @@ Defines how inputs are interpreted.
 | `tickers` | list[str] | non-empty | Tickers to fetch from yfinance for universe runs |
 | `period` | str | yfinance period string | Lookback window (e.g., `5y`, `1y`, `6mo`) |
 | `interval` | str | yfinance interval string | Bar size (e.g., `1d`, `1h`) |
+| `ending_date` | date \| null | optional | If set, interpret `period` as ending on this date (YYYY-MM-DD) |
+| `cache.enabled` | bool | - | Enable on-disk caching of downloaded data |
+| `cache.path` | str | - | Cache folder path when caching is enabled |
 
 ### Pluggable Components: `type` + `params`
 Each pluggable component uses the same shape:

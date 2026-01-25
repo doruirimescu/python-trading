@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Annotated, Literal, Optional, Union, List, Tuple
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -19,6 +20,17 @@ class EngineConfig(StrictBaseModel):
     max_active_events: int = Field(..., ge=1)
 
 
+class DataCacheConfig(StrictBaseModel):
+    enabled: bool = False
+    path: str = ".cache/yfinance"
+
+    @model_validator(mode="after")
+    def validate_cache_path(self):
+        if self.enabled and not self.path:
+            raise ValueError("data.cache.path must be set when data.cache.enabled is true")
+        return self
+
+
 class DataConfig(StrictBaseModel):
     price_field: str
     returns_mode: Literal["log", "simple", "none"]
@@ -26,6 +38,8 @@ class DataConfig(StrictBaseModel):
     tickers: List[str]
     period: str
     interval: str
+    ending_date: Optional[date] = None
+    cache: DataCacheConfig = Field(default_factory=DataCacheConfig)
 
 
 # ---------------------------
