@@ -110,7 +110,7 @@ if __name__ == "__main__":
     client = XTBTradingClient(USERNAME, PASSWORD, MODE, False)
 
     # temp json file storage
-    file_path = f"range-scorer-stocks-{get_date_now_cet()}.json"
+    file_path = f"june-range-scorer-stocks-{get_date_now_cet()}.json"
     js = JsonFileRW(
         RANGING_STOCKS_PATH.joinpath(file_path),
         LOGGER,
@@ -141,44 +141,3 @@ if __name__ == "__main__":
     candidates = sorted(candidates.items(), key=lambda x: x[1], reverse=True)
     for candidate in candidates:
         LOGGER.info(f"{candidate[0]}: {candidate[1]:.3f}")
-
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - STRO.US: 2.467
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - OERL.CH_9: 1.427
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - JAMF.US: 1.318
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - BTG.US: 1.309
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - HLX.US: 1.305
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - FMC.US_9: 1.297
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - DOM.ES_9: 1.295
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - GXO.US_9: 1.286
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - GRE.ES: 1.282
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - NNDM.US: 1.278
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - XWEL.US: 1.256
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - LASR.US_9: 1.250
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - LGIH.US_9: 1.249
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - IAC.US_9: 1.241
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - ELK.NO: 1.237
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - MRK.DE_9: 1.226
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - ANIP.US: 1.221
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - MLKN.US_9: 1.220
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - STR1.US: 1.220
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - LXS.DE_9: 1.206
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - RCUS.US_9: 1.182
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - SNPS.US_9: 1.178
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - ELC.IT: 1.159
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - EPC.US_9: 1.146
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - VITB.SE: 1.143
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - STE.US_9: 1.143
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - PCH.US_9: 1.137
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - RE.US_9: 1.136
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - TTC.US_9: 1.134
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - DRW8.DE_9: 1.133
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - FIZZ.US_9: 1.131
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - PSG.ES_9: 1.130
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - LCII.US_9: 1.130
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - DRW8.DE_4: 1.128
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - ARYN.CH_9: 1.128
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - HAE.US: 1.127
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - BSY.US: 1.123
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - JUP.UK_9: 1.119
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - JCQ.FR_9: 1.109
-# 2024-12-17 14:42:28 - INFO - filter_ranging_stocks - ALD.FR_9: 1.101
