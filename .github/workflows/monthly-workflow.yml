@@ -1,0 +1,44 @@
+name: Monthly Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Branch name to pull the image from'
+        required: true
+        default: 'master'
+  schedule:
+    - cron: '0 8 1 * *' # At 08:00 on the 1st of every month
+
+jobs:
+  monthly-workflow:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/doruirimescu/python-trading:${{ github.event.inputs.branchName || 'master' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          path: 'python-trading'
+
+      - name: Create .env file
+        run: |
+          cd python-trading
+          touch Trading/config/.env
+          touch Trading/utils/.env
+
+          echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' >> Trading/config/.env
+          echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' >> Trading/config/.env
+          echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' >> Trading/config/.env
+
+          echo 'EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' >> Trading/utils/.env
+          echo 'EMAIL_RECIPIENTS=${{ secrets.EMAIL_RECIPIENTS }}' >> Trading/utils/.env
+          echo 'EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}' >> Trading/utils/.env
+
+      - name: Run monthly scripts
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          cd python-trading
+          bash script/monthly_workflow.sh
