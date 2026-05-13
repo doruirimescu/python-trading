@@ -1,31 +1,38 @@
 import io
 import contextlib
 import os
+import sys
 
-from Trading.macro.liquidity_monitor import LiquidityMonitor
+from Trading.macro.liquidity_monitor import LiquidityStressMonitor
 from Trading.utils.send_email import send_email
 
 
 def run() -> None:
     api_key = os.environ["FRED_API_KEY"]
-    monitor = LiquidityMonitor(api_key=api_key)
+    monitor = LiquidityStressMonitor(api_key=api_key)
 
     buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        monitor.run_analysis()
+    try:
+        with contextlib.redirect_stdout(buf):
+            monitor.run_analysis()
+    except Exception:
+        # Flush whatever was captured before the crash so CI logs show it
+        print(buf.getvalue(), file=sys.stderr)
+        raise
     report = buf.getvalue()
 
-    # Score is still accessible after run_analysis() populated self.*
-    total_score, _ = monitor.calculate_score()
+    total_score = monitor.liquidity_stress_score
 
-    if total_score < 30:
+    if total_score < 25:
         status = "GREEN"
-    elif total_score < 60:
+    elif total_score < 45:
         status = "YELLOW"
-    elif total_score < 80:
+    elif total_score < 65:
         status = "ORANGE"
-    else:
+    elif total_score < 80:
         status = "RED"
+    else:
+        status = "CRITICAL"
 
     subject = f"[Monthly Macro] Market Crash Probability: {total_score:.1f}% — {status}"
     print(report)
