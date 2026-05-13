@@ -3,5 +3,5 @@ set -e
 
 python3 Trading/stock/analyze_nasdaq.py --nasdaq
 
-echo y | plotly_get_chrome
+pip install -q "kaleido==0.2.1"
 python3 Trading/stock/visualize.py --nasdaq --save

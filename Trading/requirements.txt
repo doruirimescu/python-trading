@@ -29,7 +29,7 @@ numpy
 # Visualizations
 matplotlib
 mpl-finance
-kaleido
+kaleido==0.2.1
 
 googlesearch-python
 
