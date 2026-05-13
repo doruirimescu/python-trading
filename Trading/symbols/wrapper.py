@@ -1,25 +1,17 @@
 import requests
-from typing import List, Set
-from Trading.symbols.constants import XTB_ALL_SYMBOLS_DICT, XTB_STOCK_SYMBOLS_DICT, XTB_STOCK_TICKERS
+from typing import List
 from bs4 import BeautifulSoup
+from yfinance import EquityQuery
+import yfinance as yf
 
 
 def get_nasdaq_symbols() -> List:
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
-    }
-    res = requests.get(
-        "https://api.nasdaq.com/api/quote/list-type/nasdaq100", headers=headers
-    )
-    main_data = res.json()["data"]["data"]["rows"]
-    symbols = []
-    for i in range(len(main_data)):
-        symbols.append(main_data[i]["symbol"])
-    return symbols
-
-    # from pytickersymbols import PyTickerSymbols
-    # stock_data = PyTickerSymbols()
-    # return stock_data.get_sp_100_nyc_yahoo_tickers()
+    query = EquityQuery('and', [
+        EquityQuery('is-in', ['exchange', 'NMS']),
+        EquityQuery('gt', ['intradaymarketcap', 10_000_000_000]),
+    ])
+    result = yf.screen(query, size=100, sortField='intradaymarketcap', sortAsc=False)
+    return [q['symbol'] for q in result.get('quotes', [])]
 
 
 def get_nasdaq_helsinki_symbols() -> List:
@@ -39,14 +31,6 @@ def get_nasdaq_helsinki_symbols() -> List:
             tickers.append(cells[1].text)
     return tickers
 
-
-def filter_xtb_symbols(countries: Set[str] = {}, currencies: Set[str] = {}) -> List:
-    return [
-        symbol
-        for symbol in XTB_ALL_SYMBOLS_DICT
-        if (not currencies or XTB_ALL_SYMBOLS_DICT[symbol]["currency"] in currencies)
-        and (not countries or XTB_ALL_SYMBOLS_DICT[symbol]["groupName"] in countries)
-    ]
 
 def get_alphaspread_nasdaq_url(ticker: str):
     return f"https://www.alphaspread.com/security/nasdaq/{ticker}/summary"

@@ -56,39 +56,32 @@ def fetch_data_from_paragraph(response: requests.Response, class_name):
         return ["No data found for the given class in a paragraph."]
 
 
-def get_solvency_score(response: requests.Response):
-    solvency_class_name = "mobile-hidden block-desc"
-    try:
-        extracted_data = fetch_data_from_paragraph(response, solvency_class_name)
-        extracted_data = [line.replace("\t", "") for line in extracted_data][1]
-        solvency_score = extracted_data.split("\n")[1]
-        # Remove the pattern /100 from the string
-        solvency_score = solvency_score.replace("/100.", "")
-        # convert to int
-        solvency_score = int(solvency_score)
-        return solvency_score
+def _extract_score_from_response(response: requests.Response) -> Optional[int]:
+    soup = BeautifulSoup(response.text, "html.parser")
+    for p in soup.find_all("p", class_="block-desc"):
+        match = re.search(r"(\d+)/100", p.get_text())
+        if match:
+            return int(match.group(1))
+    return None
 
+
+def get_solvency_score(base_url: str) -> Optional[int]:
+    url = base_url.rsplit("/", 1)[0] + "/solvency"
+    try:
+        response = fetch_data_from_url(url)
+        return _extract_score_from_response(response)
     except Exception as e:
-        print(f"Error fetching data from paragraph: {e}")
+        print(f"Error fetching solvency score: {e}")
         return None
 
 
-def get_profitability_score(response: requests.Response):
-    profitability_class_name = "mobile-hidden block-desc"
+def get_profitability_score(base_url: str) -> Optional[int]:
+    url = base_url.rsplit("/", 1)[0] + "/profitability"
     try:
-        extracted_data = fetch_data_from_paragraph(response, profitability_class_name)
-        profitability_score = [line.replace("\t", "") for line in extracted_data][0]
-        profitability_score = profitability_score.split("\n")[1]
-
-        # Remove the pattern /100 from the string
-        profitability_score = profitability_score.replace("/100.", "")
-
-        # convert to int
-        profitability_score = int(profitability_score)
-        return profitability_score
-
+        response = fetch_data_from_url(url)
+        return _extract_score_from_response(response)
     except Exception as e:
-        print(f"Error fetching data from paragraph: {e}")
+        print(f"Error fetching profitability score: {e}")
         return None
 
 
@@ -120,14 +113,8 @@ def analyze_url(url: str, symbol: str) -> Analysis:
     print(f"Analyzing {symbol}...")
     response = fetch_data_from_url(url)
     valuation, score = get_valuation_score(response)
-    try:
-        solvency_score = get_solvency_score(response)
-    except Exception as e:
-        solvency_score = None
-    try:
-        profitability_score = get_profitability_score(response)
-    except Exception as e:
-        profitability_score = None
+    solvency_score = get_solvency_score(url)
+    profitability_score = get_profitability_score(url)
     return Analysis(
         symbol=symbol,
         valuation_type=valuation,
