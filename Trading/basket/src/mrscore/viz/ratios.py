@@ -55,11 +55,15 @@ def _compute_series(
         returns -= 1.0
         return returns
     if mode == "zscore":
-        mean = float(np.mean(ratio))
-        std = float(np.std(ratio))
-        if std == 0.0:
-            return np.zeros_like(ratio)
-        return (ratio - mean) / std
+        # Expanding-window z-score: avoids look-ahead bias by only using history up to each point.
+        counts = np.arange(1, ratio.shape[0] + 1, dtype=np.float64)
+        cumsum = np.cumsum(ratio)
+        cumsum2 = np.cumsum(ratio ** 2)
+        means = cumsum / counts
+        # population variance; clip to 0 for numerical safety
+        vars_ = np.maximum(cumsum2 / counts - means ** 2, 0.0)
+        stds = np.sqrt(vars_)
+        return np.where(stds == 0.0, 0.0, (ratio - means) / stds)
     raise ValueError(f"Unknown mode: {mode}")
 
 

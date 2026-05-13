@@ -32,9 +32,6 @@ from mrscore.app.composition_root import build_app
 logger = get_logger(__name__)
 
 
-def _bps_cost(notional: float, bps: float) -> float:
-    return abs(notional) * (bps / 10_000.0)
-
 
 def _compute_returns_inplace(
     *,
@@ -173,12 +170,10 @@ def _format_date(value) -> str:
 
 def _summarize_trades_for_job(
     *,
-    job: RatioJob,
     job_id: str,
     raw_panel,
     ratio_spec: RatioSpec,
     result,
-    total_bps: float,
 ) -> tuple[str, list[dict[str, object]]]:
     lines: list[str] = []
     rows: list[dict[str, object]] = []
@@ -200,9 +195,8 @@ def _summarize_trades_for_job(
     for i, tr in enumerate(trades, start=1):
         entry_date = _format_date(tr.entry_time)
         exit_date = _format_date(tr.exit_time)
-        entry_costs = _bps_cost(tr.gross_notional_entry, total_bps)
-        exit_costs = float(tr.costs)
-        net_profit = float(tr.pnl) - entry_costs - exit_costs
+        total_costs = float(tr.costs)  # entry + exit costs, recorded exactly at trade time
+        net_profit = float(tr.pnl) - total_costs
         running_equity += net_profit
 
         lines.append(f"  Trade {i}: {entry_date} -> {exit_date}")
@@ -211,7 +205,7 @@ def _summarize_trades_for_job(
             f"gross_entry={tr.gross_notional_entry:.2f} gross_exit={tr.gross_notional_exit:.2f}"
         )
         lines.append(
-            f"    pnl={tr.pnl:.2f} costs={entry_costs + exit_costs:.2f} net={net_profit:.2f} "
+            f"    pnl={tr.pnl:.2f} costs={total_costs:.2f} net={net_profit:.2f} "
             f"equity={running_equity:.2f}"
         )
 
@@ -243,7 +237,7 @@ def _summarize_trades_for_job(
                         "gross_entry": float(tr.gross_notional_entry),
                         "gross_exit": float(tr.gross_notional_exit),
                         "pnl": float(tr.pnl),
-                        "costs": float(entry_costs + exit_costs),
+                        "costs": float(total_costs),
                         "net_profit": float(net_profit),
                         "running_equity": float(running_equity),
                     }
@@ -271,7 +265,7 @@ def _summarize_trades_for_job(
                         "gross_entry": float(tr.gross_notional_entry),
                         "gross_exit": float(tr.gross_notional_exit),
                         "pnl": float(tr.pnl),
-                        "costs": float(entry_costs + exit_costs),
+                        "costs": float(total_costs),
                         "net_profit": float(net_profit),
                         "running_equity": float(running_equity),
                     }
@@ -426,10 +420,11 @@ def main():
         trades_by_job = {}
         equity_by_job = {}
         trade_rows: list[dict[str, object]] = []
-        total_bps = float(cfg.backtest.costs.commission_bps + cfg.backtest.costs.slippage_bps) if cfg.backtest else 0.0
         for job in jobs:
             spec, job_id = _job_to_ratio_spec(ru, job)
-            result = app.backtester.run_one(panel=panel_raw, ratio_spec=spec, job_id=job_id)
+            # Use the normalized panel so backtest signals match what the engine scored on.
+            # raw_panel is used only for price reporting in _summarize_trades_for_job.
+            result = app.backtester.run_one(panel=panel_for_ru, ratio_spec=spec, job_id=job_id)
             bt_results.append(result)
             trades_by_job[job] = result.trades or []
             equity_by_job[job] = result
@@ -440,12 +435,10 @@ def main():
                 len(result.trades or []),
             )
             summary, rows = _summarize_trades_for_job(
-                job=job,
                 job_id=job_id,
                 raw_panel=panel_raw,
                 ratio_spec=spec,
                 result=result,
-                total_bps=total_bps,
             )
             logger.info("%s", summary)
             trade_rows.extend(rows)

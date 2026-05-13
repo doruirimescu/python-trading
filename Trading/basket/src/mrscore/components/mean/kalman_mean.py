@@ -44,16 +44,17 @@ class KalmanMean:
         self._q = float(process_var)
         self._r = float(obs_var)
         self._min_periods = int(min_periods)
+        self._init_mean = float(init_mean)
+        self._init_var = float(init_var)
 
         self._count = 0
         self.value = float(init_mean)   # state estimate x
         self._P = float(init_var)       # state variance
 
     def reset(self) -> None:
-        # For deterministic resets, users should re-instantiate if they want specific init values
         self._count = 0
-        self.value = 0.0
-        self._P = 1.0
+        self.value = self._init_mean
+        self._P = self._init_var
 
     def is_ready(self) -> bool:
         return self._count >= self._min_periods

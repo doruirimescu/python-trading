@@ -18,26 +18,21 @@ data:
   returns_mode: log
   min_bars_required: 100
   tickers:
-    - BTC-USD
-    - GC=F
-    - SI=F
-    - XRP-USD
-    - SOL-USD
-    - ADA-USD
-    - XOM
-    - CVX
-    - COP
-    - EOG
-    - OXY
-    - DVN
-    - APA
-    - FANG
-    - PR
+  - JPM
+  - BRK-B
+  - PGR
+  - LLY
+  - ABBV
+  - WMT
+  - XOM
+  - VLO
+  - NOC
+  - DE
   period: 5y
   interval: 1d
   ending_date: "2025-05-05"  # optional YYYY-MM-DD
   cache:
-    enabled: false
+    enabled: true
     path: .cache/yfinance
 
 # Basic Mean Estimator

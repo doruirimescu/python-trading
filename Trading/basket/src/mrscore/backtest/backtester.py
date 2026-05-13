@@ -10,6 +10,9 @@ from mrscore.core.results import Direction, EventStatus
 from mrscore.io.adapters import AlignedPanel
 from mrscore.io.ratio import RatioSpec, compute_basket_series, compute_ratio_series
 from mrscore.backtest.types import BacktestResult, EquityPoint, Trade
+from mrscore.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def _bps_cost(notional: float, bps: float) -> float:
@@ -59,6 +62,7 @@ class _OpenHolding:
     entry_prices: np.ndarray
     qty: np.ndarray
     gross_notional_entry: float
+    entry_cost: float
 
     # For reporting / Trade struct compatibility
     entry_num: float
@@ -236,7 +240,7 @@ class RatioMeanReversionBacktester:
                     gross_notional_entry=float(holding.gross_notional_entry),
                     gross_notional_exit=float(gross),
                     pnl=float(pnl),
-                    costs=float(sell_cost),
+                    costs=float(holding.entry_cost + sell_cost),
                 )
                 trades.append(tr)
 
@@ -255,10 +259,12 @@ class RatioMeanReversionBacktester:
             buy_cost = _bps_cost(eq, total_bps)
             invest = eq - buy_cost
             if invest <= 0.0:
-                raise ValueError("Insufficient equity after costs to open position")
+                logger.warning("Skipping buy at t=%d: insufficient equity after costs (equity=%.6f)", t_idx, eq)
+                return 0.0
 
             if np.any(leg_px <= 0.0):
-                raise ValueError("Non-positive price encountered in leg; cannot size equal-dollar positions")
+                logger.warning("Skipping buy at t=%d: non-positive price in leg %s", t_idx, leg)
+                return 0.0
 
             per_const = invest / float(leg_px.size)
             qty = per_const / leg_px
@@ -271,6 +277,7 @@ class RatioMeanReversionBacktester:
                 entry_prices=np.asarray(leg_px, dtype=np.float64),
                 qty=np.asarray(qty, dtype=np.float64),
                 gross_notional_entry=invest,
+                entry_cost=buy_cost,
                 entry_num=float(num_px[t_idx]),
                 entry_den=float(den_px[t_idx]),
             )
@@ -300,15 +307,15 @@ class RatioMeanReversionBacktester:
                         assert signal_returns is not None
                         self.volatility_estimator.update(float(signal_returns[t - 1]))
 
-            # Equity curve mark-to-market
-            if equity_curve is not None:
-                equity_curve.append(EquityPoint(index=t, time=now, equity=float(current_equity(t))))
-
             # Warmup / readiness
             if t + 1 < min_bars_required:
                 continue
             if not self.mean_estimator.is_ready() or not self.volatility_estimator.is_ready():
                 continue
+
+            # Equity curve mark-to-market (only after warm-up so curve reflects actual trading)
+            if equity_curve is not None:
+                equity_curve.append(EquityPoint(index=t, time=now, equity=float(current_equity(t))))
 
             mean = float(self.mean_estimator.value)
             vol = float(self.volatility_estimator.value)

@@ -100,9 +100,11 @@ class RatioUniverse:
         # Optional: normalize each symbol by first value (vectorized).
         if normalize_by_first:
             base = X[0, :]
-            # Avoid division-by-zero blowups; you can choose a stricter policy later.
-            base_safe = np.where(base == 0.0, 1.0, base)
-            X = X / base_safe
+            bad = np.where((base == 0.0) | ~np.isfinite(base))[0]
+            if bad.size > 0:
+                bad_syms = [panel.symbols[i] for i in bad]
+                raise ValueError(f"Cannot normalize: zero or non-finite first price for symbols: {bad_syms}")
+            X = X / base
             logger.info("Normalized panel by first value (vectorized)")
 
         self._X = X  # shape (T, N)

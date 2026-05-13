@@ -6,6 +6,9 @@ from typing import Dict, List, Literal, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from mrscore.io.history import History, OHLC
+from mrscore.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -131,6 +134,8 @@ def align_histories_union(
 
         if fill == "ffill":
             _forward_fill_inplace(mat[:, j])
+            if np.all(np.isnan(mat[:, j])):
+                logger.warning("Symbol '%s' has no data in the union date range — column is all-NaN", s)
 
     return AlignedPanel(dates=all_dates, symbols=list(symbols), values=_as_float64_c_contig(mat))
 
