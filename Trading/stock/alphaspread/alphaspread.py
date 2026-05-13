@@ -1,10 +1,13 @@
 import re
 from enum import Enum
+from time import sleep
 from typing import Tuple, Optional
 
 import requests
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
+
+INTER_REQUEST_SLEEP = 1.5
 
 
 class ValuationType(str, Enum):
@@ -113,7 +116,9 @@ def analyze_url(url: str, symbol: str) -> Analysis:
     print(f"Analyzing {symbol}...")
     response = fetch_data_from_url(url)
     valuation, score = get_valuation_score(response)
+    sleep(INTER_REQUEST_SLEEP)
     solvency_score = get_solvency_score(url)
+    sleep(INTER_REQUEST_SLEEP)
     profitability_score = get_profitability_score(url)
     return Analysis(
         symbol=symbol,
