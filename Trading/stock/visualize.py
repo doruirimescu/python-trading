@@ -8,7 +8,7 @@ from Trading.stock.constants import (
     NASDAQ_ANALYSIS_FILENAME,
     HELSINKI_NASDAQ_ANALYSIS_FILENAME,
 )
-from Trading.config.config import GENERATED_PATH
+from Trading.config.config import NASDAQ_GENERATED_PATH
 import argparse
 
 
@@ -60,10 +60,11 @@ def plot_bars(
         width = 1920 * 2  # Width of the image in pixels
         height = 1080 * 2  # Height of the image in pixels
         scale = 2  # Increase scale to improve quality
-        fig.write_image(GENERATED_PATH.joinpath(f"{filename}.png"), width=width, height=height, scale=scale)
+        NASDAQ_GENERATED_PATH.mkdir(parents=True, exist_ok=True)
+        fig.write_image(NASDAQ_GENERATED_PATH / f"{filename}.png", width=width, height=height, scale=scale)
 
         # save html
-        fig.write_html(GENERATED_PATH.joinpath(f"{filename}.html"))
+        fig.write_html(NASDAQ_GENERATED_PATH / f"{filename}.html")
 
 
 def prepare_data(filename):

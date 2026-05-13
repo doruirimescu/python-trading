@@ -23,6 +23,7 @@ DATA_STORAGE_PATH=os.getenv("DATA_STORAGE_PATH", "./Trading/live/scripts/data/")
 SYMBOLS_PATH = DATA_STORAGE_PATH + "symbols/"
 ETF_PATH = SYMBOLS_PATH + "/etf.json"
 GENERATED_PATH = CURRENT_FILE_PATH.joinpath("../generated/")
+NASDAQ_GENERATED_PATH = GENERATED_PATH / "nasdaq"
 MACRO_GENERATED_PATH = os.getenv("MACRO_GENERATED_PATH", str(GENERATED_PATH / "macro"))
 TMP_PATH = CURRENT_FILE_PATH.joinpath("../tmp/")
 HISTORY_CACHE_PATH = TMP_PATH.joinpath("history_cache/")
