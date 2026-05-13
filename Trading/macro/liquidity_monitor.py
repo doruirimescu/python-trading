@@ -1,9 +1,11 @@
+import json
 import os
 import warnings
 import numpy as np
 import pandas as pd
 from fredapi import Fred
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Component registry
@@ -214,6 +216,49 @@ class LiquidityStressMonitor:
 
         print(f'  Status: {label}')
         print('=' * W)
+
+    def save_results(self, output_path: str) -> Path:
+        """Serialize the latest composite score and component breakdown to JSON.
+
+        Creates parent directories if needed.  Returns the path written.
+        Call after run_analysis().
+        """
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        dest = Path(output_path) / f'liquidity_stress_{date_str}.json'
+        dest.parent.mkdir(parents=True, exist_ok=True)
+
+        composite = self.liquidity_stress_score
+        if composite < 25:
+            status = 'GREEN'
+        elif composite < 45:
+            status = 'YELLOW'
+        elif composite < 65:
+            status = 'ORANGE'
+        elif composite < 80:
+            status = 'RED'
+        else:
+            status = 'CRITICAL'
+
+        payload = {
+            'date': date_str,
+            'liquidity_stress_score': round(composite, 2),
+            'status': status,
+            'components': {
+                key: {
+                    'desc':   v['desc'],
+                    'score':  round(v['score'], 2),
+                    'weight': v['weight'],
+                    'value':  round(v['value'], 4),
+                }
+                for key, v in self._breakdown.items()
+            },
+        }
+
+        with open(dest, 'w') as f:
+            json.dump(payload, f, indent=2)
+
+        print(f'Results saved to {dest}')
+        return dest
 
 
 if __name__ == '__main__':

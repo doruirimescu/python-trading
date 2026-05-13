@@ -3,6 +3,7 @@ import contextlib
 import os
 import sys
 
+from Trading.config.config import MACRO_GENERATED_PATH
 from Trading.macro.liquidity_monitor import LiquidityStressMonitor
 from Trading.utils.send_email import send_email
 
@@ -35,6 +36,7 @@ def run() -> None:
         status = "CRITICAL"
 
     subject = f"[Monthly Macro] Market Crash Probability: {total_score:.1f}% — {status}"
+    monitor.save_results(MACRO_GENERATED_PATH)
     print(report)
     send_email(subject=subject, body=report)
     print("Email sent.")

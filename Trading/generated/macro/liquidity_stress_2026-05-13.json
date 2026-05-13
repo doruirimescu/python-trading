@@ -1,0 +1,49 @@
+{
+  "date": "2026-05-13",
+  "liquidity_stress_score": 49.37,
+  "status": "ORANGE",
+  "components": {
+    "WRESBAL": {
+      "desc": "Bank Reserve Balances ($B)",
+      "score": 54.66,
+      "weight": 0.15,
+      "value": 3032588.0
+    },
+    "STLFSI4": {
+      "desc": "Financial Stress Index",
+      "score": 30.34,
+      "weight": 0.12,
+      "value": -0.7621
+    },
+    "RRPONTSYD": {
+      "desc": "Overnight RRP ($B)",
+      "score": 59.41,
+      "weight": 0.12,
+      "value": 3.719
+    },
+    "T10Y2Y": {
+      "desc": "10Y \u2212 2Y Yield Spread (%)",
+      "score": 74.11,
+      "weight": 0.1,
+      "value": 0.46
+    },
+    "WALCL_YOY": {
+      "desc": "Fed Balance Sheet YoY (%)",
+      "score": 18.77,
+      "weight": 0.1,
+      "value": -0.0561
+    },
+    "WDTGAL": {
+      "desc": "Treasury Gen. Account ($B)",
+      "score": 60.71,
+      "weight": 0.08,
+      "value": 862757.0
+    },
+    "VIXCLS": {
+      "desc": "VIX (MOVE proxy)",
+      "score": 48.93,
+      "weight": 0.08,
+      "value": 17.99
+    }
+  }
+}
