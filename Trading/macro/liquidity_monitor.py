@@ -20,7 +20,8 @@ class LiquidityMonitor:
             self.stress_index = self.fred.get_series('STLFSI4', observation_start=self.start_date)
             print("Data fetched successfully.\n")
         except Exception as e:
-            print(f"Error fetching data: {e}")
+            print(f"Error fetching data: {e}", flush=True)
+            raise
 
     def calculate_score(self):
         """
