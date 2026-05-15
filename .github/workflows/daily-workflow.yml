@@ -51,7 +51,7 @@ jobs:
           cd python-trading
           git config --global user.name '${{ github.actor }}'
           git config --global user.email '${{ github.actor }}@users.noreply.github.com'
-          git add Trading/generated/nasdaq/ Trading/stock/data/ docs/
+          git add Trading/generated/nasdaq/ Trading/generated/sp500/ Trading/stock/data/ docs/
           git diff --cached --quiet && echo "Nothing to commit" && exit 0
           git commit -m "Add generated workflow files"
           git pull --rebase https://${{ secrets.MY_PAT }}@github.com/doruirimescu/python-trading ${{ github.event.inputs.branchName || 'master' }}
