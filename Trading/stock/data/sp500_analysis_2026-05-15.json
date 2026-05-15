@@ -1700,6 +1700,13 @@
         "valuation_score": 35,
         "valuation_type": "Undervalued"
     },
+    "INVH": {
+        "profitability_score": 51,
+        "solvency_score": 26,
+        "symbol": "INVH",
+        "valuation_score": 3,
+        "valuation_type": "Undervalued"
+    },
     "IP": {
         "profitability_score": 34,
         "solvency_score": 34,
@@ -2118,6 +2125,13 @@
         "solvency_score": 51,
         "symbol": "MLM",
         "valuation_score": 25,
+        "valuation_type": "Overvalued"
+    },
+    "MMM": {
+        "profitability_score": 64,
+        "solvency_score": 50,
+        "symbol": "MMM",
+        "valuation_score": 1,
         "valuation_type": "Overvalued"
     },
     "MNST": {

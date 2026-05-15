@@ -510,6 +510,13 @@
         "valuation_score": 3,
         "valuation_type": "Undervalued"
     },
+    "ODFL": {
+        "profitability_score": 64,
+        "solvency_score": 94,
+        "symbol": "ODFL",
+        "valuation_score": 35,
+        "valuation_type": "Overvalued"
+    },
     "ON": {
         "profitability_score": 53,
         "solvency_score": 87,
