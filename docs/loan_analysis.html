@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Loan Analysis</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    a { margin-bottom: 20px; display: inline-block; }
+    h1 { margin-bottom: 6px; }
+    p.desc { color: #555; margin-bottom: 24px; }
+    h2.section { font-size: 1em; text-transform: uppercase; letter-spacing: 0.06em; color: #888;
+                 margin: 32px 0 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+
+    /* Upload */
+    .upload-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    input[type=file] { font-size: 0.95em; }
+    button.primary {
+      padding: 9px 22px; font-size: 1em; cursor: pointer;
+      background: #2563eb; color: white; border: none; border-radius: 4px;
+    }
+    button.primary:hover { background: #1d4ed8; }
+    button.primary:disabled { background: #93c5fd; cursor: default; }
+    #error { color: #dc2626; margin: 8px 0; display: none; }
+
+    /* Stat cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .stat-card {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 14px 16px;
+    }
+    .stat-label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+    .stat-value { font-size: 1.5em; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+    .stat-sub { font-size: 0.8em; color: #94a3b8; margin-top: 4px; }
+    .progress-track { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+    /* Charts */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; }
+    .chart-full { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; }
+
+    /* Dashboard (hidden until data loads) */
+    #dashboard { display: none; }
+
+    /* Schema docs */
+    .schema-box {
+      background: #1e293b; color: #e2e8f0; border-radius: 6px;
+      padding: 16px 20px; font-family: monospace; font-size: 0.85em;
+      white-space: pre; overflow-x: auto; margin-top: 8px;
+    }
+    .schema-desc { margin-bottom: 6px; }
+    table.field-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    table.field-table th { text-align: left; padding: 6px 10px; background: #f1f5f9; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; }
+    table.field-table td { padding: 7px 10px; border-top: 1px solid #e2e8f0; vertical-align: top; }
+    table.field-table td:first-child { font-family: monospace; color: #2563eb; white-space: nowrap; }
+    table.field-table td:nth-child(2) { color: #7c3aed; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <a href="index.html">← Back</a>
+  <h1>Loan Analysis</h1>
+  <p class="desc">Upload your <code>loan.json</code> to get a full breakdown of your loan repayment progress — principal, interest, costs, and projections.</p>
+
+  <div class="upload-row">
+    <input type="file" id="loan-file" accept=".json">
+    <button class="primary" id="analyze-btn" onclick="analyze()">Analyse</button>
+  </div>
+  <div id="error"></div>
+
+  <!-- Dashboard (shown after upload) -->
+  <div id="dashboard">
+    <h2 class="section">Summary</h2>
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <h2 class="section">Monthly Breakdown</h2>
+    <div class="charts-row">
+      <div class="chart-box"><canvas id="chart-principal-monthly"></canvas></div>
+      <div class="chart-box"><canvas id="chart-interest-monthly"></canvas></div>
+    </div>
+
+    <h2 class="section">Principal Paid vs Remaining</h2>
+    <div class="chart-full"><canvas id="chart-cumulative"></canvas></div>
+  </div>
+
+  <!-- Schema docs always visible -->
+  <h2 class="section" style="margin-top:48px;">loan.json Schema</h2>
+  <p class="schema-desc">The uploaded file must be valid JSON with the following structure:</p>
+  <div class="schema-box">{
+  "total": 109000,              <span style="color:#94a3b8">// required — original loan amount (€)</span>
+  "interest_rate": 3.97,        <span style="color:#94a3b8">// optional — annual interest rate (%)</span>
+  "monthly_installment": 454.17,<span style="color:#94a3b8">// optional — fixed monthly installment (€)</span>
+  "history": [
+    {
+      "date":      "2022-05-02",<span style="color:#94a3b8">// YYYY-MM-DD</span>
+      "principal": 454.17,      <span style="color:#94a3b8">// principal paid in this transaction (€)</span>
+      "interest":   47.24,      <span style="color:#94a3b8">// interest paid in this transaction (€)</span>
+      "cost":         2.50      <span style="color:#94a3b8">// bank fees / other costs (€)</span>
+    }
+  ]
+}</div>
+
+  <br>
+  <table class="field-table">
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>total</td><td>number</td><td><strong>Required.</strong> The original total principal of the loan in €.</td></tr>
+      <tr><td>interest_rate</td><td>number</td><td>Annual interest rate as a percentage (e.g. <code>3.97</code> = 3.97%). Used to compute upcoming interest projections.</td></tr>
+      <tr><td>monthly_installment</td><td>number</td><td>Fixed monthly installment amount in €. Used as the minimum payment in simulations.</td></tr>
+      <tr><td>history[].date</td><td>string</td><td>Transaction date in <code>YYYY-MM-DD</code> format. Multiple transactions on the same calendar month are aggregated.</td></tr>
+      <tr><td>history[].principal</td><td>number</td><td>Principal repaid in this transaction (€). Extra lump-sum payments can be recorded here.</td></tr>
+      <tr><td>history[].interest</td><td>number</td><td>Interest charged and paid in this transaction (€). Set to <code>0</code> for extra lump-sum principal payments.</td></tr>
+      <tr><td>history[].cost</td><td>number</td><td>Additional bank fees or transaction costs (€). Set to <code>0</code> if none.</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const BACKEND_URL = "https://python-trading-mlfz.onrender.com";
+    const charts = {};
+
+    function fmt(val) {
+      return '€' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function formatMonth(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+    }
+
+    async function analyze() {
+      const fileInput = document.getElementById('loan-file');
+      const errorEl = document.getElementById('error');
+      errorEl.style.display = 'none';
+
+      if (!fileInput.files.length) {
+        errorEl.textContent = 'Please select a loan.json file.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('analyze-btn');
+      btn.disabled = true;
+      btn.textContent = 'Analysing…';
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/loan/analyze`, {method: 'POST', body: formData});
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Server returned ${response.status}: ${body}`);
+        }
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        renderDashboard(data);
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}`;
+        errorEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Analyse';
+      }
+    }
+
+    function renderDashboard(d) {
+      renderStats(d);
+      renderBarChart('chart-principal-monthly', 'Principal Paid Monthly (€)',
+        d.history.map(p => formatMonth(p.date)),
+        d.history.map(p => p.principal),
+        '#2563eb');
+      renderBarChart('chart-interest-monthly', 'Interest Paid Monthly (€)',
+        d.history.map(p => formatMonth(p.date)),
+        d.history.map(p => p.interest),
+        '#dc2626');
+      renderCumulativeChart(d);
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('dashboard').scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+
+    function renderStats(d) {
+      const paidPct = Math.min(100, (d.principal_paid / d.principal_total) * 100);
+      const remaining = d.principal_remaining;
+
+      const cards = [
+        {
+          label: 'Principal Paid',
+          value: fmt(d.principal_paid),
+          sub: `of ${fmt(d.principal_total)} total`,
+          pct: paidPct,
+          color: '#16a34a',
+        },
+        {
+          label: 'Principal Remaining',
+          value: fmt(d.principal_remaining),
+          sub: `${(100 - paidPct).toFixed(1)}% left`,
+          pct: 100 - paidPct,
+          color: '#dc2626',
+        },
+        {
+          label: 'Interest Paid',
+          value: fmt(d.interest_paid),
+          sub: `${d.interest_rate}% annual rate`,
+          pct: null,
+          color: '#ca8a04',
+        },
+        {
+          label: 'Cost Paid',
+          value: fmt(d.cost_paid),
+          sub: 'bank fees & charges',
+          pct: null,
+          color: '#ca8a04',
+        },
+        {
+          label: 'Interest + Cost',
+          value: fmt(d.interest_and_cost_paid),
+          sub: 'total overhead paid',
+          pct: null,
+          color: '#ea580c',
+        },
+        {
+          label: 'Upcoming Monthly Interest',
+          value: fmt(d.upcoming_monthly_interest),
+          sub: 'on remaining principal',
+          pct: null,
+          color: '#7c3aed',
+        },
+        {
+          label: 'Avg Monthly Principal',
+          value: fmt(d.avg_monthly_principal),
+          sub: 'per recorded month',
+          pct: null,
+          color: '#0891b2',
+        },
+      ];
+
+      document.getElementById('stats-grid').innerHTML = cards.map(c => `
+        <div class="stat-card">
+          <div class="stat-label">${c.label}</div>
+          <div class="stat-value">${c.value}</div>
+          ${c.pct !== null ? `
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${c.pct.toFixed(1)}%;background:${c.color};"></div>
+            </div>` : ''}
+          <div class="stat-sub">${c.sub}</div>
+        </div>`).join('');
+    }
+
+    function renderBarChart(canvasId, title, labels, data, color) {
+      if (charts[canvasId]) charts[canvasId].destroy();
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      charts[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{label: title, data, backgroundColor: color + 'cc', borderColor: color, borderWidth: 1}],
+        },
+        options: {
+          responsive: true,
+          plugins: {title: {display: true, text: title}, legend: {display: false}},
+          scales: {x: {ticks: {maxRotation: 60}}, y: {beginAtZero: true}},
+        },
+      });
+    }
+
+    function renderCumulativeChart(d) {
+      if (charts['chart-cumulative']) charts['chart-cumulative'].destroy();
+      const labels = d.cumulative_principal_paid.map(p => formatMonth(p.date));
+      const paid = d.cumulative_principal_paid.map(p => p.principal);
+      const remaining = paid.map(p => Math.max(0, d.principal_total - p));
+      const ctx = document.getElementById('chart-cumulative').getContext('2d');
+      charts['chart-cumulative'] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Cumulative Principal Paid (€)',
+              data: paid,
+              borderColor: '#16a34a',
+              backgroundColor: 'rgba(22,163,74,0.08)',
+              tension: 0.3, pointRadius: 2, fill: true,
+            },
+            {
+              label: 'Principal Remaining (€)',
+              data: remaining,
+              borderColor: '#dc2626',
+              backgroundColor: 'rgba(220,38,38,0.08)',
+              tension: 0.3, pointRadius: 2, fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {title: {display: true, text: 'Principal Paid vs Remaining Over Time'}},
+          scales: {x: {ticks: {maxRotation: 60}}, y: {beginAtZero: true}},
+        },
+      });
+    }
+  </script>
+</body>
+</html>
