@@ -1,5 +1,4 @@
-from Trading.symbols.constants import XTB_STOCK_TICKERS, XTB_STOCK_SYMBOLS_DICT, ALPHASPREAD_URL_DICT
-from Trading.stock.alphaspread.url import get_alphaspread_symbol_url
+from Trading.symbols.constants import ALPHASPREAD_URL_DICT
 from Trading.stock.alphaspread.alphaspread import analyze_url
 
 with open("dividend_yield.json", "r") as f:
