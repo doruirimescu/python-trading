@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PVGO Calculator</title>
+  <style>
+    body { font-family: sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    a { margin-bottom: 20px; display: inline-block; }
+    h1 { margin-bottom: 6px; }
+    p.desc { color: #555; margin-bottom: 24px; }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; margin-bottom: 24px; }
+    label { display: flex; flex-direction: column; font-size: 0.9em; font-weight: 600; }
+    label span { font-weight: 400; color: #666; font-size: 0.85em; }
+    input { margin-top: 4px; padding: 7px 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+    button[type=submit] {
+      grid-column: 1 / -1; padding: 10px; font-size: 1em; cursor: pointer;
+      background: #2563eb; color: white; border: none; border-radius: 4px;
+    }
+    button[type=submit]:hover { background: #1d4ed8; }
+    button[type=submit]:disabled { background: #93c5fd; cursor: default; }
+    #error { color: #dc2626; margin-bottom: 16px; display: none; }
+    #results { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px 20px; display: none; }
+    #results h2 { margin: 0 0 12px; font-size: 1.1em; }
+    #results table { width: 100%; border-collapse: collapse; }
+    #results td { padding: 8px 10px; font-size: 0.95em; }
+    #results tr:nth-child(even) td { background: #f1f5f9; }
+    #results td:last-child { text-align: right; font-weight: 600; }
+    .highlight td { background: #dbeafe !important; }
+  </style>
+</head>
+<body>
+  <a href="index.html">← Back</a>
+  <h1>PVGO Calculator</h1>
+  <p class="desc">
+    Estimates the <em>Present Value of Growth Opportunities</em> for a stock using CAPM.
+    The risk-free rate is fetched live from the 10-year US Treasury yield.
+  </p>
+
+  <form id="pvgo-form">
+    <label>Yahoo Finance Ticker Symbol
+      <span>e.g. AAPL, MSFT, NVDA</span>
+      <input type="text" id="ticker" placeholder="AAPL" required style="text-transform:uppercase">
+    </label>
+    <label>Market Risk Premium (%)
+      <span>Equity risk premium, default 5%</span>
+      <input type="number" id="market_risk_premium" value="5" step="0.1" min="0" required>
+    </label>
+    <button type="submit">Calculate PVGO</button>
+  </form>
+
+  <div id="error"></div>
+
+  <div id="results">
+    <h2 id="results-title">Results</h2>
+    <table id="results-table"></table>
+  </div>
+
+  <section style="margin-top:36px;border-top:1px solid #e2e8f0;padding-top:24px;color:#444;font-size:0.95em;">
+    <h2 style="font-size:1.1em;margin-bottom:12px;">What is PVGO?</h2>
+    <p>
+      A stock's price can be split into two parts: what the company is worth if it
+      <em>never grew again</em>, and how much investors are paying for <em>expected future growth</em>.
+      That second part is the <strong>Present Value of Growth Opportunities (PVGO)</strong>.
+    </p>
+    <p>
+      <strong>No-Growth Value</strong> = Forward EPS ÷ Cost of Equity<br>
+      This is what you'd pay for a bond-like company that just pays out all its earnings forever, with no reinvestment.
+    </p>
+    <p>
+      <strong>PVGO</strong> = Current Price − No-Growth Value<br>
+      The remainder is what the market is paying purely on the belief that the company will find
+      profitable ways to reinvest and grow.
+    </p>
+    <p>
+      <strong>PVGO %</strong> tells you how much of the stock price is "growth bet" vs. "earnings value":
+    </p>
+    <ul style="margin:0 0 12px 20px;">
+      <li><strong>High PVGO % (e.g. 70–90%)</strong> — most of the price is growth expectations. The stock is sensitive to whether those expectations are met.</li>
+      <li><strong>Low or negative PVGO %</strong> — the stock trades close to (or below) its no-growth earnings value, suggesting the market sees little growth ahead — or the stock may be undervalued.</li>
+    </ul>
+    <p style="color:#666;font-size:0.9em;">
+      The Cost of Equity is estimated with CAPM: Risk-Free Rate + Beta × Market Risk Premium.
+      The risk-free rate is pulled live from the 10-year US Treasury yield (^TNX on Yahoo Finance).
+    </p>
+  </section>
+
+  <script>
+    const BACKEND_URL = "https://python-trading-mlfz.onrender.com";
+
+    document.getElementById("ticker").addEventListener("input", function () {
+      this.value = this.value.toUpperCase();
+    });
+
+    document.getElementById("pvgo-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const errorEl = document.getElementById("error");
+      errorEl.style.display = "none";
+      document.getElementById("results").style.display = "none";
+
+      const ticker = document.getElementById("ticker").value.trim();
+      const mrp = parseFloat(document.getElementById("market_risk_premium").value) / 100;
+
+      const params = new URLSearchParams({ ticker, market_risk_premium: mrp });
+
+      const btn = document.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Fetching data…";
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/pvgo/calculate?${params}`);
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Server returned ${response.status}: ${body}`);
+        }
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        displayResults(data);
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}`;
+        errorEl.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Calculate PVGO";
+      }
+    });
+
+    function displayResults(data) {
+      document.getElementById("results-title").textContent = `Results — ${data["Ticker"]}`;
+
+      const highlightKeys = new Set(["PVGO", "PVGO Percentage", "No-Growth Value"]);
+
+      const rows = Object.entries(data)
+        .filter(([k]) => k !== "Ticker")
+        .map(([k, v]) => {
+          const cls = highlightKeys.has(k) ? ' class="highlight"' : "";
+          return `<tr${cls}><td>${k}</td><td>${v}</td></tr>`;
+        })
+        .join("");
+
+      document.getElementById("results-table").innerHTML = rows;
+      document.getElementById("results").style.display = "block";
+    }
+  </script>
+</body>
+</html>

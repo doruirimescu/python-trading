@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loan.loan_vs_investment import perform_simulation
+from stock.pvgo_calculator import calculate_pvgo
 
 app = FastAPI()
 
@@ -41,3 +42,11 @@ def loan_simulate(
         n_years,
         should_plot=False,
     )
+
+
+@app.get("/pvgo/calculate")
+def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05):
+    result = calculate_pvgo(ticker, market_risk_premium)
+    if isinstance(result, str):
+        return {"error": result}
+    return result
