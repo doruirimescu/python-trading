@@ -12,10 +12,14 @@ from stock.pvgo_calculator import calculate_pvgo
 
 app = FastAPI()
 
-# --- CRITICAL STEP: CORS Configuration ---
-# Replace the URL below with your actual GitHub Pages URL
 origins = [
-    "https://doruirimescu.github.io"
+    "https://doruirimescu.github.io",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:3000",
+    # "null" covers pages opened directly from the filesystem (file://)
+    "null",
 ]
 
 app.add_middleware(

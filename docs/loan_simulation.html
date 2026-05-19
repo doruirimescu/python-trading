@@ -77,7 +77,8 @@
   </div>
 
   <script>
-    const BACKEND_URL = "https://python-trading-mlfz.onrender.com";
+    const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    const BACKEND_URL = IS_LOCAL ? "http://localhost:8000" : "https://python-trading-mlfz.onrender.com";
     let chartInstance = null;
 
     document.getElementById("sim-form").addEventListener("submit", async (e) => {
