@@ -12,6 +12,7 @@ from loan.loan_vs_investment import perform_simulation
 from loan.loan import LoanJsonParser
 from stock.pvgo_calculator import calculate_pvgo
 from stock.iv_15 import calculate_iv15_tragic_algebra
+from stock.yfinance.dividend_sustainability import get_data, analyze_dividend_sustainability
 
 app = FastAPI()
 
@@ -121,3 +122,32 @@ def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05):
     if isinstance(result, str):
         return {"error": result}
     return result
+
+
+@app.get("/dividend/sustainability")
+def dividend_sustainability(tickers: str, threshold: int = 65):
+    ticker_list = [t.strip().upper() for t in tickers.replace("\n", ",").split(",") if t.strip()]
+    results = []
+    skipped = []
+
+    for ticker in ticker_list:
+        try:
+            data, dividends = get_data(ticker)
+            if data.get("dividendYield") is None:
+                skipped.append({"ticker": ticker, "reason": "no dividend yield data"})
+                continue
+            is_sustainable, score, yield_val, _ = analyze_dividend_sustainability(
+                data, dividends, threshold=threshold
+            )
+            name = data.get("longName") or data.get("shortName") or ticker
+            results.append({
+                "ticker": ticker,
+                "name": name,
+                "yield_pct": round(yield_val * 100, 2),
+                "score": score,
+                "status": "Sustainable" if is_sustainable else "Risky",
+            })
+        except Exception as e:
+            skipped.append({"ticker": ticker, "reason": str(e)})
+
+    return {"results": results, "skipped": skipped}
