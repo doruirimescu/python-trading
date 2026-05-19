@@ -345,17 +345,7 @@ class YFinanceLoggingClient:
     """Read-only market data client backed by yfinance. No trading functions."""
 
     # Maps XTB timeframe strings to yfinance interval strings
-    _XTB_TO_YF_INTERVAL = {
-        '1m':  '1m',
-        '5m':  '5m',
-        '15m': '15m',
-        '30m': '30m',
-        '1h':  '60m',
-        '4h':  '90m',
-        '1D':  '1d',
-        '1W':  '1wk',
-        '1M':  '1mo',
-    }
+
 
     def __init__(self):
         from Trading.symbols.constants import YAHOO_STOCK_SYMBOLS_DICT
@@ -381,7 +371,7 @@ class YFinanceLoggingClient:
             period_str = str(tf)
             minutes = TIMEFRAME_TO_MINUTES.get(period_str, 1440)
 
-        interval = self._XTB_TO_YF_INTERVAL.get(period_str, '1d')
+        interval = tf.period
 
         # Compute a start date that comfortably covers N candles (20 % buffer)
         days_needed = int(minutes * N * 1.2 / 1440) + 1

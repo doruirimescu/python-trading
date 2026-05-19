@@ -13,7 +13,7 @@ from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
 from Trading.utils.criterion.expression import Threshold, ThresholdLE, ThresholdGE, and_
 
-from Trading.algo.ranker.ranker import RangeScorer, RangeCoherenceMetric, Ordering
+from Trading.algo.ranker.ranker import RangeScorer, RangeCoherenceMetric, RobustRangeScorer, Ordering
 
 
 LOGGER = get_logger("filter_ranging_stocks")
@@ -33,15 +33,16 @@ PERCENTAGE_WIN = 1.10
 
 range_scorer = RangeScorer(window=RANGE_WIDTH)
 range_coherence = RangeCoherenceMetric(window=RANGE_WIDTH)
-# range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_scorer)
-range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_coherence)
+range_robust_scorer = RobustRangeScorer(window=RANGE_WIDTH)
+range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_robust_scorer)
 
 class StockRangeProcessor(StatefulDataProcessor):
     def __init__(
         self, json_file_rw, logger, should_reload_ordering=False, should_reprocess=False
+
     ):
         global range_ordering
-        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess)
+        super().__init__(json_file_rw, logger, should_reprocess=should_reprocess, verbose_skip=False)
         # Load range ordering from file
         if (
             should_reload_ordering
@@ -88,7 +89,7 @@ class StockRangeProcessor(StatefulDataProcessor):
         history = History(**self.data[item])
         range_ordering.add_history(history)
         self.data["range_ordering"] = range_ordering.model_dump()
-        LOGGER.info(range_ordering.scores)
+        #LOGGER.info(range_ordering.scores)
 
 
 if __name__ == "__main__":
@@ -101,9 +102,9 @@ if __name__ == "__main__":
         LOGGER,
     )
     sp = StockRangeProcessor(
-        js, LOGGER, should_reload_ordering=False, should_reprocess=False
+        js, LOGGER, should_reload_ordering=False, should_reprocess=True
     )
-    symbols = YAHOO_STOCK_SYMBOLS[:100]
+    symbols = YAHOO_STOCK_SYMBOLS
     LOGGER.info(f"Items length: {len(symbols)}")
     sp.run(items=symbols, client=client)
 
@@ -127,3 +128,86 @@ if __name__ == "__main__":
     candidates = sorted(candidates.items(), key=lambda x: x[1], reverse=True)
     for candidate in candidates:
         LOGGER.info(f"{candidate[0]}: {candidate[1]:.3f}")
+
+# 20.05.2025 Coherence metric for the top 70 stocks:
+# WOOF.US_9: 1.597
+# GTN.US_9: 1.513
+# BILL.US_9: 1.472
+# ASC.UK_9: 1.470
+# GLBE.US_9: 1.457
+# CRNC.US_9: 1.428
+# CYH.US_9: 1.419
+# BNTX.US_9: 1.328
+# AKTS.US: 1.312
+# FACE.ES: 1.299
+# KPTI.US: 1.298
+# MTH.US_9: 1.297
+# AO.UK_9: 1.289
+# MTN.US_9: 1.277
+# HRMY.US: 1.258
+# ST5.DE: 1.249
+# RYN.US: 1.246
+# SHW.US_9: 1.232
+# SBGI.US_9: 1.232
+# MKS.UK_9: 1.231
+# KC.US_9: 1.227
+# ATRY.ES: 1.216
+# EXP.US_9: 1.210
+# LONN.CH: 1.195
+# CPR.IT_9: 1.193
+# HO.FR_9: 1.188
+# HEIA.NL_9: 1.173
+# MAS.US_9: 1.170
+# CRDA.UK_9: 1.165
+# JMT.PT_9: 1.157
+# T.US_9: 1.150
+# OMC.US_9: 1.146
+# MDRX.US_9: 1.120
+# ORLY.US_9: 1.120
+# SJM.US_9: 1.115
+# BVI.FR_9: 1.105
+# TXRH.US_9: 1.103
+
+# 20.05.2025 Robust range scorer for the top 70 stocks:
+#MBIO.US: 2.891
+#NEXI.US: 2.200
+#GTN.US_9: 1.513
+#DOU.DE: 1.490
+#KBH.US_9: 1.451
+#GERN.US_9: 1.436
+#CRNC.US_9: 1.428
+#SITE.US_9: 1.364
+#JBLU.US_9: 1.332
+#BNTX.US_9: 1.328
+#TPK.UK_9: 1.320
+#IR.US_9: 1.320
+#GN.DK_9: 1.309
+#FACE.ES: 1.299
+#MTH.US_9: 1.297
+#HRMY.US: 1.258
+#CAR.US_9: 1.244
+#SBGI.US_9: 1.232
+#MKS.UK_9: 1.231
+#KC.US_9: 1.227
+#PMT.US_9: 1.215
+#EXP.US_9: 1.210
+#CPR.IT_9: 1.193
+#HO.FR_9: 1.188
+#AM.FR: 1.188
+#MIDD.US: 1.180
+#MAS.US_9: 1.170
+#WAL.US: 1.169
+#PPG.US_9: 1.157
+#JMT.PT_9: 1.157
+#KEMIRA.FI_9: 1.154
+#OMC.US_9: 1.146
+#MONC.IT_9: 1.144
+#RATOB.SE: 1.130
+#BAKKA.NO_9: 1.128
+#MDRX.US_9: 1.120
+#ORLY.US_9: 1.120
+#PVH.US_9: 1.118
+#WRB.US_9: 1.106
+#TBCG.UK_9: 1.105
+#TXRH.US_9: 1.103
+#TKA.DE_9: 1.100
