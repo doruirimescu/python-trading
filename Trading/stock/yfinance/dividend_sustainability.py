@@ -1,8 +1,8 @@
 import yfinance as yf
-import matplotlib.pyplot as plt
 import pandas as pd
 
 def plot_dividend_growth(symbol, dividends):
+    import matplotlib.pyplot as plt
     plt.figure(figsize=(10, 6))
     plt.plot(dividends.index, dividends.values, marker="o", linestyle="-")
     plt.title(f"Dividend History Over Time for {symbol.upper()}")
