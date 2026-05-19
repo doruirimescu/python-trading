@@ -30,7 +30,7 @@ TIMEFRAMES_TO_NAME_Y_FINANCE = dict(zip(TIMEFRAMES_Y_FINANCE, ['1-min', '2-min',
                                                               '3-month']))
 TIMEFRAME_TO_MINUTES_Y_FINANCE = dict(zip(TIMEFRAMES_Y_FINANCE, [1, 2, 5, 15, 30, 60, 90, 60, 1440, 7200, 10080, 43200, 129600]))
 class Timeframe:
-    def __init__(self, period: str | TIMEFRARME_ENUM, client_type: str = "XTB") -> None:
+    def __init__(self, period: str | TIMEFRARME_ENUM, client_type: str = "yfinance") -> None:
         if isinstance(period, TIMEFRARME_ENUM):
             period = period.value
         if client_type == "XTB":
@@ -41,6 +41,8 @@ class Timeframe:
             self.timeframes = TIMEFRAMES_Y_FINANCE
             self.timeframe_to_minutes = TIMEFRAME_TO_MINUTES_Y_FINANCE
             self.timeframes_to_name = TIMEFRAMES_TO_NAME_Y_FINANCE
+        else:
+            raise ValueError(f"Client type {client_type} is not supported")
 
         if period not in self.timeframes:
             raise ValueError(f"Timeframe period {period} is not supported")

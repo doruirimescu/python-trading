@@ -8,8 +8,6 @@ from Trading.config.config import TIMEZONE
 from Trading.instrument import Instrument
 
 
-from XTBApi.api import Client as XTBClient
-from Trading.live.logger.server_tester import *
 
 from datetime import timedelta
 import pytz
@@ -343,25 +341,70 @@ class TradingClient(LoggingClient):
         return symbol_list
 
 
-class XTBLoggingClient(LoggingClient):
-    def __init__(self, uname, pwd, mode="demo", logging=False):
-        client = XTBClient(uname, pwd, mode, logging)
-        server_tester = ServerTester(client)
-        super().__init__(client, server_tester)
+class YFinanceLoggingClient:
+    """Read-only market data client backed by yfinance. No trading functions."""
 
+    # Maps XTB timeframe strings to yfinance interval strings
+    _XTB_TO_YF_INTERVAL = {
+        '1m':  '1m',
+        '5m':  '5m',
+        '15m': '15m',
+        '30m': '30m',
+        '1h':  '60m',
+        '4h':  '90m',
+        '1D':  '1d',
+        '1W':  '1wk',
+        '1M':  '1mo',
+    }
 
-class XTBTradingClient(TradingClient):
-    def __init__(self, uname, pwd, mode="demo", should_log=False):
-        client = XTBClient(uname, pwd, mode, should_log)
-        server_tester = ServerTester(client)
-        super().__init__(client, server_tester)
-        if mode.lower() == "demo":
-            return
-        print("Trading with a live client. Do you wish to continue ? y/n")
-        # should_continue = input().strip()
-        # if should_continue.lower() != "y":
-        #     import sys
-        #     sys.exit(0)
+    def __init__(self):
+        from Trading.symbols.constants import YAHOO_STOCK_SYMBOLS_DICT
+        self._symbols_dict = YAHOO_STOCK_SYMBOLS_DICT
+
+    def _yf_ticker(self, symbol: str) -> str:
+        """Resolve a YAHOO_STOCK_SYMBOLS key to its yfinance ticker symbol."""
+        entry = self._symbols_dict.get(symbol)
+        return entry[0] if entry else symbol
+
+    def get_last_n_candles_history(self, instrument: Instrument, N: int) -> dict:
+        import yfinance as yf
+        from datetime import date, timedelta
+        from Trading.model.timeframes import Timeframe, TIMEFRAME_TO_MINUTES
+
+        yf_symbol = self._yf_ticker(instrument.symbol)
+
+        tf = instrument.timeframe
+        if isinstance(tf, Timeframe):
+            period_str = tf.period
+            minutes = tf.get_minutes()
+        else:
+            period_str = str(tf)
+            minutes = TIMEFRAME_TO_MINUTES.get(period_str, 1440)
+
+        interval = self._XTB_TO_YF_INTERVAL.get(period_str, '1d')
+
+        # Compute a start date that comfortably covers N candles (20 % buffer)
+        days_needed = int(minutes * N * 1.2 / 1440) + 1
+        start = (date.today() - timedelta(days=days_needed)).isoformat()
+
+        df = yf.Ticker(yf_symbol).history(start=start, interval=interval)
+        df = df.tail(N)
+
+        return {
+            'open':  df['Open'].tolist(),
+            'high':  df['High'].tolist(),
+            'low':   df['Low'].tolist(),
+            'close': df['Close'].tolist(),
+            'date':  [d.to_pydatetime().replace(tzinfo=None) for d in df.index],
+        }
+
+    def get_symbol(self, symbol: str) -> dict:
+        import yfinance as yf
+
+        yf_symbol = self._yf_ticker(symbol)
+        last_price = yf.Ticker(yf_symbol).fast_info.last_price
+        return {'ask': last_price}
+
 
 def get_cmd(position: str):
     if position.upper() == 'BUY':
