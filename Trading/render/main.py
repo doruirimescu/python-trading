@@ -6,9 +6,12 @@ import json as json_lib
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+
 from loan.loan_vs_investment import perform_simulation
 from loan.loan import LoanJsonParser
 from stock.pvgo_calculator import calculate_pvgo
+from stock.iv_15 import calculate_iv15_tragic_algebra
 
 app = FastAPI()
 
@@ -96,6 +99,20 @@ async def loan_analyze(file: UploadFile = File(...)):
         "history": history,
         "cumulative_principal_paid": cumulative,
     }
+
+
+@app.get("/iv15/calculate")
+def iv15_calculate(
+    ticker: str,
+    growth_rate: float = 0.15,
+    terminal_multiple: float = 15,
+    manual_sbc: Optional[float] = None,
+):
+    # manual_sbc is accepted in dollars; frontend sends millions * 1e6
+    result = calculate_iv15_tragic_algebra(ticker, growth_rate, terminal_multiple, manual_sbc)
+    if isinstance(result, str):
+        return {"error": result}
+    return result
 
 
 @app.get("/pvgo/calculate")

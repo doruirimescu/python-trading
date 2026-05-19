@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>IV15 Calculator</title>
+  <style>
+    body { font-family: sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    a { margin-bottom: 20px; display: inline-block; }
+    h1 { margin-bottom: 6px; }
+    p.desc { color: #555; margin-bottom: 24px; }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; margin-bottom: 24px; }
+    label { display: flex; flex-direction: column; font-size: 0.9em; font-weight: 600; }
+    label span { font-weight: 400; color: #666; font-size: 0.85em; }
+    input { margin-top: 4px; padding: 7px 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+    button[type=submit] {
+      grid-column: 1 / -1; padding: 10px; font-size: 1em; cursor: pointer;
+      background: #2563eb; color: white; border: none; border-radius: 4px;
+    }
+    button[type=submit]:hover { background: #1d4ed8; }
+    button[type=submit]:disabled { background: #93c5fd; cursor: default; }
+    #error { color: #dc2626; margin-bottom: 16px; display: none; }
+    #results { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px 20px; display: none; }
+    #results h2 { margin: 0 0 12px; font-size: 1.1em; }
+    #results table { width: 100%; border-collapse: collapse; }
+    #results td { padding: 8px 10px; font-size: 0.95em; }
+    #results tr:nth-child(even) td { background: #f1f5f9; }
+    #results td:last-child { text-align: right; font-weight: 600; }
+    .highlight td { background: #dbeafe !important; }
+    .undervalued td { background: #dcfce7 !important; }
+    .overvalued td { background: #fee2e2 !important; }
+    /* Explainer */
+    section.explainer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 24px; color: #444; font-size: 0.95em; }
+    section.explainer h2 { font-size: 1.1em; margin-bottom: 12px; }
+    section.explainer h3 { font-size: 0.95em; margin: 20px 0 6px; color: #1e293b; }
+    .formula { background: #f1f5f9; border-left: 3px solid #2563eb; padding: 10px 14px; font-family: monospace; font-size: 0.9em; margin: 10px 0; border-radius: 0 4px 4px 0; }
+    .callout { background: #fefce8; border: 1px solid #fde047; border-radius: 6px; padding: 12px 16px; margin: 14px 0; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <a href="index.html">← Back</a>
+  <h1>IV15 Calculator</h1>
+  <p class="desc">Estimates the intrinsic value of a stock using 15-year discounted free cash flows, adjusted for stock-based compensation — the <em>Tragic Algebra</em>.</p>
+
+  <form id="iv15-form">
+    <label>Yahoo Finance Ticker Symbol
+      <span>e.g. AAPL, MELI, NVDA</span>
+      <input type="text" id="ticker" placeholder="AAPL" required>
+    </label>
+    <label>Growth Rate (%)
+      <span>Annual FCF growth assumed for 15 years</span>
+      <input type="number" id="growth_rate" value="15" step="0.1" min="0" required>
+    </label>
+    <label>Terminal Multiple
+      <span>Applied to Year-15 FCF for terminal value</span>
+      <input type="number" id="terminal_multiple" value="15" step="1" min="1" required>
+    </label>
+    <label>Manual SBC Override ($ millions)
+      <span>Leave blank to use Yahoo Finance data</span>
+      <input type="number" id="manual_sbc" placeholder="e.g. 303 for $303M" step="0.1" min="0">
+    </label>
+    <button type="submit">Calculate IV15</button>
+  </form>
+
+  <div id="error"></div>
+
+  <div id="results">
+    <h2 id="results-title">Results</h2>
+    <table id="results-table"></table>
+  </div>
+
+  <section class="explainer">
+    <h2>What is IV15?</h2>
+    <p>
+      IV15 is an intrinsic value estimate built on a single disciplined assumption: a business must
+      be able to compound its free cash flow at <strong>15% per year</strong> for 15 years and be
+      worth <strong>15× its final-year cash flow</strong> at exit — all discounted back at a
+      <strong>15% hurdle rate</strong>. If the stock trades below this value, it clears the bar; if
+      it trades above, you're paying a premium for growth that may never materialise.
+    </p>
+
+    <div class="formula">
+      IV15 = Σ FCF<sub>t</sub> / (1.15)<sup>t</sup> + TerminalValue / (1.15)<sup>15</sup>
+    </div>
+
+    <h3>The Tragic Algebra — Why SBC Matters</h3>
+    <p>
+      Companies report <em>Free Cash Flow</em> without deducting <strong>Stock-Based Compensation
+      (SBC)</strong>. SBC is a real cost to shareholders — it dilutes ownership — but because it is
+      a non-cash expense it conveniently disappears from the cash flow statement.
+    </p>
+    <p>
+      The "Tragic Algebra" corrects this:
+    </p>
+    <div class="formula">True FCF = Reported FCF − Stock-Based Compensation</div>
+    <p>
+      A company with $10 B in FCF but $4 B in annual SBC has a <em>True FCF</em> of only $6 B.
+      Valuing it on the reported figure overstates intrinsic value by ~67%.
+    </p>
+
+    <div class="callout">
+      <strong>Manual SBC override:</strong> Yahoo Finance sometimes fails to report SBC or reports
+      it with the wrong sign. If results look off, find the SBC figure in the company's latest
+      10-K / annual report (cash flow statement, operating activities section) and enter it
+      manually in millions.
+    </div>
+
+    <h3>How to interpret Price / IV15</h3>
+    <ul style="margin: 0 0 12px 20px;">
+      <li><strong>&lt; 1.0</strong> — stock trades <em>below</em> intrinsic value at a 15% growth assumption. Potential margin of safety.</li>
+      <li><strong>1.0 – 1.5</strong> — modest premium; growth expectations are priced in but not extreme.</li>
+      <li><strong>&gt; 1.5</strong> — significant premium; the market is pricing in growth well above 15% per year.</li>
+    </ul>
+    <p style="color:#666;font-size:0.9em;">
+      IV15 is not a price target — it is a <em>hurdle test</em>. A ratio above 1 does not mean the
+      stock is a bad investment; it means the implied return at the current price is below 15%/yr
+      under these assumptions. Adjust growth rate and terminal multiple to stress-test your thesis.
+    </p>
+  </section>
+
+  <script>
+    const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    const BACKEND_URL = IS_LOCAL ? "http://localhost:8000" : "https://python-trading-mlfz.onrender.com";
+
+    document.getElementById("ticker").addEventListener("input", function () {
+      this.value = this.value.toUpperCase();
+    });
+
+    document.getElementById("iv15-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const errorEl = document.getElementById("error");
+      errorEl.style.display = "none";
+      document.getElementById("results").style.display = "none";
+
+      const ticker = document.getElementById("ticker").value.trim();
+      const growth_rate = parseFloat(document.getElementById("growth_rate").value) / 100;
+      const terminal_multiple = parseFloat(document.getElementById("terminal_multiple").value);
+      const sbcRaw = document.getElementById("manual_sbc").value;
+
+      const params = new URLSearchParams({ ticker, growth_rate, terminal_multiple });
+      if (sbcRaw !== "") {
+        params.set("manual_sbc", parseFloat(sbcRaw) * 1_000_000);
+      }
+
+      const btn = document.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Fetching data…";
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/iv15/calculate?${params}`);
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Server returned ${response.status}: ${body}`);
+        }
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        displayResults(data);
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}`;
+        errorEl.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Calculate IV15";
+      }
+    });
+
+    function displayResults(data) {
+      document.getElementById("results-title").textContent = `Results — ${data["Ticker"]}`;
+
+      const ratio = data["Price / IV15"];
+      const ratioClass = ratio < 1 ? "undervalued" : ratio > 1.5 ? "overvalued" : "highlight";
+
+      const rows = Object.entries(data)
+        .filter(([k]) => k !== "Ticker")
+        .map(([k, v]) => {
+          const cls = (k === "Price / IV15" || k === "Calculated IV15")
+            ? (k === "Price / IV15" ? ` class="${ratioClass}"` : ' class="highlight"')
+            : "";
+          return `<tr${cls}><td>${k}</td><td>${v}</td></tr>`;
+        })
+        .join("");
+
+      document.getElementById("results-table").innerHTML = rows;
+      document.getElementById("results").style.display = "block";
+    }
+  </script>
+</body>
+</html>
