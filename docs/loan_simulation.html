@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Loan vs Investment Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    a { margin-bottom: 20px; display: inline-block; }
+    h1 { margin-bottom: 6px; }
+    p.desc { color: #555; margin-bottom: 24px; }
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; margin-bottom: 24px; }
+    label { display: flex; flex-direction: column; font-size: 0.9em; font-weight: 600; }
+    label span { font-weight: 400; color: #666; font-size: 0.85em; }
+    input[type=number] { margin-top: 4px; padding: 7px 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+    button[type=submit] {
+      grid-column: 1 / -1; padding: 10px; font-size: 1em; cursor: pointer;
+      background: #2563eb; color: white; border: none; border-radius: 4px;
+    }
+    button[type=submit]:hover { background: #1d4ed8; }
+    button[type=submit]:disabled { background: #93c5fd; cursor: default; }
+    #error { color: #dc2626; margin-bottom: 16px; display: none; }
+    #stats { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; display: none; }
+    #stats h2 { margin: 0 0 12px; font-size: 1.1em; }
+    #stats table { width: 100%; border-collapse: collapse; }
+    #stats td { padding: 6px 10px; font-size: 0.95em; }
+    #stats tr:nth-child(even) td { background: #f1f5f9; }
+    #stats td:last-child { text-align: right; font-weight: 600; }
+    #chart-container { display: none; }
+  </style>
+</head>
+<body>
+  <a href="index.html">← Back</a>
+  <h1>Loan vs Investment Simulator</h1>
+  <p class="desc">
+    Computes total wealth after <em>N</em> years for each possible split of your salary between
+    loan repayment and investing, helping you find the optimal allocation.
+  </p>
+
+  <form id="sim-form">
+    <label>Principal (€)
+      <span>Loan amount</span>
+      <input type="number" id="principal" value="100000" min="1" required>
+    </label>
+    <label>Annual Interest Rate (%)
+      <span>e.g. 4 for 4%</span>
+      <input type="number" id="interest_rate" value="4.0" step="0.01" min="0" required>
+    </label>
+    <label>Fixed Monthly Installment (€)
+      <span>Minimum required payment</span>
+      <input type="number" id="fixed_monthly_installment" value="450" min="0" required>
+    </label>
+    <label>Annual Investment Return (%)
+      <span>e.g. 10 for 10%</span>
+      <input type="number" id="investment_return" value="10" step="0.01" min="0" required>
+    </label>
+    <label>Monthly Salary (€)
+      <span>Gross monthly income</span>
+      <input type="number" id="monthly_salary" value="3500" min="1" required>
+    </label>
+    <label>Simulation Years
+      <span>Time horizon</span>
+      <input type="number" id="n_years" value="20" min="1" required>
+    </label>
+    <button type="submit">Run Simulation</button>
+  </form>
+
+  <div id="error"></div>
+
+  <div id="stats">
+    <h2>Summary</h2>
+    <table id="stats-table"></table>
+  </div>
+
+  <div id="chart-container">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://python-trading-mlfz.onrender.com";
+    let chartInstance = null;
+
+    document.getElementById("sim-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const errorEl = document.getElementById("error");
+      errorEl.style.display = "none";
+
+      const params = new URLSearchParams({
+        principal: document.getElementById("principal").value,
+        interest_rate: parseFloat(document.getElementById("interest_rate").value) / 100,
+        fixed_monthly_installment: document.getElementById("fixed_monthly_installment").value,
+        investment_return: parseFloat(document.getElementById("investment_return").value) / 100,
+        monthly_salary: document.getElementById("monthly_salary").value,
+        n_years: document.getElementById("n_years").value,
+      });
+
+      const btn = document.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Simulating…";
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/loan/simulate?${params}`);
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(`Server returned ${response.status}: ${body}`);
+        }
+        const data = await response.json();
+        displayResults(data);
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}`;
+        errorEl.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Run Simulation";
+      }
+    });
+
+    function displayResults(data) {
+      const rows = [
+        ["Optimal % of salary to loan", `${data.max_p.toFixed(1)} %`],
+        ["Total worth at optimal split", `${data.max_total_worth.toFixed(1)} k€`],
+        ["Worst % of salary to loan", `${data.min_p.toFixed(1)} %`],
+        ["Total worth at worst split", `${data.min_total_worth.toFixed(1)} k€`],
+        ["Optimal vs worst (ratio)", `${data.max_vs_min_total_worth.toFixed(1)} %`],
+      ];
+
+      document.getElementById("stats-table").innerHTML =
+        rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+      document.getElementById("stats").style.display = "block";
+
+      if (chartInstance) chartInstance.destroy();
+
+      const ctx = document.getElementById("chart").getContext("2d");
+      chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.p_range.map(p => p.toFixed(1) + "%"),
+          datasets: [{
+            label: "Total worth (k€)",
+            data: data.total_worth_list,
+            borderColor: "#2563eb",
+            backgroundColor: "rgba(37,99,235,0.08)",
+            tension: 0.3,
+            pointRadius: 2,
+            fill: true,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "Total wealth vs. percentage of salary toward loan repayment",
+              font: { size: 14 },
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.parsed.y.toFixed(1)} k€`,
+              },
+            },
+          },
+          scales: {
+            x: { title: { display: true, text: "% of salary allocated to loan" } },
+            y: { title: { display: true, text: "Total worth (k€)" } },
+          },
+        },
+      });
+
+      document.getElementById("chart-container").style.display = "block";
+    }
+  </script>
+</body>
+</html>
