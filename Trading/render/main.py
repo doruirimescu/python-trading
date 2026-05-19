@@ -53,7 +53,8 @@ def loan_simulate(
 
 def _serialize_payments(payments):
     return [
-        {"date": str(p.date), "principal": p.principal, "interest": p.interest, "cost": p.cost}
+        {"date": str(p.date), "principal": p.principal, "interest": p.interest,
+         "cost": p.cost, "interest_rate": p.interest_rate}
         for p in payments
     ]
 
@@ -72,7 +73,7 @@ async def loan_analyze(file: UploadFile = File(...)):
     principal_remaining = round(principal_total - principal_paid, 3)
     interest_paid = parser.interest_paid(loan_data)
     cost_paid = parser.cost_paid(loan_data)
-    interest_rate = parser.get_interest_rate(loan_data)
+    interest_rate = parser.get_effective_interest_rate(loan_data)
     upcoming_monthly_interest = round((principal_remaining * interest_rate / 100) / 12, 2)
 
     history = _serialize_payments(parser.loan_history(loan_data))

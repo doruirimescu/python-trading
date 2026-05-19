@@ -87,15 +87,22 @@
   <h2 class="section" style="margin-top:48px;">loan.json Schema</h2>
   <p class="schema-desc">The uploaded file must be valid JSON with the following structure:</p>
   <div class="schema-box">{
-  "total": 109000,              <span style="color:#94a3b8">// required — original loan amount (€)</span>
-  "interest_rate": 3.97,        <span style="color:#94a3b8">// optional — annual interest rate (%)</span>
-  "monthly_installment": 454.17,<span style="color:#94a3b8">// optional — fixed monthly installment (€)</span>
+  "total": 109000,               <span style="color:#94a3b8">// required — original loan amount (€)</span>
+  "interest_rate": 3.97,         <span style="color:#94a3b8">// optional — global annual interest rate (%); used as fallback</span>
+  "monthly_installment": 454.17, <span style="color:#94a3b8">// optional — fixed monthly installment (€)</span>
   "history": [
     {
-      "date":      "2022-05-02",<span style="color:#94a3b8">// YYYY-MM-DD</span>
-      "principal": 454.17,      <span style="color:#94a3b8">// principal paid in this transaction (€)</span>
-      "interest":   47.24,      <span style="color:#94a3b8">// interest paid in this transaction (€)</span>
-      "cost":         2.50      <span style="color:#94a3b8">// bank fees / other costs (€)</span>
+      "date":          "2022-05-02", <span style="color:#94a3b8">// YYYY-MM-DD</span>
+      "principal":     454.17,       <span style="color:#94a3b8">// principal paid in this transaction (€)</span>
+      "interest":       47.24,       <span style="color:#94a3b8">// interest paid in this transaction (€)</span>
+      "cost":             2.50       <span style="color:#94a3b8">// bank fees / other costs (€)</span>
+    },
+    {
+      "date":          "2024-01-01",
+      "principal":     454.17,
+      "interest":       52.10,
+      "cost":             2.50,
+      "interest_rate":    4.50  <span style="color:#94a3b8">// optional — rate changed; overrides global for projections</span>
     }
   ]
 }</div>
@@ -105,12 +112,13 @@
     <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
     <tbody>
       <tr><td>total</td><td>number</td><td><strong>Required.</strong> The original total principal of the loan in €.</td></tr>
-      <tr><td>interest_rate</td><td>number</td><td>Annual interest rate as a percentage (e.g. <code>3.97</code> = 3.97%). Used to compute upcoming interest projections.</td></tr>
+      <tr><td>interest_rate</td><td>number</td><td>Global annual interest rate as a percentage (e.g. <code>3.97</code> = 3.97%). Used as a fallback when no entry-level rate is set.</td></tr>
       <tr><td>monthly_installment</td><td>number</td><td>Fixed monthly installment amount in €. Used as the minimum payment in simulations.</td></tr>
       <tr><td>history[].date</td><td>string</td><td>Transaction date in <code>YYYY-MM-DD</code> format. Multiple transactions on the same calendar month are aggregated.</td></tr>
       <tr><td>history[].principal</td><td>number</td><td>Principal repaid in this transaction (€). Extra lump-sum payments can be recorded here.</td></tr>
       <tr><td>history[].interest</td><td>number</td><td>Interest charged and paid in this transaction (€). Set to <code>0</code> for extra lump-sum principal payments.</td></tr>
       <tr><td>history[].cost</td><td>number</td><td>Additional bank fees or transaction costs (€). Set to <code>0</code> if none.</td></tr>
+      <tr><td>history[].interest_rate</td><td>number</td><td><em>Optional.</em> Annual interest rate in effect at the time of this transaction (%). Overrides the global rate for upcoming interest projections. The most recent entry with this field set wins — useful for variable-rate mortgages.</td></tr>
     </tbody>
   </table>
 

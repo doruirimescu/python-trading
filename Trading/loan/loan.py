@@ -11,6 +11,7 @@ class Payment(BaseModel):
     principal: float
     interest: float
     cost: float
+    interest_rate: Optional[float] = None
 
     def __str__(self):
         return f"Date: {self.date} Principal: {self.principal:.2f} Interest: {self.interest} Cost: {self.cost}"
@@ -38,16 +39,20 @@ class LoanJsonParser:
         total_principal = 0
         total_interest = 0
         total_cost = 0
+        last_rate = None
         for loan in loans:
             total_principal += loan.principal
             total_interest += loan.interest
             total_cost += loan.cost
+            if loan.interest_rate is not None:
+                last_rate = loan.interest_rate
 
         return Payment(
             date=loans[0].date,
             principal=total_principal,
             interest=total_interest,
             cost=total_cost,
+            interest_rate=last_rate,
         )
 
     def history_as_loans(self, json_data: Optional[dict] = None) -> List[Payment]:
@@ -90,7 +95,16 @@ class LoanJsonParser:
     def get_interest_rate(self, json_data: Optional[dict] = None) -> float:
         if json_data is None:
             json_data = self.LOAN_DATA
-        return json_data["interest_rate"]
+        return json_data.get("interest_rate", 0)
+
+    def get_effective_interest_rate(self, json_data: Optional[dict] = None) -> float:
+        """Return the most recent interest_rate from history entries, falling back to the global rate."""
+        if json_data is None:
+            json_data = self.LOAN_DATA
+        for entry in reversed(json_data["history"]):
+            if entry.get("interest_rate") is not None:
+                return entry["interest_rate"]
+        return json_data.get("interest_rate", 0)
 
     def principal_total(self, json_data: Optional[dict] = None) -> float:
         if json_data is None:
