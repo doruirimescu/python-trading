@@ -61,7 +61,11 @@ def plot_bars(
     )
 
     # Update layout
-    fig.update_layout(title_text="Stock Analysis")
+    fig.update_layout(
+        title_text="Stock Analysis",
+        xaxis_title="Solvency",
+        yaxis_title="Valuation",
+    )
     fig.show()
 
     if should_save:
