@@ -3,6 +3,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import json as json_lib
+import time
 
 from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,18 @@ from stock.iv_15 import calculate_iv15_tragic_algebra
 from stock.yfinance.dividend_sustainability import get_data, analyze_dividend_sustainability
 
 app = FastAPI()
+
+_cache: dict = {}
+_CACHE_TTL = 1800  # 30 minutes
+
+def _cache_get(key):
+    entry = _cache.get(key)
+    if entry and (time.time() - entry[1]) < _CACHE_TTL:
+        return entry[0]
+    return None
+
+def _cache_set(key, value):
+    _cache[key] = (value, time.time())
 
 
 def verify_token(x_api_token: str = Header(default="")):
@@ -118,23 +131,38 @@ def iv15_calculate(
     _: None = Depends(verify_token),
 ):
     # manual_sbc is accepted in dollars; frontend sends millions * 1e6
+    key = ('iv15', ticker.upper(), growth_rate, terminal_multiple, manual_sbc)
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
     result = calculate_iv15_tragic_algebra(ticker, growth_rate, terminal_multiple, manual_sbc)
     if isinstance(result, str):
         return {"error": result}
+    _cache_set(key, result)
     return result
 
 
 @app.get("/pvgo/calculate")
 def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05, _: None = Depends(verify_token)):
+    key = ('pvgo', ticker.upper(), market_risk_premium)
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
     result = calculate_pvgo(ticker, market_risk_premium)
     if isinstance(result, str):
         return {"error": result}
+    _cache_set(key, result)
     return result
 
 
 @app.get("/dividend/sustainability")
 def dividend_sustainability(tickers: str, threshold: int = 65, _: None = Depends(verify_token)):
     ticker_list = [t.strip().upper() for t in tickers.replace("\n", ",").split(",") if t.strip()]
+    key = ('dividend', tuple(sorted(ticker_list)), threshold)
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
+
     results = []
     skipped = []
 
@@ -158,4 +186,6 @@ def dividend_sustainability(tickers: str, threshold: int = 65, _: None = Depends
         except Exception as e:
             skipped.append({"ticker": ticker, "reason": str(e)})
 
-    return {"results": results, "skipped": skipped}
+    response = {"results": results, "skipped": skipped}
+    _cache_set(key, response)
+    return response
