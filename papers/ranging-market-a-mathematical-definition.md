@@ -84,35 +84,43 @@ $$
 
 ### Idea
 
-A stock that spends most of its time traversing the full height of its range produces large candle bodies relative to the range width. The metric captures this **vertical density**: the sum of all candle spans as a fraction of the absolute range width, then normalized per candle.
+A stock that spends most of its time traversing the full height of its range produces large candle bodies relative to the range width. The metric captures this **vertical density**: the sum of all candle spans as a fraction of the range width, normalized per candle. To resist outlier spikes, boundaries are defined via percentiles and each candle's contribution is clipped to the interior of that robust range — so neither a single wick on the high side nor one on the low side can distort the score.
 
 ### Definition
 
-$$
-W = \max_{i} H_i - \min_{i} L_i
-$$
+**Step 1 — Robust boundaries** (configurable percentile $x$, default $x = 10$):
 
 $$
-S = \frac{\Sigma}{W} = \frac{\displaystyle\sum_{i=1}^{N}(H_i - L_i)}{W}
+p_H = P_{100-x}(H_{1:N}), \qquad p_L = P_x(L_{1:N}), \qquad W^* = p_H - p_L
 $$
 
-The score is:
+**Step 2 — Clipped candle spans:**
 
 $$
-\boxed{R = \frac{S}{N} = \frac{1}{N} \cdot \frac{\displaystyle\sum_{i=1}^{N}(H_i - L_i)}{W}}
+c_i = \max\!\bigl(\min(H_i, p_H) - \max(L_i, p_L),\ 0\bigr)
+$$
+
+**Step 3 — Score:**
+
+$$
+\boxed{R^* = \frac{1}{N} \cdot \frac{\displaystyle\sum_{i=1}^{N} c_i}{W^*}}
 $$
 
 ### Bounds
 
-$S$ achieves its maximum when every candle spans the full range: $S_{\max} = N$, giving $R_{\max} = 1$.
+Since $0 \leq c_i \leq W^*$ by construction:
 
-$R \in (0, 1]$ for any non-degenerate window.
+$$
+0 \leq \sum_{i=1}^{N} c_i \leq N \cdot W^* \implies R^* \in [0, 1]
+$$
+
+$R^* = 1$ when every candle spans the full robust range.
 
 ### Properties
 
-- Elegant closed-form, single normalization step.
-- Sensitive to absolute extremes: a single historical spike permanently inflates $W$, collapsing $R$ toward zero even if recent price action is clean.
-- Has no directional awareness — a drift candle and a reversal candle contribute equally to $\Sigma$.
+- Spike-resistant: percentile boundaries exclude extreme wicks, and $c_i$ is capped at $W^*$ so no single candle distorts the scale.
+- Bounded: $R^* \in [0, 1]$ always holds by construction.
+- Has no directional awareness — a drift candle and a reversal candle contribute equally to $\sum c_i$.
 
 ---
 
@@ -253,8 +261,8 @@ A spike candle that briefly exceeds the established range boundaries is, from a 
 
 ```python
 def calculate(self, history: History):
-    p_high = history.calculate_percentile(OHLC.HIGH, 90.0)
-    p_low  = history.calculate_percentile(OHLC.LOW, 10.0)
+    p_high = history.calculate_percentile(OHLC.HIGH, 100 - self.x_percent)
+    p_low  = history.calculate_percentile(OHLC.LOW, self.x_percent)
     width  = p_high - p_low
     if width <= 0:
         return 0.0
@@ -264,28 +272,18 @@ def calculate(self, history: History):
     return sum(clipped) / (history.len * width)
 ```
 
-### Remaining Limitation
-
-$R^*$ still has no directional awareness: a drift candle and a reversal candle contribute equally to $\sum c_i$. If diagonal-trend rejection is needed, combine $R^*$ with the flatness penalty $\phi$ from `RobustRangeScorer`:
-
-$$
-R^{**} = \frac{R^*}{1 + \phi}, \qquad \phi = \frac{|\bar{C}_1 - \bar{C}_2|}{W^*}
-$$
-
-This yields a scorer with the bounded output of $R$ and the trend-rejection of $S_3$, at the cost of losing the clean $[0,1]$ upper bound (the denominator $> 1$ for any drifting window).
-
 ---
 
 ## Comparison Table
 
-| Feature | `RangeScorer` ($S_1$) | `RangeCoherenceMetric` ($R$) | `RobustRangeScorer` ($S_3$) |
+| Feature | `RangeScorer` ($S_1$) | `RangeCoherenceMetric` ($R^*$) | `RobustRangeScorer` ($S_3$) |
 |---|---|---|---|
-| **Primary Metric** | $1 / (\text{CV}_H + \text{CV}_L)$ | $\Sigma / (N \cdot W)$ | $\Sigma / (\Delta \cdot (1 + \phi))$ |
-| **Boundary Method** | All data points (squared deviations from the mean) | Absolute $\max$ and $\min$ | Percentiles $P_{90}$ and $P_{10}$ |
-| **Outlier / Spike Handling** | **Poor** — outliers inflate $\sigma$, dragging down the score via squared deviations | **Terrible** — a single spike permanently maximizes $W$, collapsing $R$ toward zero | **Excellent** — top and bottom 10% of wicks are excluded from $\Delta$ |
-| **Detects False Ranges (Diagonal Trends)** | **Weak** — a smooth low-volatility linear trend has small CV yet is not a range | **Weak** — $R$ is blind to chronological order; it cannot see drift | **Strong** — $\phi$ directly measures the drift between first and second half means, and it enters the denominator |
-| **Measures Ping-Pong Oscillation** | **No** — only penalizes dispersion; does not reward internal back-and-forth | **Partially** — $R$ captures relative vertical density but treats all candles equally regardless of direction | **Yes** — $\text{Osc} = \Sigma/\Delta$ rewards stocks that travel many multiples of the range height |
-| **Scale Invariance** | Yes — CV is dimensionless | Yes — $R \in (0,1]$ for any price level | Partial — $S_3$ is dimensionless but unbounded; only meaningful in relative ranking |
+| **Primary Metric** | $1 / (\text{CV}_H + \text{CV}_L)$ | $\sum c_i / (N \cdot W^*)$ | $\Sigma / (\Delta \cdot (1 + \phi))$ |
+| **Boundary Method** | All data points (squared deviations from the mean) | Percentiles $P_{100-x}$ and $P_x$ (default $x=10$) | Percentiles $P_{90}$ and $P_{10}$ |
+| **Outlier / Spike Handling** | **Poor** — outliers inflate $\sigma$, dragging down the score via squared deviations | **Excellent** — percentile boundaries protect $W^*$ and each $c_i$ is capped at $W^*$, so spikes are contained on both sides of the fraction | **Excellent** — percentile boundaries protect $\Delta$, but the numerator still uses raw $H_i - L_i$ |
+| **Detects False Ranges (Diagonal Trends)** | **Weak** — a smooth low-volatility linear trend has small CV yet is not a range | **Weak** — $R^*$ is blind to chronological order; it cannot see drift | **Strong** — $\phi$ directly measures the drift between first and second half means, and it enters the denominator |
+| **Measures Ping-Pong Oscillation** | **No** — only penalizes dispersion; does not reward internal back-and-forth | **Partially** — $R^*$ captures relative vertical density but treats all candles equally regardless of direction | **Yes** — $\text{Osc} = \Sigma/\Delta$ rewards stocks that travel many multiples of the range height |
+| **Scale Invariance** | Yes — CV is dimensionless | Yes — $R^* \in [0,1]$ for any price level | Partial — $S_3$ is dimensionless but unbounded; only meaningful in relative ranking |
 | **Tight Range Guard** | None | None | Yes — discards windows where $\Delta / R_{\text{res}} < 0.20$ |
-| **Upper Bound** | None (approaches $\infty$) | $R \leq 1$ | None (grows with oscillation) |
-| **Ideal Chart Pattern** | Flat, low-volatility channels with small absolute deviation | Volatile price action filling a rigid container | Active, clean horizontal consolidations ready for mean-reversion trades |
+| **Upper Bound** | None (approaches $\infty$) | $R^* \leq 1$ | None (grows with oscillation) |
+| **Ideal Chart Pattern** | Flat, low-volatility channels with small absolute deviation | Volatile price action filling a rigid container with outlier-resistant boundaries | Active, clean horizontal consolidations ready for mean-reversion trades |
