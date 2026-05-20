@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 import json as json_lib
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 
@@ -15,6 +15,12 @@ from stock.iv_15 import calculate_iv15_tragic_algebra
 from stock.yfinance.dividend_sustainability import get_data, analyze_dividend_sustainability
 
 app = FastAPI()
+
+
+def verify_token(x_api_token: str = Header(default="")):
+    expected = os.getenv("API_TOKEN")
+    if expected and x_api_token != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 origins = [
     "https://doruirimescu.github.io",
@@ -43,6 +49,7 @@ def loan_simulate(
     investment_return: float,
     monthly_salary: int,
     n_years: int,
+    _: None = Depends(verify_token),
 ):
     return perform_simulation(
         principal,
@@ -64,7 +71,7 @@ def _serialize_payments(payments):
 
 
 @app.post("/loan/analyze")
-async def loan_analyze(file: UploadFile = File(...)):
+async def loan_analyze(file: UploadFile = File(...), _: None = Depends(verify_token)):
     content = await file.read()
     loan_data = json_lib.loads(content)
 
@@ -108,6 +115,7 @@ def iv15_calculate(
     growth_rate: float = 0.15,
     terminal_multiple: float = 15,
     manual_sbc: Optional[float] = None,
+    _: None = Depends(verify_token),
 ):
     # manual_sbc is accepted in dollars; frontend sends millions * 1e6
     result = calculate_iv15_tragic_algebra(ticker, growth_rate, terminal_multiple, manual_sbc)
@@ -117,7 +125,7 @@ def iv15_calculate(
 
 
 @app.get("/pvgo/calculate")
-def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05):
+def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05, _: None = Depends(verify_token)):
     result = calculate_pvgo(ticker, market_risk_premium)
     if isinstance(result, str):
         return {"error": result}
@@ -125,7 +133,7 @@ def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05):
 
 
 @app.get("/dividend/sustainability")
-def dividend_sustainability(tickers: str, threshold: int = 65):
+def dividend_sustainability(tickers: str, threshold: int = 65, _: None = Depends(verify_token)):
     ticker_list = [t.strip().upper() for t in tickers.replace("\n", ",").split(",") if t.strip()]
     results = []
     skipped = []

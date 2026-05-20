@@ -34,11 +34,18 @@
     .score-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
     .score-table th, .score-table td { padding: 6px 10px; font-size: 0.9em; border-bottom: 1px solid #e2e8f0; text-align: left; }
     .score-table th { font-weight: 600; color: #1e293b; background: #f8fafc; }
+    .token-bar { display: flex; align-items: center; gap: 10px; margin: 12px 0 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 14px; }
+    .token-bar label { font-size: 0.85em; font-weight: 600; white-space: nowrap; color: #475569; }
+    .token-bar input { flex: 1; padding: 5px 9px; font-size: 0.9em; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; color: #1e293b; }
   </style>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
   <a href="index.html">← Back</a>
+  <div class="token-bar">
+    <label for="api-token">API Token</label>
+    <input type="password" id="api-token" placeholder="Paste your token here" autocomplete="off">
+  </div>
   <h1>Dividend Sustainability Analyzer</h1>
   <p class="desc">Score dividend-paying stocks across payout ratio, yield, debt, ROE, liquidity, free cash flow, and 5-year dividend growth. Tickers without dividend data are skipped.</p>
 
@@ -87,6 +94,11 @@
     const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
     const BACKEND_URL = IS_LOCAL ? "http://localhost:8000" : "https://python-trading-mlfz.onrender.com";
 
+    const tokenEl = document.getElementById('api-token');
+    tokenEl.value = localStorage.getItem('api_token') || '';
+    tokenEl.addEventListener('input', () => localStorage.setItem('api_token', tokenEl.value));
+    function getToken() { return localStorage.getItem('api_token') || ''; }
+
     document.getElementById("tickers").addEventListener("input", function () {
       this.value = this.value.toUpperCase();
     });
@@ -109,7 +121,7 @@
 
       try {
         const params = new URLSearchParams({ tickers, threshold });
-        const response = await fetch(`${BACKEND_URL}/dividend/sustainability?${params}`);
+        const response = await fetch(`${BACKEND_URL}/dividend/sustainability?${params}`, { headers: { 'X-API-Token': getToken() } });
         if (!response.ok) {
           const body = await response.text();
           throw new Error(`Server returned ${response.status}: ${body}`);

@@ -27,10 +27,17 @@
     #stats tr:nth-child(even) td { background: #f1f5f9; }
     #stats td:last-child { text-align: right; font-weight: 600; }
     #chart-container { display: none; }
+    .token-bar { display: flex; align-items: center; gap: 10px; margin: 12px 0 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 14px; }
+    .token-bar label { font-size: 0.85em; font-weight: 600; white-space: nowrap; color: #475569; }
+    .token-bar input { flex: 1; padding: 5px 9px; font-size: 0.9em; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; color: #1e293b; }
   </style>
 </head>
 <body>
   <a href="index.html">← Back</a>
+  <div class="token-bar">
+    <label for="api-token">API Token</label>
+    <input type="password" id="api-token" placeholder="Paste your token here" autocomplete="off">
+  </div>
   <h1>Loan vs Investment Simulator</h1>
   <p class="desc">
     Computes total wealth after <em>N</em> years for each possible split of your salary between
@@ -81,6 +88,11 @@
     const BACKEND_URL = IS_LOCAL ? "http://localhost:8000" : "https://python-trading-mlfz.onrender.com";
     let chartInstance = null;
 
+    const tokenEl = document.getElementById('api-token');
+    tokenEl.value = localStorage.getItem('api_token') || '';
+    tokenEl.addEventListener('input', () => localStorage.setItem('api_token', tokenEl.value));
+    function getToken() { return localStorage.getItem('api_token') || ''; }
+
     document.getElementById("sim-form").addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -101,7 +113,7 @@
       btn.textContent = "Simulating…";
 
       try {
-        const response = await fetch(`${BACKEND_URL}/loan/simulate?${params}`);
+        const response = await fetch(`${BACKEND_URL}/loan/simulate?${params}`, { headers: { 'X-API-Token': getToken() } });
         if (!response.ok) {
           const body = await response.text();
           throw new Error(`Server returned ${response.status}: ${body}`);
