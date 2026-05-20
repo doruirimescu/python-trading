@@ -185,7 +185,7 @@ The $+1$ in the denominator prevents division by zero and ensures that a perfect
 
 ---
 
-## Proposed Improvements to `RangeCoherenceMetric`
+## Improvements to `RangeCoherenceMetric` *(implemented)*
 
 ### The Core Problem
 
@@ -196,9 +196,9 @@ The original $R$ has two coupled failure modes:
 
 Fixing only the denominator (swapping $W \to W_x$) is therefore not sufficient: spike candles in the numerator can then exceed $W_x$, which breaks the $R \leq 1$ bound and distorts rankings.
 
-### Proposed Fix: Robust Coherence Metric $R^*$
+### Robust Coherence Metric $R^*$
 
-Replace the absolute boundaries with percentile boundaries **and** clip each candle's contribution to the interior of the robust range. Both the numerator and denominator then use the same reference frame.
+The fix replaces absolute boundaries with percentile boundaries **and** clips each candle's contribution to the interior of the robust range, so numerator and denominator use the same reference frame.
 
 **Step 1 — Robust boundaries** (same as $W_x$ with $x = 10$):
 
