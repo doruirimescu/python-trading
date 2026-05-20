@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import median
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config.config import SP500_WEIGHTS_GENERATED_PATH, SP500_TODAY_PATH, SP500_VALUATION_PATH
+from config.config import SP500_WEIGHTS_GENERATED_PATH, SP500_TODAY_PATH, SP500_VALUATION_PATH, SP500_VALUATION_HTML_PATH
 
 
 def _extract_json_array(html: str, key: str) -> list:
@@ -161,6 +161,140 @@ def bucket(score: float) -> str:
     return "Strongly overvalued (>30%)"
 
 
+def render_html(result: dict) -> str:
+    from datetime import date
+
+    ew = result["equal_weight"]
+    stocks = result["stocks"]
+    dist = result["distribution"]
+    mcw = result.get("market_cap_weighted")
+
+    ew_pct = ew["portfolio_pct"]
+    med_pct = ew["median_pct"]
+    ew_cls = "green" if ew_pct < 0 else "red"
+    med_cls = "green" if med_pct < 0 else "red"
+
+    stat_cards = f'''\
+    <div class="stat">
+      <div class="label">Equal-weight</div>
+      <div class="value {ew_cls}">{ew_pct:+.1f}%</div>
+      <div class="sub">portfolio deviation</div>
+    </div>
+    <div class="stat">
+      <div class="label">Median stock</div>
+      <div class="value {med_cls}">{med_pct:+.1f}%</div>
+      <div class="sub">deviation</div>
+    </div>'''
+
+    grid_cols = 2
+    if mcw:
+        mcw_pct = mcw["portfolio_pct"]
+        mcw_cls = "green" if mcw_pct < 0 else "red"
+        stat_cards += f'''
+    <div class="stat">
+      <div class="label">Market-cap weighted</div>
+      <div class="value {mcw_cls}">{mcw_pct:+.1f}%</div>
+      <div class="sub">{mcw["stocks_covered"]} / {stocks["total"]} stocks</div>
+    </div>'''
+        grid_cols = 3
+
+    dist_order = [
+        ("Strongly undervalued (>30%)",     "#16a34a"),
+        ("Moderately undervalued (10-30%)", "#4ade80"),
+        ("Slightly undervalued (<10%)",     "#86efac"),
+        ("Fairly valued",                   "#94a3b8"),
+        ("Slightly overvalued (<10%)",      "#fca5a5"),
+        ("Moderately overvalued (10-30%)",  "#f87171"),
+        ("Strongly overvalued (>30%)",      "#dc2626"),
+    ]
+    max_count = max((dist.get(lbl, 0) for lbl, _ in dist_order), default=1) or 1
+    dist_rows = ""
+    for label, color in dist_order:
+        count = dist.get(label, 0)
+        if not count:
+            continue
+        width = round(count / max_count * 100)
+        dist_rows += f'''
+  <div class="dist-row">
+    <div class="dist-label">{label}</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:{width}%;background:{color}"></div></div>
+    <div class="dist-count">{count}</div>
+  </div>'''
+
+    def entry_rows(entries):
+        rows = ""
+        for e in entries:
+            sc = e["score_pct"]
+            cls = "green" if sc < 0 else "red"
+            sol = e.get("solvency")
+            sol_str = str(sol) if sol is not None else "&mdash;"
+            rows += f'\n      <tr><td class="sym">{e["symbol"]}</td><td class="{cls}">{sc:+.0f}%</td><td>{sol_str}</td></tr>'
+        return rows
+
+    under_rows = entry_rows(result["most_undervalued"])
+    over_rows = entry_rows(result["most_overvalued"])
+    today = date.today().isoformat()
+
+    return f'''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>S&amp;P 500 Valuation Summary</title>
+  <style>
+    body {{ font-family: sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }}
+    a.back {{ margin-bottom: 20px; display: inline-block; color: #2563eb; text-decoration: none; }}
+    a.back:hover {{ text-decoration: underline; }}
+    h1 {{ margin-bottom: 6px; }}
+    p.desc {{ color: #555; margin-bottom: 24px; }}
+    h2 {{ font-size: 1em; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin: 32px 0 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }}
+    .stat-grid {{ display: grid; grid-template-columns: repeat({grid_cols}, 1fr); gap: 14px; margin-bottom: 8px; }}
+    .stat {{ padding: 16px 20px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; }}
+    .stat .label {{ font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 4px; }}
+    .stat .value {{ font-size: 1.8em; font-weight: 700; line-height: 1.2; }}
+    .stat .sub {{ font-size: 0.82em; color: #64748b; }}
+    .green {{ color: #16a34a; }}
+    .red {{ color: #dc2626; }}
+    .dist-row {{ display: flex; align-items: center; margin: 4px 0; font-size: 0.88em; }}
+    .dist-label {{ width: 250px; flex-shrink: 0; color: #1e293b; }}
+    .dist-bar-wrap {{ flex: 1; background: #f1f5f9; border-radius: 3px; height: 16px; margin: 0 10px; }}
+    .dist-bar {{ height: 100%; border-radius: 3px; }}
+    .dist-count {{ width: 32px; text-align: right; color: #64748b; font-variant-numeric: tabular-nums; }}
+    .two-col {{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 4px; }}
+    table {{ width: 100%; border-collapse: collapse; }}
+    th, td {{ padding: 7px 10px; font-size: 0.9em; border-bottom: 1px solid #e2e8f0; text-align: left; }}
+    th {{ font-weight: 600; color: #1e293b; background: #f8fafc; }}
+    .sym {{ font-weight: 600; font-family: monospace; font-size: 0.95em; }}
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">&#8592; Back</a>
+  <h1>S&amp;P 500 Valuation Summary</h1>
+  <p class="desc">{today} &mdash; {stocks["total"]} stocks &nbsp;&middot;&nbsp; {stocks["undervalued"]} undervalued &nbsp;&middot;&nbsp; {stocks["overvalued"]} overvalued</p>
+
+  <div class="stat-grid">
+{stat_cards}
+  </div>
+
+  <h2>Distribution</h2>
+{dist_rows}
+
+  <h2>Extremes</h2>
+  <div class="two-col">
+    <table>
+      <thead><tr><th>Most Undervalued</th><th>Score</th><th>Solvency</th></tr></thead>
+      <tbody>{under_rows}
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Most Overvalued</th><th>Score</th><th>Solvency</th></tr></thead>
+      <tbody>{over_rows}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>'''
+
+
 def summarize(path: Path, market_cap: bool = False):
     entries = resolve_and_load(path)
 
@@ -239,7 +373,11 @@ def summarize(path: Path, market_cap: bool = False):
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w") as f:
         json.dump(result, f, indent=2)
-    print(f"\nSaved to {out}")
+
+    html_out = Path(SP500_VALUATION_HTML_PATH)
+    html_out.parent.mkdir(parents=True, exist_ok=True)
+    html_out.write_text(render_html(result))
+    print(f"\nSaved to {out} and {html_out}")
 
 
 if __name__ == "__main__":

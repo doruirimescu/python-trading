@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>S&amp;P 500 Valuation Summary</title>
+  <style>
+    body { font-family: sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    a.back { margin-bottom: 20px; display: inline-block; color: #2563eb; text-decoration: none; }
+    a.back:hover { text-decoration: underline; }
+    h1 { margin-bottom: 6px; }
+    p.desc { color: #555; margin-bottom: 24px; }
+    h2 { font-size: 1em; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin: 32px 0 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 8px; }
+    .stat { padding: 16px 20px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; }
+    .stat .label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 4px; }
+    .stat .value { font-size: 1.8em; font-weight: 700; line-height: 1.2; }
+    .stat .sub { font-size: 0.82em; color: #64748b; }
+    .green { color: #16a34a; }
+    .red { color: #dc2626; }
+    .dist-row { display: flex; align-items: center; margin: 4px 0; font-size: 0.88em; }
+    .dist-label { width: 250px; flex-shrink: 0; color: #1e293b; }
+    .dist-bar-wrap { flex: 1; background: #f1f5f9; border-radius: 3px; height: 16px; margin: 0 10px; }
+    .dist-bar { height: 100%; border-radius: 3px; }
+    .dist-count { width: 32px; text-align: right; color: #64748b; font-variant-numeric: tabular-nums; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 7px 10px; font-size: 0.9em; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { font-weight: 600; color: #1e293b; background: #f8fafc; }
+    .sym { font-weight: 600; font-family: monospace; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">&#8592; Back</a>
+  <h1>S&amp;P 500 Valuation Summary</h1>
+  <p class="desc">2026-05-20 &mdash; 488 stocks &nbsp;&middot;&nbsp; 247 undervalued &nbsp;&middot;&nbsp; 241 overvalued</p>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="label">Equal-weight</div>
+      <div class="value green">-11.2%</div>
+      <div class="sub">portfolio deviation</div>
+    </div>
+    <div class="stat">
+      <div class="label">Median stock</div>
+      <div class="value green">-1.0%</div>
+      <div class="sub">deviation</div>
+    </div>
+    <div class="stat">
+      <div class="label">Market-cap weighted</div>
+      <div class="value red">+13.5%</div>
+      <div class="sub">488 / 488 stocks</div>
+    </div>
+  </div>
+
+  <h2>Distribution</h2>
+
+  <div class="dist-row">
+    <div class="dist-label">Strongly undervalued (>30%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:70%;background:#16a34a"></div></div>
+    <div class="dist-count">85</div>
+  </div>
+  <div class="dist-row">
+    <div class="dist-label">Moderately undervalued (10-30%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:100%;background:#4ade80"></div></div>
+    <div class="dist-count">121</div>
+  </div>
+  <div class="dist-row">
+    <div class="dist-label">Slightly undervalued (<10%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:34%;background:#86efac"></div></div>
+    <div class="dist-count">41</div>
+  </div>
+  <div class="dist-row">
+    <div class="dist-label">Slightly overvalued (<10%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:34%;background:#fca5a5"></div></div>
+    <div class="dist-count">41</div>
+  </div>
+  <div class="dist-row">
+    <div class="dist-label">Moderately overvalued (10-30%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:84%;background:#f87171"></div></div>
+    <div class="dist-count">102</div>
+  </div>
+  <div class="dist-row">
+    <div class="dist-label">Strongly overvalued (>30%)</div>
+    <div class="dist-bar-wrap"><div class="dist-bar" style="width:81%;background:#dc2626"></div></div>
+    <div class="dist-count">98</div>
+  </div>
+
+  <h2>Extremes</h2>
+  <div class="two-col">
+    <table>
+      <thead><tr><th>Most Undervalued</th><th>Score</th><th>Solvency</th></tr></thead>
+      <tbody>
+      <tr><td class="sym">COO</td><td class="green">-80%</td><td>45</td></tr>
+      <tr><td class="sym">CHTR</td><td class="green">-78%</td><td>15</td></tr>
+      <tr><td class="sym">PSKY</td><td class="green">-78%</td><td>35</td></tr>
+      <tr><td class="sym">FISV</td><td class="green">-68%</td><td>31</td></tr>
+      <tr><td class="sym">ARE</td><td class="green">-66%</td><td>23</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Most Overvalued</th><th>Score</th><th>Solvency</th></tr></thead>
+      <tbody>
+      <tr><td class="sym">TSLA</td><td class="red">+83%</td><td>86</td></tr>
+      <tr><td class="sym">CIEN</td><td class="red">+78%</td><td>63</td></tr>
+      <tr><td class="sym">NFLX</td><td class="red">+77%</td><td>78</td></tr>
+      <tr><td class="sym">CRWD</td><td class="red">+77%</td><td>64</td></tr>
+      <tr><td class="sym">TPL</td><td class="red">+71%</td><td>78</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

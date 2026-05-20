@@ -1,0 +1,79 @@
+{
+  "file": "sp500_today.html",
+  "stocks": {
+    "total": 488,
+    "overvalued": 241,
+    "undervalued": 247
+  },
+  "equal_weight": {
+    "portfolio_pct": -11.22,
+    "median_pct": -1.0
+  },
+  "distribution": {
+    "Strongly undervalued (>30%)": 85,
+    "Moderately undervalued (10-30%)": 121,
+    "Slightly undervalued (<10%)": 41,
+    "Fairly valued": 0,
+    "Slightly overvalued (<10%)": 41,
+    "Moderately overvalued (10-30%)": 102,
+    "Strongly overvalued (>30%)": 98
+  },
+  "most_undervalued": [
+    {
+      "symbol": "COO",
+      "score_pct": -80,
+      "solvency": 45
+    },
+    {
+      "symbol": "CHTR",
+      "score_pct": -78,
+      "solvency": 15
+    },
+    {
+      "symbol": "PSKY",
+      "score_pct": -78,
+      "solvency": 35
+    },
+    {
+      "symbol": "FISV",
+      "score_pct": -68,
+      "solvency": 31
+    },
+    {
+      "symbol": "ARE",
+      "score_pct": -66,
+      "solvency": 23
+    }
+  ],
+  "most_overvalued": [
+    {
+      "symbol": "TSLA",
+      "score_pct": 83,
+      "solvency": 86
+    },
+    {
+      "symbol": "CIEN",
+      "score_pct": 78,
+      "solvency": 63
+    },
+    {
+      "symbol": "NFLX",
+      "score_pct": 77,
+      "solvency": 78
+    },
+    {
+      "symbol": "CRWD",
+      "score_pct": 77,
+      "solvency": 64
+    },
+    {
+      "symbol": "TPL",
+      "score_pct": 71,
+      "solvency": 78
+    }
+  ],
+  "market_cap_weighted": {
+    "portfolio_pct": 13.47,
+    "stocks_covered": 488
+  }
+}
