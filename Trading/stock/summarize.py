@@ -8,6 +8,9 @@ from collections import Counter
 from pathlib import Path
 from statistics import median
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config.config import SP500_WEIGHTS_GENERATED_PATH
+
 
 def _extract_json_array(html: str, key: str) -> list:
     """Extract the first JSON array following `"key":[` in html."""
@@ -116,30 +119,12 @@ def portfolio_valuation(entries: list) -> float:
     return len(entries) / total_intrinsic - 1.0
 
 
-def fetch_market_caps(symbols: list, cache_path: Path) -> dict:
-    """Fetch market caps via yfinance, caching results to avoid repeat requests."""
-    if cache_path.exists():
-        with open(cache_path) as f:
-            cached = json.load(f)
-        if all(s in cached for s in symbols):
-            return cached
-
-    import yfinance as yf
-    print(f"Fetching market caps for {len(symbols)} tickers (cached to {cache_path.name})...", flush=True)
-    batch = yf.Tickers(" ".join(symbols))
-    caps = {}
-    for i, sym in enumerate(symbols, 1):
-        try:
-            caps[sym] = batch.tickers[sym].fast_info.market_cap
-        except Exception:
-            caps[sym] = None
-        if i % 50 == 0:
-            print(f"  {i}/{len(symbols)}", flush=True)
-
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_path, "w") as f:
-        json.dump(caps, f, indent=2)
-    return caps
+def load_market_caps() -> dict:
+    p = Path(SP500_WEIGHTS_GENERATED_PATH)
+    if not p.exists():
+        sys.exit(f"Market caps not found at {p}\nRun: python3 stock/fetch_sp500_weights.py <sp500.html>")
+    with open(p) as f:
+        return json.load(f)
 
 
 def portfolio_valuation_weighted(entries: list, market_caps: dict) -> tuple:
@@ -228,9 +213,7 @@ def summarize(path: Path, market_cap: bool = False):
 
     if market_cap:
         print()
-        symbols = [e["symbol"] for e in entries]
-        cache_path = path.parent / f"{path.stem}_market_caps.json"
-        caps = fetch_market_caps(symbols, cache_path)
+        caps = load_market_caps()
         mcw_dev, n_covered = portfolio_valuation_weighted(entries, caps)
         mcw_dir = "OVERVALUED" if mcw_dev > 0 else "UNDERVALUED"
         print(f"Market-cap-weighted valuation  ({n_covered}/{n} stocks with data)")

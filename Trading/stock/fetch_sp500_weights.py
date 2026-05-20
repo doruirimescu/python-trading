@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config.config import SP500_WEIGHTS_GENERATED_PATH
+from config.config import SP500_WEIGHTS_GENERATED_PATH, SP500_TODAY_PATH
 
 # stock/yfinance/ shadows the real package; remove this directory from sys.path
 _local = str(Path(__file__).parent)
@@ -38,10 +38,9 @@ def load_symbols_from_file(path: Path) -> list:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch S&P 500 market caps")
-    parser.add_argument("file", help="Path to S&P 500 .html or .json analysis file")
     args = parser.parse_args()
 
-    symbols = load_symbols_from_file(Path(args.file))
+    symbols = load_symbols_from_file(SP500_TODAY_PATH)
     caps = fetch_market_caps(symbols)
 
     out = Path(SP500_WEIGHTS_GENERATED_PATH)
