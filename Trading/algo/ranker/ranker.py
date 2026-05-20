@@ -74,18 +74,19 @@ class RangeCoherenceMetric(ScoreCalculator):
     It finds the range coherence metric described in this paper.
     """
 
+    x_percent: float = 10.0
+
     def calculate(self, history: History):
-        p_high = history.get_highest(OHLC.HIGH)
-        p_low = history.get_lowest(OHLC.LOW)
+        p_high = history.calculate_percentile(OHLC.HIGH, 100 - self.x_percent)
+        p_low = history.calculate_percentile(OHLC.LOW, self.x_percent)
 
-        # Calculate the diminished range width
         width = p_high - p_low
+        if width <= 0:
+            return 0.0
 
-        # sum over high - low for each candle
-        s = sum([h - l for h, l in zip(history.high, history.low)]) / width
-
-        n = history.len
-        return s / n
+        clipped = [max(min(h, p_high) - max(l, p_low), 0)
+                   for h, l in zip(history.high, history.low)]
+        return sum(clipped) / (history.len * width)
 
 
 class RobustRangeScorer(ScoreCalculator):
