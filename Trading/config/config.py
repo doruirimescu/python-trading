@@ -37,6 +37,7 @@ GURUFOCUS_DOWNLOADS_PATH = TMP_PATH.joinpath("gurufocus")
 YFINANCE_DOWNLOADS_PATH = TMP_PATH.joinpath("yfinance")
 DOCS_PATH = CURRENT_FILE_PATH.joinpath("../../docs/")
 SP500_TODAY_PATH = DOCS_PATH.joinpath("sp500_today.html")
+SP500_VALUATION_PATH = DOCS_PATH.joinpath("sp500_valuation.json")
 
 # Google Search configurations
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

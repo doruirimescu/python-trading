@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import median
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config.config import SP500_WEIGHTS_GENERATED_PATH
+from config.config import SP500_WEIGHTS_GENERATED_PATH, SP500_TODAY_PATH, SP500_VALUATION_PATH
 
 
 def _extract_json_array(html: str, key: str) -> list:
@@ -184,8 +184,6 @@ def summarize(path: Path, market_cap: bool = False):
     print(f"  Median:    {med:+.1f}%")
     print()
 
-    buckets = Counter(bucket(s) for s in scores)
-    print("Distribution:")
     order = [
         "Strongly undervalued (>30%)",
         "Moderately undervalued (10-30%)",
@@ -195,6 +193,8 @@ def summarize(path: Path, market_cap: bool = False):
         "Moderately overvalued (10-30%)",
         "Strongly overvalued (>30%)",
     ]
+    buckets = Counter(bucket(s) for s in scores)
+    print("Distribution:")
     for b in order:
         count = buckets.get(b, 0)
         if count:
@@ -211,6 +211,21 @@ def summarize(path: Path, market_cap: bool = False):
     for e in reversed(sorted_entries[-5:]):
         print(f"  {e['symbol']:<8} {signed_score(e):+.0f}%  solvency={e.get('solvency_score', 'N/A')}")
 
+    result = {
+        "file": path.name,
+        "stocks": {"total": n, "overvalued": len(overvalued), "undervalued": len(undervalued)},
+        "equal_weight": {"portfolio_pct": round(port_dev * 100, 2), "median_pct": round(med, 2)},
+        "distribution": {b: buckets.get(b, 0) for b in order},
+        "most_undervalued": [
+            {"symbol": e["symbol"], "score_pct": round(signed_score(e), 1), "solvency": e.get("solvency_score")}
+            for e in sorted_entries[:5]
+        ],
+        "most_overvalued": [
+            {"symbol": e["symbol"], "score_pct": round(signed_score(e), 1), "solvency": e.get("solvency_score")}
+            for e in reversed(sorted_entries[-5:])
+        ],
+    }
+
     if market_cap:
         print()
         caps = load_market_caps()
@@ -218,11 +233,21 @@ def summarize(path: Path, market_cap: bool = False):
         mcw_dir = "OVERVALUED" if mcw_dev > 0 else "UNDERVALUED"
         print(f"Market-cap-weighted valuation  ({n_covered}/{n} stocks with data)")
         print(f"  Portfolio: {mcw_dev*100:+.1f}%  [{mcw_dir} by {abs(mcw_dev)*100:.1f}%]")
+        result["market_cap_weighted"] = {"portfolio_pct": round(mcw_dev * 100, 2), "stocks_covered": n_covered}
+
+    out = Path(SP500_VALUATION_PATH)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w") as f:
+        json.dump(result, f, indent=2)
+    print(f"\nSaved to {out}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize index valuation")
-    parser.add_argument("file", help="Path to analysis .html or .json file")
+    parser.add_argument("--file", action="store_true", help="Path to analysis .html or .json file")
     parser.add_argument("--market-cap", action="store_true", help="Also compute market-cap-weighted valuation (fetches via yfinance, cached)")
     args = parser.parse_args()
-    summarize(Path(args.file), market_cap=args.market_cap)
+    if not args.file:
+        print("No file provided, using default S&P 500 analysis")
+        args.file = SP500_TODAY_PATH
+    summarize(Path(args.file), market_cap=True)
