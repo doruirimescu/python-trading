@@ -13,7 +13,7 @@ from loan.loan_vs_investment import perform_simulation
 from loan.loan import LoanJsonParser
 from stock.pvgo_calculator import calculate_pvgo
 from stock.iv_15 import calculate_iv15_tragic_algebra
-from stock.yfinance.dividend_sustainability import get_data, analyze_dividend_sustainability
+from stock.yf_stock.dividend_sustainability import get_data, analyze_dividend_sustainability
 
 app = FastAPI()
 

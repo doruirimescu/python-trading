@@ -17,6 +17,7 @@ sys.path = _orig_path
 
 
 def fetch_market_caps(symbols: list) -> dict:
+    import time
     print(f"Fetching market caps for {len(symbols)} tickers...", flush=True)
     batch = yf.Tickers(" ".join(symbols))
     caps = {}
@@ -25,6 +26,7 @@ def fetch_market_caps(symbols: list) -> dict:
             caps[sym] = batch.tickers[sym].fast_info.market_cap
         except Exception:
             caps[sym] = None
+        time.sleep(0.15)
         if i % 50 == 0:
             print(f"  {i}/{len(symbols)}", flush=True)
     return caps

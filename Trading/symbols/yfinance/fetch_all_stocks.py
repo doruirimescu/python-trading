@@ -20,12 +20,12 @@ from pathlib import Path
 import yfinance as yf
 from stateful_data_processor.file_rw import JsonFileRW
 from stateful_data_processor.parallel_processor import ParallelStatefulDataProcessor
-from Trading.symbols.yfinance.constants import EXCHANGES
+from Trading.symbols.yfinance.constants import FILTERED_EXCHANGES
 
 SCRIPT_DIR = Path(__file__).parent
 
 RAW_FILE = SCRIPT_DIR / f"{date.today()}-all-equities.json"
-OUTPUT_FILE = SCRIPT_DIR / "all_stocks.json"
+OUTPUT_FILE = SCRIPT_DIR / "switzerland_stocks.json"
 
 
 PAGE_SIZE = 250
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     print(f"Output        : {OUTPUT_FILE}\n")
 
     fetcher = EquityFetcher(JsonFileRW(str(RAW_FILE)), n_workers=4, logger=LOGGER)
-    fetcher.run(EXCHANGES)
+    fetcher.run(FILTERED_EXCHANGES)
 
     total_raw = sum(len(v) for v in fetcher.data.values())
     print(f"\nBuilding {OUTPUT_FILE.name} from {total_raw} raw entries...")

@@ -97,8 +97,8 @@ class RobustRangeScorer(ScoreCalculator):
     3. Trend Penalty (penalizing diagonal movement).
     """
 
-    upper_percentile: float = 90.0
-    lower_percentile: float = 10.0
+    upper_percentile: float = 95.0
+    lower_percentile: float = 5.0
 
     def calculate(self, history: History) -> float:
         if history.len < 2:

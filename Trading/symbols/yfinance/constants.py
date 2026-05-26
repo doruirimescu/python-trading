@@ -70,3 +70,5 @@ def get_exchanes_by_countries(country_codes: list[str]) -> list[str]:
     for code in country_codes:
         exchanges.extend(EXCHANGES_BY_COUNTRY.get(code, []))
     return exchanges
+
+FILTERED_EXCHANGES = get_exchanes_by_countries(["CH"])

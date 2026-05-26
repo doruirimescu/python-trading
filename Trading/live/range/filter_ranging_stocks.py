@@ -7,7 +7,9 @@ from Trading.config.config import RANGING_STOCKS_PATH
 from Trading.instrument import Instrument
 from Trading.model.timeframes import Timeframe
 from Trading.live.client.client import YFinanceLoggingClient
-from Trading.symbols.constants import YAHOO_STOCK_SYMBOLS
+from Trading.symbols.constants import (YAHOO_STOCK_SYMBOLS,
+                                       YAHOO_FTSE_ALL_WORLD_SYMBOLS,
+                                       YAHOO_SWITZERLAND_SYMBOLS)
 from Trading.model.history import History, OHLC
 from Trading.utils.time import get_date_now_cet
 from Trading.utils.custom_logging import get_logger
@@ -34,7 +36,7 @@ PERCENTAGE_WIN = 1.10
 range_scorer = RangeScorer(window=RANGE_WIDTH)
 range_coherence = RangeCoherenceMetric(window=RANGE_WIDTH)
 range_robust_scorer = RobustRangeScorer(window=RANGE_WIDTH)
-range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_robust_scorer)
+range_ordering = Ordering(top_n=ORDERING_SIZE, score_calculator=range_coherence)
 
 class StockRangeProcessor(StatefulDataProcessor):
     def __init__(
@@ -86,6 +88,11 @@ class StockRangeProcessor(StatefulDataProcessor):
         # This works best if some parameter of the range ordering has changed
         if self.data[item] is None:
             return
+        if ".KS" in item or ".TW" in item or ".HK" in item:
+            return
+        #If before the first . we have only digits, skip
+        if item.split(".")[0].isdigit():
+            return
         history = History(**self.data[item])
         range_ordering.add_history(history)
         self.data["range_ordering"] = range_ordering.model_dump()
@@ -96,7 +103,7 @@ if __name__ == "__main__":
     client = YFinanceLoggingClient()
 
     # temp json file storage
-    file_path = f"range-scorer-stocks-{get_date_now_cet()}.json"
+    file_path = f"range-scorer-stocks-switzerland.json"
     js = JsonFileRW(
         RANGING_STOCKS_PATH.joinpath(file_path),
         LOGGER,
@@ -104,7 +111,7 @@ if __name__ == "__main__":
     sp = StockRangeProcessor(
         js, LOGGER, should_reload_ordering=False, should_reprocess=True
     )
-    symbols = YAHOO_STOCK_SYMBOLS
+    symbols = YAHOO_SWITZERLAND_SYMBOLS
     LOGGER.info(f"Items length: {len(symbols)}")
     sp.run(items=symbols, client=client)
 
@@ -211,3 +218,36 @@ if __name__ == "__main__":
 #TBCG.UK_9: 1.105
 #TXRH.US_9: 1.103
 #TKA.DE_9: 1.100
+
+# improved coherence
+# 005420.KS: 1.453
+# INFO - 1691.HK: 1.386
+# INFO - TKMS.DE: 1.346
+# INFO - 2158.HK: 1.331
+# INFO - SIDO.JK: 1.328
+# INFO - SUNTV.NS: 1.266
+# INFO - RNA: 1.256
+# INFO - RENT4.SA: 1.243
+# INFO - MKS.L: 1.231
+# INFO - 6632.T: 1.224
+# INFO - EXP: 1.210
+# INFO - 7575.T: 1.206
+# INFO - 138040.KS: 1.193
+# INFO - HO.PA: 1.188
+# INFO - 2034.TW: 1.188
+# INFO - MICC.AS: 1.184
+# INFO - VOLTAS.NS: 1.181
+# INFO - 2474.TW: 1.176
+# INFO - MAS: 1.170
+# INFO - BPT.AX: 1.156
+# INFO - MONC.MI: 1.144
+# INFO - HOMB: 1.131
+# INFO - 600639.SS: 1.131
+# INFO - 365550.KS: 1.130
+# INFO - 7545.T: 1.119
+# INFO - NHPC.NS: 1.113
+# INFO - SIG.AX: 1.110
+# INFO - ENOG.L: 1.108
+# INFO - BVI.PA: 1.105
+# INFO - 7414.T: 1.104
+# INFO - 4369.T: 1.101

@@ -4,9 +4,6 @@ from pydantic import ConfigDict
 
 import yfinance as yf
 
-# session pooling
-import requests
-session = requests.Session()
 class YFinanceSpotAlert(SpotAlert):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     # configure field ticker to not be included in serialization
