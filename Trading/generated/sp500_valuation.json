@@ -1,20 +1,20 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 489,
-    "overvalued": 252,
-    "undervalued": 237
+    "total": 492,
+    "overvalued": 253,
+    "undervalued": 239
   },
   "equal_weight": {
-    "portfolio_pct": -9.85,
-    "median_pct": 2
+    "portfolio_pct": -9.8,
+    "median_pct": 2.0
   },
   "distribution": {
     "Strongly undervalued (>30%)": 82,
     "Moderately undervalued (10-30%)": 116,
-    "Slightly undervalued (<10%)": 39,
+    "Slightly undervalued (<10%)": 41,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 45,
+    "Slightly overvalued (<10%)": 46,
     "Moderately overvalued (10-30%)": 100,
     "Strongly overvalued (>30%)": 107
   },
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.08,
-    "stocks_covered": 481
+    "portfolio_pct": 14.06,
+    "stocks_covered": 483
   }
 }

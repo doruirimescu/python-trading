@@ -384,6 +384,13 @@
         "valuation_score": 39,
         "valuation_type": "Overvalued"
     },
+    "MDLZ": {
+        "profitability_score": 50,
+        "solvency_score": 39,
+        "symbol": "MDLZ",
+        "valuation_score": 2,
+        "valuation_type": "Overvalued"
+    },
     "MELI": {
         "profitability_score": 67,
         "solvency_score": 48,

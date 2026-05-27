@@ -2057,6 +2057,13 @@
         "valuation_score": 13,
         "valuation_type": "Overvalued"
     },
+    "MDLZ": {
+        "profitability_score": 50,
+        "solvency_score": 39,
+        "symbol": "MDLZ",
+        "valuation_score": 2,
+        "valuation_type": "Overvalued"
+    },
     "MDT": {
         "profitability_score": 55,
         "solvency_score": 54,
@@ -2876,6 +2883,13 @@
         "valuation_score": 29,
         "valuation_type": "Undervalued"
     },
+    "SWKS": {
+        "profitability_score": 51,
+        "solvency_score": 85,
+        "symbol": "SWKS",
+        "valuation_score": 6,
+        "valuation_type": "Undervalued"
+    },
     "SYF": {
         "profitability_score": 78,
         "solvency_score": null,
@@ -3351,6 +3365,13 @@
         "symbol": "WST",
         "valuation_score": 27,
         "valuation_type": "Overvalued"
+    },
+    "WTW": {
+        "profitability_score": 55,
+        "solvency_score": 43,
+        "symbol": "WTW",
+        "valuation_score": 1,
+        "valuation_type": "Undervalued"
     },
     "WY": {
         "profitability_score": 43,
