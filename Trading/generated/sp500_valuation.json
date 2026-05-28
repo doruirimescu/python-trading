@@ -2,36 +2,36 @@
   "file": "sp500_today.html",
   "stocks": {
     "total": 492,
-    "overvalued": 253,
-    "undervalued": 239
+    "overvalued": 258,
+    "undervalued": 234
   },
   "equal_weight": {
-    "portfolio_pct": -9.8,
-    "median_pct": 2.0
+    "portfolio_pct": -9.38,
+    "median_pct": 1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 82,
-    "Moderately undervalued (10-30%)": 116,
-    "Slightly undervalued (<10%)": 41,
+    "Strongly undervalued (>30%)": 85,
+    "Moderately undervalued (10-30%)": 111,
+    "Slightly undervalued (<10%)": 38,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 46,
-    "Moderately overvalued (10-30%)": 100,
-    "Strongly overvalued (>30%)": 107
+    "Slightly overvalued (<10%)": 51,
+    "Moderately overvalued (10-30%)": 103,
+    "Strongly overvalued (>30%)": 104
   },
   "most_undervalued": [
     {
       "symbol": "COO",
-      "score_pct": -79,
+      "score_pct": -80,
       "solvency": 45
     },
     {
       "symbol": "CHTR",
-      "score_pct": -78,
+      "score_pct": -77,
       "solvency": 15
     },
     {
       "symbol": "PSKY",
-      "score_pct": -77,
+      "score_pct": -76,
       "solvency": 35
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -65,
+      "score_pct": -63,
       "solvency": 23
     }
   ],
@@ -53,7 +53,7 @@
     },
     {
       "symbol": "CIEN",
-      "score_pct": 81,
+      "score_pct": 80,
       "solvency": 63
     },
     {
@@ -67,13 +67,13 @@
       "solvency": 78
     },
     {
-      "symbol": "INTC",
-      "score_pct": 73,
-      "solvency": 57
+      "symbol": "TPL",
+      "score_pct": 72,
+      "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.06,
+    "portfolio_pct": 14.52,
     "stocks_covered": 483
   }
 }
