@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 258,
-    "undervalued": 234
+    "total": 460,
+    "overvalued": 236,
+    "undervalued": 224
   },
   "equal_weight": {
-    "portfolio_pct": -9.38,
+    "portfolio_pct": -9.6,
     "median_pct": 1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 85,
-    "Moderately undervalued (10-30%)": 111,
+    "Strongly undervalued (>30%)": 80,
+    "Moderately undervalued (10-30%)": 106,
     "Slightly undervalued (<10%)": 38,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 51,
-    "Moderately overvalued (10-30%)": 103,
-    "Strongly overvalued (>30%)": 104
+    "Slightly overvalued (<10%)": 42,
+    "Moderately overvalued (10-30%)": 95,
+    "Strongly overvalued (>30%)": 99
   },
   "most_undervalued": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "symbol": "CHTR",
-      "score_pct": -77,
+      "score_pct": -78,
       "solvency": 15
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -69,
+      "score_pct": -68,
       "solvency": 31
     },
     {
@@ -53,12 +53,12 @@
     },
     {
       "symbol": "CIEN",
-      "score_pct": 80,
+      "score_pct": 81,
       "solvency": 63
     },
     {
       "symbol": "CRWD",
-      "score_pct": 78,
+      "score_pct": 80,
       "solvency": 64
     },
     {
@@ -68,12 +68,12 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 72,
+      "score_pct": 71,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.52,
-    "stocks_covered": 483
+    "portfolio_pct": 15.43,
+    "stocks_covered": 452
   }
 }
