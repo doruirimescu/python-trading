@@ -1,0 +1,25 @@
+{
+  "date": "2026-06-01",
+  "liquidity_stress_score": 44.3,
+  "status": "YELLOW",
+  "components": {
+    "WRESBAL": {
+      "desc": "Bank Reserve Balances ($B)",
+      "score": 50.42,
+      "weight": 0.15,
+      "value": 3066560.0
+    },
+    "RRPONTSYD": {
+      "desc": "Overnight RRP ($B)",
+      "score": 56.47,
+      "weight": 0.12,
+      "value": 11.677
+    },
+    "WALCL_YOY": {
+      "desc": "Fed Balance Sheet YoY (%)",
+      "score": 20.53,
+      "weight": 0.1,
+      "value": 0.472
+    }
+  }
+}
