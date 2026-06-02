@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 491,
-    "overvalued": 244,
+    "total": 484,
+    "overvalued": 237,
     "undervalued": 247
   },
   "equal_weight": {
-    "portfolio_pct": -9.22,
-    "median_pct": -1
+    "portfolio_pct": -10.17,
+    "median_pct": -2.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 85,
-    "Moderately undervalued (10-30%)": 113,
-    "Slightly undervalued (<10%)": 49,
+    "Strongly undervalued (>30%)": 90,
+    "Moderately undervalued (10-30%)": 109,
+    "Slightly undervalued (<10%)": 48,
     "Fairly valued": 0,
     "Slightly overvalued (<10%)": 35,
-    "Moderately overvalued (10-30%)": 112,
-    "Strongly overvalued (>30%)": 97
+    "Moderately overvalued (10-30%)": 102,
+    "Strongly overvalued (>30%)": 100
   },
   "most_undervalued": [
     {
@@ -31,24 +31,24 @@
     },
     {
       "symbol": "PSKY",
-      "score_pct": -75,
+      "score_pct": -77,
       "solvency": 35
     },
     {
       "symbol": "FISV",
-      "score_pct": -67,
+      "score_pct": -68,
       "solvency": 31
     },
     {
       "symbol": "ARE",
-      "score_pct": -64,
+      "score_pct": -60,
       "solvency": 23
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 85,
+      "score_pct": 86,
       "solvency": 86
     },
     {
@@ -58,7 +58,7 @@
     },
     {
       "symbol": "CIEN",
-      "score_pct": 79,
+      "score_pct": 80,
       "solvency": 63
     },
     {
@@ -68,12 +68,12 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 69,
+      "score_pct": 70,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.47,
-    "stocks_covered": 455
+    "portfolio_pct": 13.81,
+    "stocks_covered": 448
   }
 }
