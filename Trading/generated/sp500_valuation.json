@@ -1,47 +1,47 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 484,
-    "overvalued": 237,
-    "undervalued": 247
+    "total": 492,
+    "overvalued": 241,
+    "undervalued": 251
   },
   "equal_weight": {
-    "portfolio_pct": -10.17,
-    "median_pct": -2.0
+    "portfolio_pct": -10.67,
+    "median_pct": -1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 90,
-    "Moderately undervalued (10-30%)": 109,
-    "Slightly undervalued (<10%)": 48,
+    "Strongly undervalued (>30%)": 91,
+    "Moderately undervalued (10-30%)": 116,
+    "Slightly undervalued (<10%)": 44,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 35,
-    "Moderately overvalued (10-30%)": 102,
+    "Slightly overvalued (<10%)": 37,
+    "Moderately overvalued (10-30%)": 104,
     "Strongly overvalued (>30%)": 100
   },
   "most_undervalued": [
+    {
+      "symbol": "CHTR",
+      "score_pct": -80,
+      "solvency": 15
+    },
     {
       "symbol": "COO",
       "score_pct": -80,
       "solvency": 45
     },
     {
-      "symbol": "CHTR",
-      "score_pct": -78,
-      "solvency": 15
-    },
-    {
       "symbol": "PSKY",
-      "score_pct": -77,
+      "score_pct": -78,
       "solvency": 35
     },
     {
       "symbol": "FISV",
-      "score_pct": -68,
+      "score_pct": -69,
       "solvency": 31
     },
     {
       "symbol": "ARE",
-      "score_pct": -60,
+      "score_pct": -61,
       "solvency": 23
     }
   ],
@@ -53,7 +53,7 @@
     },
     {
       "symbol": "CRWD",
-      "score_pct": 82,
+      "score_pct": 81,
       "solvency": 64
     },
     {
@@ -62,18 +62,18 @@
       "solvency": 63
     },
     {
-      "symbol": "DDOG",
-      "score_pct": 71,
-      "solvency": 81
+      "symbol": "TPL",
+      "score_pct": 72,
+      "solvency": 78
     },
     {
-      "symbol": "TPL",
-      "score_pct": 70,
-      "solvency": 78
+      "symbol": "COHR",
+      "score_pct": 69,
+      "solvency": 65
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.81,
-    "stocks_covered": 448
+    "portfolio_pct": 13.19,
+    "stocks_covered": 458
   }
 }
