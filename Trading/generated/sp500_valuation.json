@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 241,
-    "undervalued": 251
+    "total": 391,
+    "overvalued": 194,
+    "undervalued": 197
   },
   "equal_weight": {
-    "portfolio_pct": -10.67,
-    "median_pct": -1.0
+    "portfolio_pct": -10.8,
+    "median_pct": -1
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 91,
-    "Moderately undervalued (10-30%)": 116,
-    "Slightly undervalued (<10%)": 44,
+    "Strongly undervalued (>30%)": 68,
+    "Moderately undervalued (10-30%)": 97,
+    "Slightly undervalued (<10%)": 32,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 37,
-    "Moderately overvalued (10-30%)": 104,
-    "Strongly overvalued (>30%)": 100
+    "Slightly overvalued (<10%)": 36,
+    "Moderately overvalued (10-30%)": 82,
+    "Strongly overvalued (>30%)": 76
   },
   "most_undervalued": [
     {
@@ -26,54 +26,54 @@
     },
     {
       "symbol": "COO",
-      "score_pct": -80,
-      "solvency": 45
+      "score_pct": -79,
+      "solvency": null
     },
     {
       "symbol": "PSKY",
-      "score_pct": -78,
+      "score_pct": -77,
       "solvency": 35
     },
     {
       "symbol": "FISV",
-      "score_pct": -69,
-      "solvency": 31
+      "score_pct": -68,
+      "solvency": null
     },
     {
-      "symbol": "ARE",
-      "score_pct": -61,
-      "solvency": 23
+      "symbol": "GPN",
+      "score_pct": -59,
+      "solvency": null
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 86,
+      "score_pct": 85,
       "solvency": 86
     },
     {
       "symbol": "CRWD",
-      "score_pct": 81,
+      "score_pct": 80,
       "solvency": 64
     },
     {
       "symbol": "CIEN",
-      "score_pct": 80,
+      "score_pct": 77,
       "solvency": 63
-    },
-    {
-      "symbol": "TPL",
-      "score_pct": 72,
-      "solvency": 78
     },
     {
       "symbol": "COHR",
       "score_pct": 69,
-      "solvency": 65
+      "solvency": null
+    },
+    {
+      "symbol": "DDOG",
+      "score_pct": 68,
+      "solvency": null
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.19,
-    "stocks_covered": 458
+    "portfolio_pct": 13.82,
+    "stocks_covered": 360
   }
 }
