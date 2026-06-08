@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 391,
-    "overvalued": 194,
-    "undervalued": 197
+    "total": 492,
+    "overvalued": 243,
+    "undervalued": 249
   },
   "equal_weight": {
-    "portfolio_pct": -10.8,
-    "median_pct": -1
+    "portfolio_pct": -10.34,
+    "median_pct": -1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 68,
-    "Moderately undervalued (10-30%)": 97,
-    "Slightly undervalued (<10%)": 32,
+    "Strongly undervalued (>30%)": 88,
+    "Moderately undervalued (10-30%)": 114,
+    "Slightly undervalued (<10%)": 47,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 36,
-    "Moderately overvalued (10-30%)": 82,
-    "Strongly overvalued (>30%)": 76
+    "Slightly overvalued (<10%)": 41,
+    "Moderately overvalued (10-30%)": 106,
+    "Strongly overvalued (>30%)": 96
   },
   "most_undervalued": [
     {
@@ -25,24 +25,24 @@
       "solvency": 15
     },
     {
-      "symbol": "COO",
-      "score_pct": -79,
-      "solvency": null
-    },
-    {
       "symbol": "PSKY",
-      "score_pct": -77,
+      "score_pct": -78,
       "solvency": 35
     },
     {
-      "symbol": "FISV",
-      "score_pct": -68,
-      "solvency": null
+      "symbol": "COO",
+      "score_pct": -78,
+      "solvency": 45
     },
     {
-      "symbol": "GPN",
-      "score_pct": -59,
-      "solvency": null
+      "symbol": "FISV",
+      "score_pct": -70,
+      "solvency": 31
+    },
+    {
+      "symbol": "ARE",
+      "score_pct": -61,
+      "solvency": 23
     }
   ],
   "most_overvalued": [
@@ -53,27 +53,27 @@
     },
     {
       "symbol": "CRWD",
-      "score_pct": 80,
+      "score_pct": 78,
       "solvency": 64
     },
     {
       "symbol": "CIEN",
-      "score_pct": 77,
+      "score_pct": 74,
       "solvency": 63
     },
     {
-      "symbol": "COHR",
-      "score_pct": 69,
-      "solvency": null
+      "symbol": "TPL",
+      "score_pct": 72,
+      "solvency": 78
     },
     {
-      "symbol": "DDOG",
+      "symbol": "COHR",
       "score_pct": 68,
-      "solvency": null
+      "solvency": 65
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.82,
-    "stocks_covered": 360
+    "portfolio_pct": 12.68,
+    "stocks_covered": 457
   }
 }
