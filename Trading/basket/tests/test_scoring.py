@@ -5,18 +5,19 @@ from mrscore.core.results import Direction, EventStatus, EventSummary
 from mrscore.core.scoring import score_events
 
 
-def _event(direction: Direction, status: EventStatus, vol: float) -> EventSummary:
+def _event(direction: Direction, status: EventStatus, vol: float, start_price: float = 100.0, end_price: float = 101.0) -> EventSummary:
     return EventSummary(
         direction=direction,
         status=status,
         start_index=0,
         end_index=0,
         duration=0,
-        start_price=0.0,
+        start_price=start_price,
         start_mean=0.0,
         start_volatility=float(vol),
         start_zscore=0.0,
         max_abs_zscore=0.0,
+        end_price=end_price,
     )
 
 

@@ -13,6 +13,11 @@ class Scorer(Protocol):
         raise NotImplementedError
 
 
+def _mean_finite(values: Iterable[float]) -> float:
+    finite = [v for v in values if np.isfinite(v)]
+    return float(np.mean(finite)) if finite else float("nan")
+
+
 def score_events(
     *,
     events: Iterable[EventSummary],
@@ -25,11 +30,6 @@ def score_events(
     reverted = sum(1 for e in summaries if e.status == EventStatus.REVERTED)
     failed = sum(1 for e in summaries if e.status == EventStatus.FAILED)
     expired = sum(1 for e in summaries if e.status == EventStatus.EXPIRED)
-
-    if total == 0 and not scoring.record_empty_scores:
-        score = float("nan")
-    else:
-        score = (reverted / total) if total > 0 else 0.0
 
     by_dir: Optional[Dict[str, float]] = None
     if scoring.by_direction:
@@ -87,12 +87,52 @@ def score_events(
                 else:
                     by_vol[f"bucket_{i}"] = float(bucket_rev[i] / bucket_tot[i])
 
+    sharpe: Optional[float] = None
+    if scoring.compute_sharpe:
+        sign = {Direction.UP: 1.0, Direction.DOWN: -1.0}
+        returns = np.array(
+            [
+                sign[e.direction] * (e.end_price - e.start_price) / e.start_price
+                for e in summaries
+                if e.start_price != 0.0 and np.isfinite(e.end_price) and np.isfinite(e.start_price)
+            ],
+            dtype=np.float64,
+        )
+        if returns.size >= 2:
+            std = float(np.std(returns, ddof=1))
+            sharpe = float(np.mean(returns) / std) if std > 0.0 else float("nan")
+        else:
+            sharpe = float("nan")
+
+    reversion_rate = (reverted / total) if total > 0 else 0.0
+
+    if total == 0 and not scoring.record_empty_scores:
+        score = float("nan")
+    elif scoring.score_metric == "reversion_rate":
+        score = reversion_rate
+    elif scoring.score_metric == "direction":
+        score = _mean_finite(by_dir.values()) if by_dir else float("nan")
+    elif scoring.score_metric == "volatility_bucket":
+        score = _mean_finite(by_vol.values()) if by_vol else float("nan")
+    elif scoring.score_metric == "sharpe":
+        score = sharpe if sharpe is not None else float("nan")
+    else:  # weighted_average
+        components: list[float] = [reversion_rate]
+        if by_dir:
+            components.append(_mean_finite(by_dir.values()))
+        if by_vol:
+            components.append(_mean_finite(by_vol.values()))
+        if sharpe is not None:
+            components.append(sharpe)
+        score = _mean_finite(components)
+
     return ScoreResult(
         score=float(score),
         total_events=total,
         reverted_events=reverted,
         failed_events=failed,
         expired_events=expired,
+        sharpe=sharpe,
         by_direction=by_dir,
         by_volatility_bucket=by_vol,
         events=summaries if diagnostics.enabled else None,

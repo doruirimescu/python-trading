@@ -198,16 +198,27 @@ FailureCriteriaConfig = Annotated[
 # Scoring / Diagnostics (unchanged)
 # ---------------------------
 
+ScoreMetric = Literal["reversion_rate", "direction", "volatility_bucket", "sharpe", "weighted_average"]
+
+
 class ScoringConfig(StrictBaseModel):
     by_direction: bool
     by_volatility_bucket: bool
     volatility_buckets: Optional[int] = Field(default=None, ge=1)
     record_empty_scores: bool
+    compute_sharpe: bool = False
+    score_metric: ScoreMetric = "reversion_rate"
 
     @model_validator(mode="after")
-    def validate_buckets(self):
+    def validate_config(self):
         if self.by_volatility_bucket and self.volatility_buckets is None:
             raise ValueError("volatility_buckets must be set when by_volatility_bucket is true")
+        if self.score_metric == "direction" and not self.by_direction:
+            raise ValueError("score_metric='direction' requires by_direction=true")
+        if self.score_metric == "volatility_bucket" and not self.by_volatility_bucket:
+            raise ValueError("score_metric='volatility_bucket' requires by_volatility_bucket=true")
+        if self.score_metric == "sharpe" and not self.compute_sharpe:
+            raise ValueError("score_metric='sharpe' requires compute_sharpe=true")
         return self
 
 

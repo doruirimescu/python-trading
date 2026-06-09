@@ -171,6 +171,7 @@ class MeanReversionEngine:
                                 start_volatility=ev.start_volatility,
                                 start_zscore=ev.start_zscore,
                                 max_abs_zscore=max_abs,
+                                end_price=p,
                                 start_time=ev.start_time,
                                 end_time=now,
                             )
@@ -190,6 +191,7 @@ class MeanReversionEngine:
                                 start_volatility=ev.start_volatility,
                                 start_zscore=ev.start_zscore,
                                 max_abs_zscore=max_abs,
+                                end_price=p,
                                 start_time=ev.start_time,
                                 end_time=now,
                             )
@@ -223,6 +225,7 @@ class MeanReversionEngine:
         if active:
             t_end = T - 1
             end_time = dates[t_end] if dates is not None else None
+            end_p = float(prices[t_end])
             for ev in active:
                 dur = t_end - ev.start_index
                 summaries.append(
@@ -237,6 +240,7 @@ class MeanReversionEngine:
                         start_volatility=ev.start_volatility,
                         start_zscore=ev.start_zscore,
                         max_abs_zscore=ev.max_abs_zscore,
+                        end_price=end_p,
                         start_time=ev.start_time,
                         end_time=end_time,
                     )

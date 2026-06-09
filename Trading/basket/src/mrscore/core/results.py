@@ -35,6 +35,7 @@ class EventSummary:
 
     # path stats
     max_abs_zscore: float
+    end_price: float
 
     # timestamps (optional; engine will pass through whatever the caller provides)
     start_time: Optional[Any] = None
@@ -48,6 +49,9 @@ class ScoreResult:
     reverted_events: int
     failed_events: int
     expired_events: int
+
+    # optional scores
+    sharpe: Optional[float] = None
 
     # optional breakdowns
     by_direction: Optional[Dict[str, float]] = None

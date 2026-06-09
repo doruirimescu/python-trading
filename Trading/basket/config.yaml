@@ -7,8 +7,8 @@ engine:
   max_active_events: 1
 
 ratio_universe:
-  k_num: 4
-  k_den: 4
+  k_num: 3
+  k_den: 3
   disallow_overlap: true
   unordered_if_equal_k: true
   max_jobs: 50000
@@ -18,28 +18,28 @@ data:
   returns_mode: log
   min_bars_required: 100
   tickers:
-  - JPM
-  - BRK-B
-  - PGR
-  - LLY
-  - ABBV
-  - WMT
-  - XOM
-  - VLO
-  - NOC
-  - DE
+  - ZURN.SW
+  - BUCN.SW
+  - VBSN.SW
+  - HBAN.SW
+  - SREN.SW
+  - PGHN.SW
+  - NOVN.SW
+  - NESN.SW
+  - RO.SW
+
   period: 5y
   interval: 1d
-  ending_date: "2025-05-05"  # optional YYYY-MM-DD
+  ending_date: "2026-06-05"  # optional YYYY-MM-DD
   cache:
     enabled: true
     path: .cache/yfinance
 
 # Basic Mean Estimator
-mean_estimator:
-  type: rolling_sma
-  params:
-    window: 50
+# mean_estimator:
+#   type: rolling_sma
+#   params:
+#     window: 50
 
 # Production
 # mean_estimator:
@@ -49,29 +49,29 @@ mean_estimator:
 #     min_periods: 10
 
 # Advanced Mean Estimator
-# mean_estimator:
-#   type: kalman_mean
-#   params:
-      # process_var: 0.01
-      #     obs_var: 1.0
-      #     init_mean: 0.0
-      #     init_var: 10.0
-      #     min_periods: 5
-
-volatility_estimator:
-  type: ewma
+mean_estimator:
+  type: kalman_mean
   params:
-    span: 30
-    min_volatility: 0.0005
-    volatility_unit: returns
-# Production
+      process_var: 0.01
+      obs_var: 1.0
+      init_mean: 0.0
+      init_var: 10.0
+      min_periods: 5
+
 # volatility_estimator:
 #   type: ewma
 #   params:
 #     span: 30
-#     min_periods: 10
 #     min_volatility: 0.0005
 #     volatility_unit: returns
+# Production
+volatility_estimator:
+  type: ewma
+  params:
+    span: 30
+    min_periods: 10
+    min_volatility: 0.0005
+    volatility_unit: returns
 
 # Advanced Volatility Estimator
 # volatility_estimator:
@@ -106,8 +106,10 @@ failure_criteria:
 scoring:
   by_direction: true
   by_volatility_bucket: true
-  volatility_buckets: 5
+  volatility_buckets: 15
   record_empty_scores: false
+  compute_sharpe: true
+  score_metric: sharpe
 
 diagnostics:
   enabled: true
