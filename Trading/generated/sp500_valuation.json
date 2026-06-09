@@ -1,27 +1,27 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 243,
-    "undervalued": 249
+    "total": 490,
+    "overvalued": 246,
+    "undervalued": 244
   },
   "equal_weight": {
-    "portfolio_pct": -10.34,
-    "median_pct": -1.0
+    "portfolio_pct": -9.54,
+    "median_pct": 1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 88,
-    "Moderately undervalued (10-30%)": 114,
-    "Slightly undervalued (<10%)": 47,
+    "Strongly undervalued (>30%)": 85,
+    "Moderately undervalued (10-30%)": 104,
+    "Slightly undervalued (<10%)": 55,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 41,
-    "Moderately overvalued (10-30%)": 106,
-    "Strongly overvalued (>30%)": 96
+    "Slightly overvalued (<10%)": 42,
+    "Moderately overvalued (10-30%)": 103,
+    "Strongly overvalued (>30%)": 101
   },
   "most_undervalued": [
     {
       "symbol": "CHTR",
-      "score_pct": -80,
+      "score_pct": -79,
       "solvency": 15
     },
     {
@@ -40,9 +40,9 @@
       "solvency": 31
     },
     {
-      "symbol": "ARE",
+      "symbol": "GPN",
       "score_pct": -61,
-      "solvency": 23
+      "solvency": 31
     }
   ],
   "most_overvalued": [
@@ -58,22 +58,22 @@
     },
     {
       "symbol": "CIEN",
-      "score_pct": 74,
+      "score_pct": 72,
       "solvency": 63
     },
     {
       "symbol": "TPL",
-      "score_pct": 72,
+      "score_pct": 71,
       "solvency": 78
     },
     {
-      "symbol": "COHR",
-      "score_pct": 68,
-      "solvency": 65
+      "symbol": "LIN",
+      "score_pct": 67,
+      "solvency": 62
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.68,
-    "stocks_covered": 457
+    "portfolio_pct": 12.04,
+    "stocks_covered": 456
   }
 }
