@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 490,
-    "overvalued": 246,
-    "undervalued": 244
+    "total": 492,
+    "overvalued": 243,
+    "undervalued": 249
   },
   "equal_weight": {
-    "portfolio_pct": -9.54,
-    "median_pct": 1.0
+    "portfolio_pct": -10.34,
+    "median_pct": -1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 85,
-    "Moderately undervalued (10-30%)": 104,
-    "Slightly undervalued (<10%)": 55,
+    "Strongly undervalued (>30%)": 88,
+    "Moderately undervalued (10-30%)": 117,
+    "Slightly undervalued (<10%)": 44,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 42,
-    "Moderately overvalued (10-30%)": 103,
-    "Strongly overvalued (>30%)": 101
+    "Slightly overvalued (<10%)": 43,
+    "Moderately overvalued (10-30%)": 109,
+    "Strongly overvalued (>30%)": 91
   },
   "most_undervalued": [
     {
@@ -31,7 +31,7 @@
     },
     {
       "symbol": "COO",
-      "score_pct": -78,
+      "score_pct": -77,
       "solvency": 45
     },
     {
@@ -41,14 +41,14 @@
     },
     {
       "symbol": "GPN",
-      "score_pct": -61,
+      "score_pct": -62,
       "solvency": 31
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 85,
+      "score_pct": 84,
       "solvency": 86
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 71,
+      "score_pct": 70,
       "solvency": 78
     },
     {
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.04,
-    "stocks_covered": 456
+    "portfolio_pct": 10.93,
+    "stocks_covered": 458
   }
 }
