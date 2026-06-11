@@ -2,26 +2,26 @@
   "file": "sp500_today.html",
   "stocks": {
     "total": 492,
-    "overvalued": 243,
-    "undervalued": 249
+    "overvalued": 247,
+    "undervalued": 245
   },
   "equal_weight": {
-    "portfolio_pct": -10.34,
-    "median_pct": -1.0
+    "portfolio_pct": -9.67,
+    "median_pct": 1.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 88,
-    "Moderately undervalued (10-30%)": 117,
-    "Slightly undervalued (<10%)": 44,
+    "Strongly undervalued (>30%)": 90,
+    "Moderately undervalued (10-30%)": 104,
+    "Slightly undervalued (<10%)": 51,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 43,
-    "Moderately overvalued (10-30%)": 109,
-    "Strongly overvalued (>30%)": 91
+    "Slightly overvalued (<10%)": 44,
+    "Moderately overvalued (10-30%)": 104,
+    "Strongly overvalued (>30%)": 99
   },
   "most_undervalued": [
     {
       "symbol": "CHTR",
-      "score_pct": -79,
+      "score_pct": -78,
       "solvency": 15
     },
     {
@@ -40,20 +40,20 @@
       "solvency": 31
     },
     {
-      "symbol": "GPN",
-      "score_pct": -62,
-      "solvency": 31
+      "symbol": "IT",
+      "score_pct": -61,
+      "solvency": 48
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 84,
+      "score_pct": 85,
       "solvency": 86
     },
     {
       "symbol": "CRWD",
-      "score_pct": 78,
+      "score_pct": 79,
       "solvency": 64
     },
     {
@@ -68,12 +68,12 @@
     },
     {
       "symbol": "LIN",
-      "score_pct": 67,
+      "score_pct": 68,
       "solvency": 62
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 10.93,
-    "stocks_covered": 458
+    "portfolio_pct": 11.56,
+    "stocks_covered": 457
   }
 }
