@@ -1,33 +1,33 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 247,
-    "undervalued": 245
+    "total": 487,
+    "overvalued": 245,
+    "undervalued": 242
   },
   "equal_weight": {
-    "portfolio_pct": -9.67,
-    "median_pct": 1.0
+    "portfolio_pct": -9.62,
+    "median_pct": 1
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 90,
-    "Moderately undervalued (10-30%)": 104,
-    "Slightly undervalued (<10%)": 51,
+    "Strongly undervalued (>30%)": 88,
+    "Moderately undervalued (10-30%)": 100,
+    "Slightly undervalued (<10%)": 54,
     "Fairly valued": 0,
     "Slightly overvalued (<10%)": 44,
-    "Moderately overvalued (10-30%)": 104,
-    "Strongly overvalued (>30%)": 99
+    "Moderately overvalued (10-30%)": 101,
+    "Strongly overvalued (>30%)": 100
   },
   "most_undervalued": [
-    {
-      "symbol": "CHTR",
-      "score_pct": -78,
-      "solvency": 15
-    },
     {
       "symbol": "PSKY",
       "score_pct": -78,
       "solvency": 35
+    },
+    {
+      "symbol": "CHTR",
+      "score_pct": -77,
+      "solvency": 15
     },
     {
       "symbol": "COO",
@@ -35,14 +35,14 @@
       "solvency": 45
     },
     {
+      "symbol": "KLAC",
+      "score_pct": -71,
+      "solvency": 77
+    },
+    {
       "symbol": "FISV",
       "score_pct": -70,
       "solvency": 31
-    },
-    {
-      "symbol": "IT",
-      "score_pct": -61,
-      "solvency": 48
     }
   ],
   "most_overvalued": [
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.56,
-    "stocks_covered": 457
+    "portfolio_pct": 10.61,
+    "stocks_covered": 452
   }
 }
