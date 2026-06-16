@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 488,
-    "overvalued": 259,
+    "total": 492,
+    "overvalued": 263,
     "undervalued": 229
   },
   "equal_weight": {
-    "portfolio_pct": -6.96,
+    "portfolio_pct": -6.37,
     "median_pct": 4.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 66,
-    "Moderately undervalued (10-30%)": 112,
-    "Slightly undervalued (<10%)": 51,
+    "Strongly undervalued (>30%)": 64,
+    "Moderately undervalued (10-30%)": 109,
+    "Slightly undervalued (<10%)": 56,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 41,
-    "Moderately overvalued (10-30%)": 103,
-    "Strongly overvalued (>30%)": 115
+    "Slightly overvalued (<10%)": 42,
+    "Moderately overvalued (10-30%)": 108,
+    "Strongly overvalued (>30%)": 113
   },
   "most_undervalued": [
     {
@@ -31,18 +31,18 @@
     },
     {
       "symbol": "COO",
-      "score_pct": -77,
+      "score_pct": -78,
       "solvency": 45
     },
     {
-      "symbol": "KLAC",
-      "score_pct": -70,
-      "solvency": 77
+      "symbol": "FISV",
+      "score_pct": -68,
+      "solvency": 31
     },
     {
-      "symbol": "FISV",
-      "score_pct": -69,
-      "solvency": 31
+      "symbol": "IT",
+      "score_pct": -62,
+      "solvency": 48
     }
   ],
   "most_overvalued": [
@@ -53,18 +53,18 @@
     },
     {
       "symbol": "CRWD",
-      "score_pct": 81,
+      "score_pct": 80,
       "solvency": 64
     },
     {
-      "symbol": "INTC",
-      "score_pct": 73,
-      "solvency": 57
+      "symbol": "KLAC",
+      "score_pct": 77,
+      "solvency": 77
     },
     {
-      "symbol": "LRCX",
-      "score_pct": 69,
-      "solvency": 84
+      "symbol": "INTC",
+      "score_pct": 70,
+      "solvency": 57
     },
     {
       "symbol": "TPL",
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.71,
-    "stocks_covered": 452
+    "portfolio_pct": 16.05,
+    "stocks_covered": 456
   }
 }
