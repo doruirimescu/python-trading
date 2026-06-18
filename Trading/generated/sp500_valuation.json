@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 484,
-    "overvalued": 250,
-    "undervalued": 234
+    "total": 492,
+    "overvalued": 254,
+    "undervalued": 238
   },
   "equal_weight": {
-    "portfolio_pct": -7.95,
+    "portfolio_pct": -8.16,
     "median_pct": 2.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 72,
-    "Moderately undervalued (10-30%)": 109,
-    "Slightly undervalued (<10%)": 53,
+    "Strongly undervalued (>30%)": 69,
+    "Moderately undervalued (10-30%)": 118,
+    "Slightly undervalued (<10%)": 51,
     "Fairly valued": 0,
     "Slightly overvalued (<10%)": 38,
-    "Moderately overvalued (10-30%)": 105,
-    "Strongly overvalued (>30%)": 107
+    "Moderately overvalued (10-30%)": 107,
+    "Strongly overvalued (>30%)": 109
   },
   "most_undervalued": [
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "IT",
-      "score_pct": -64,
+      "score_pct": -66,
       "solvency": 48
     }
   ],
@@ -58,22 +58,22 @@
     },
     {
       "symbol": "KLAC",
-      "score_pct": 77,
+      "score_pct": 79,
       "solvency": 77
     },
     {
       "symbol": "INTC",
-      "score_pct": 71,
+      "score_pct": 74,
       "solvency": 57
     },
     {
       "symbol": "LRCX",
-      "score_pct": 68,
+      "score_pct": 69,
       "solvency": 84
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.03,
-    "stocks_covered": 450
+    "portfolio_pct": 14.61,
+    "stocks_covered": 455
   }
 }
