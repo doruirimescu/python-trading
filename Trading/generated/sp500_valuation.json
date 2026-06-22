@@ -2,26 +2,26 @@
   "file": "sp500_today.html",
   "stocks": {
     "total": 492,
-    "overvalued": 254,
-    "undervalued": 238
+    "overvalued": 255,
+    "undervalued": 237
   },
   "equal_weight": {
-    "portfolio_pct": -8.18,
+    "portfolio_pct": -8.21,
     "median_pct": 2.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 69,
-    "Moderately undervalued (10-30%)": 118,
-    "Slightly undervalued (<10%)": 51,
+    "Strongly undervalued (>30%)": 70,
+    "Moderately undervalued (10-30%)": 110,
+    "Slightly undervalued (<10%)": 57,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 38,
-    "Moderately overvalued (10-30%)": 107,
-    "Strongly overvalued (>30%)": 109
+    "Slightly overvalued (<10%)": 42,
+    "Moderately overvalued (10-30%)": 102,
+    "Strongly overvalued (>30%)": 111
   },
   "most_undervalued": [
     {
       "symbol": "CHTR",
-      "score_pct": -80,
+      "score_pct": -81,
       "solvency": 15
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -69,
+      "score_pct": -70,
       "solvency": 31
     },
     {
@@ -57,23 +57,23 @@
       "solvency": 64
     },
     {
-      "symbol": "KLAC",
-      "score_pct": 79,
-      "solvency": 77
-    },
-    {
       "symbol": "INTC",
-      "score_pct": 74,
+      "score_pct": 75,
       "solvency": 57
     },
     {
       "symbol": "LRCX",
-      "score_pct": 69,
+      "score_pct": 71,
       "solvency": 84
+    },
+    {
+      "symbol": "TPL",
+      "score_pct": 69,
+      "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.61,
+    "portfolio_pct": 13.85,
     "stocks_covered": 455
   }
 }
