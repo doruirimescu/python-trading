@@ -1,27 +1,27 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 255,
-    "undervalued": 237
+    "total": 494,
+    "overvalued": 262,
+    "undervalued": 232
   },
   "equal_weight": {
-    "portfolio_pct": -8.21,
-    "median_pct": 2.0
+    "portfolio_pct": -7.18,
+    "median_pct": 3.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 70,
+    "Strongly undervalued (>30%)": 69,
     "Moderately undervalued (10-30%)": 110,
-    "Slightly undervalued (<10%)": 57,
+    "Slightly undervalued (<10%)": 53,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 42,
-    "Moderately overvalued (10-30%)": 102,
-    "Strongly overvalued (>30%)": 111
+    "Slightly overvalued (<10%)": 47,
+    "Moderately overvalued (10-30%)": 97,
+    "Strongly overvalued (>30%)": 118
   },
   "most_undervalued": [
     {
       "symbol": "CHTR",
-      "score_pct": -81,
+      "score_pct": -80,
       "solvency": 15
     },
     {
@@ -31,24 +31,24 @@
     },
     {
       "symbol": "COO",
-      "score_pct": -78,
+      "score_pct": -77,
       "solvency": 45
     },
     {
       "symbol": "FISV",
-      "score_pct": -70,
+      "score_pct": -69,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -66,
+      "score_pct": -65,
       "solvency": 48
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 92,
+      "score_pct": 91,
       "solvency": 86
     },
     {
@@ -57,23 +57,23 @@
       "solvency": 64
     },
     {
-      "symbol": "INTC",
+      "symbol": "DD",
       "score_pct": 75,
+      "solvency": 44
+    },
+    {
+      "symbol": "INTC",
+      "score_pct": 74,
       "solvency": 57
     },
     {
-      "symbol": "LRCX",
-      "score_pct": 71,
-      "solvency": 84
-    },
-    {
       "symbol": "TPL",
-      "score_pct": 69,
+      "score_pct": 70,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.85,
+    "portfolio_pct": 13.87,
     "stocks_covered": 455
   }
 }
