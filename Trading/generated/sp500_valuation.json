@@ -1,21 +1,21 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 494,
+    "total": 488,
     "overvalued": 262,
-    "undervalued": 232
+    "undervalued": 226
   },
   "equal_weight": {
-    "portfolio_pct": -7.18,
-    "median_pct": 3.0
+    "portfolio_pct": -7.28,
+    "median_pct": 4.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 69,
-    "Moderately undervalued (10-30%)": 110,
-    "Slightly undervalued (<10%)": 53,
+    "Strongly undervalued (>30%)": 62,
+    "Moderately undervalued (10-30%)": 114,
+    "Slightly undervalued (<10%)": 50,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 47,
-    "Moderately overvalued (10-30%)": 97,
+    "Slightly overvalued (<10%)": 45,
+    "Moderately overvalued (10-30%)": 99,
     "Strongly overvalued (>30%)": 118
   },
   "most_undervalued": [
@@ -26,7 +26,7 @@
     },
     {
       "symbol": "PSKY",
-      "score_pct": -79,
+      "score_pct": -80,
       "solvency": 35
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "IT",
-      "score_pct": -65,
+      "score_pct": -66,
       "solvency": 48
     }
   ],
@@ -68,12 +68,12 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 70,
+      "score_pct": 71,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.87,
-    "stocks_covered": 455
+    "portfolio_pct": 13.37,
+    "stocks_covered": 450
   }
 }
