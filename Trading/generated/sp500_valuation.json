@@ -1,47 +1,47 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 488,
-    "overvalued": 262,
-    "undervalued": 226
+    "total": 489,
+    "overvalued": 268,
+    "undervalued": 221
   },
   "equal_weight": {
-    "portfolio_pct": -7.28,
-    "median_pct": 4.0
+    "portfolio_pct": -6.35,
+    "median_pct": 5
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 62,
-    "Moderately undervalued (10-30%)": 114,
-    "Slightly undervalued (<10%)": 50,
+    "Strongly undervalued (>30%)": 60,
+    "Moderately undervalued (10-30%)": 109,
+    "Slightly undervalued (<10%)": 52,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 45,
-    "Moderately overvalued (10-30%)": 99,
-    "Strongly overvalued (>30%)": 118
+    "Slightly overvalued (<10%)": 49,
+    "Moderately overvalued (10-30%)": 95,
+    "Strongly overvalued (>30%)": 124
   },
   "most_undervalued": [
-    {
-      "symbol": "CHTR",
-      "score_pct": -80,
-      "solvency": 15
-    },
     {
       "symbol": "PSKY",
       "score_pct": -80,
       "solvency": 35
     },
     {
+      "symbol": "CHTR",
+      "score_pct": -79,
+      "solvency": 15
+    },
+    {
       "symbol": "COO",
-      "score_pct": -77,
+      "score_pct": -76,
       "solvency": 45
     },
     {
       "symbol": "FISV",
-      "score_pct": -69,
+      "score_pct": -68,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -66,
+      "score_pct": -64,
       "solvency": 48
     }
   ],
@@ -53,27 +53,27 @@
     },
     {
       "symbol": "CRWD",
-      "score_pct": 80,
+      "score_pct": 81,
       "solvency": 64
     },
     {
       "symbol": "DD",
-      "score_pct": 75,
+      "score_pct": 74,
       "solvency": 44
     },
     {
       "symbol": "INTC",
-      "score_pct": 74,
+      "score_pct": 73,
       "solvency": 57
     },
     {
       "symbol": "TPL",
-      "score_pct": 71,
+      "score_pct": 72,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.37,
-    "stocks_covered": 450
+    "portfolio_pct": 14.17,
+    "stocks_covered": 451
   }
 }
