@@ -1,32 +1,32 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 489,
-    "overvalued": 268,
-    "undervalued": 221
+    "total": 488,
+    "overvalued": 264,
+    "undervalued": 224
   },
   "equal_weight": {
-    "portfolio_pct": -6.35,
-    "median_pct": 5
+    "portfolio_pct": -6.54,
+    "median_pct": 4.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 60,
+    "Strongly undervalued (>30%)": 64,
     "Moderately undervalued (10-30%)": 109,
-    "Slightly undervalued (<10%)": 52,
+    "Slightly undervalued (<10%)": 51,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 49,
-    "Moderately overvalued (10-30%)": 95,
-    "Strongly overvalued (>30%)": 124
+    "Slightly overvalued (<10%)": 47,
+    "Moderately overvalued (10-30%)": 94,
+    "Strongly overvalued (>30%)": 123
   },
   "most_undervalued": [
     {
       "symbol": "PSKY",
-      "score_pct": -80,
+      "score_pct": -79,
       "solvency": 35
     },
     {
       "symbol": "CHTR",
-      "score_pct": -79,
+      "score_pct": -77,
       "solvency": 15
     },
     {
@@ -36,44 +36,44 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -68,
+      "score_pct": -69,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -64,
+      "score_pct": -65,
       "solvency": 48
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 91,
+      "score_pct": 92,
       "solvency": 86
     },
     {
       "symbol": "CRWD",
-      "score_pct": 81,
+      "score_pct": 82,
       "solvency": 64
     },
     {
       "symbol": "DD",
-      "score_pct": 74,
+      "score_pct": 75,
       "solvency": 44
     },
     {
       "symbol": "INTC",
-      "score_pct": 73,
+      "score_pct": 74,
       "solvency": 57
     },
     {
       "symbol": "TPL",
-      "score_pct": 72,
+      "score_pct": 73,
       "solvency": 78
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.17,
-    "stocks_covered": 451
+    "portfolio_pct": 14.56,
+    "stocks_covered": 450
   }
 }
