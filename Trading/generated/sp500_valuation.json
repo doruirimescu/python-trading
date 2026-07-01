@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 492,
-    "overvalued": 266,
-    "undervalued": 226
+    "total": 488,
+    "overvalued": 263,
+    "undervalued": 225
   },
   "equal_weight": {
-    "portfolio_pct": -6.75,
-    "median_pct": 3.0
+    "portfolio_pct": -6.72,
+    "median_pct": 4.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 64,
-    "Moderately undervalued (10-30%)": 110,
-    "Slightly undervalued (<10%)": 52,
+    "Strongly undervalued (>30%)": 65,
+    "Moderately undervalued (10-30%)": 113,
+    "Slightly undervalued (<10%)": 47,
     "Fairly valued": 0,
     "Slightly overvalued (<10%)": 51,
-    "Moderately overvalued (10-30%)": 90,
-    "Strongly overvalued (>30%)": 125
+    "Moderately overvalued (10-30%)": 93,
+    "Strongly overvalued (>30%)": 119
   },
   "most_undervalued": [
     {
@@ -36,7 +36,7 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -68,
+      "score_pct": -67,
       "solvency": 31
     },
     {
@@ -53,13 +53,8 @@
     },
     {
       "symbol": "CRWD",
-      "score_pct": 82,
+      "score_pct": 83,
       "solvency": 64
-    },
-    {
-      "symbol": "INTC",
-      "score_pct": 75,
-      "solvency": 57
     },
     {
       "symbol": "DD",
@@ -68,12 +63,17 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 74,
+      "score_pct": 73,
       "solvency": 78
+    },
+    {
+      "symbol": "PANW",
+      "score_pct": 72,
+      "solvency": 80
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 14.48,
-    "stocks_covered": 452
+    "portfolio_pct": 14.8,
+    "stocks_covered": 487
   }
 }
