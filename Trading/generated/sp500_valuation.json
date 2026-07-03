@@ -2,21 +2,21 @@
   "file": "sp500_today.html",
   "stocks": {
     "total": 488,
-    "overvalued": 269,
-    "undervalued": 219
+    "overvalued": 270,
+    "undervalued": 218
   },
   "equal_weight": {
-    "portfolio_pct": -5.72,
+    "portfolio_pct": -5.35,
     "median_pct": 5.0
   },
   "distribution": {
     "Strongly undervalued (>30%)": 60,
     "Moderately undervalued (10-30%)": 108,
-    "Slightly undervalued (<10%)": 51,
+    "Slightly undervalued (<10%)": 50,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 54,
-    "Moderately overvalued (10-30%)": 100,
-    "Strongly overvalued (>30%)": 115
+    "Slightly overvalued (<10%)": 52,
+    "Moderately overvalued (10-30%)": 102,
+    "Strongly overvalued (>30%)": 116
   },
   "most_undervalued": [
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -60,
+      "score_pct": -59,
       "solvency": 23
     }
   ],
@@ -67,13 +67,13 @@
       "solvency": 60
     },
     {
-      "symbol": "DDOG",
-      "score_pct": 70,
-      "solvency": 81
+      "symbol": "INTC",
+      "score_pct": 71,
+      "solvency": 57
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.53,
+    "portfolio_pct": 13.75,
     "stocks_covered": 486
   }
 }
