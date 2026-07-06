@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 488,
-    "overvalued": 270,
-    "undervalued": 218
+    "total": 486,
+    "overvalued": 255,
+    "undervalued": 231
   },
   "equal_weight": {
-    "portfolio_pct": -5.35,
-    "median_pct": 5.0
+    "portfolio_pct": -7.1,
+    "median_pct": 3.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 60,
-    "Moderately undervalued (10-30%)": 108,
-    "Slightly undervalued (<10%)": 50,
+    "Strongly undervalued (>30%)": 68,
+    "Moderately undervalued (10-30%)": 109,
+    "Slightly undervalued (<10%)": 54,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 52,
-    "Moderately overvalued (10-30%)": 102,
-    "Strongly overvalued (>30%)": 116
+    "Slightly overvalued (<10%)": 44,
+    "Moderately overvalued (10-30%)": 99,
+    "Strongly overvalued (>30%)": 112
   },
   "most_undervalued": [
     {
@@ -26,54 +26,54 @@
     },
     {
       "symbol": "PSKY",
-      "score_pct": -78,
+      "score_pct": -79,
       "solvency": 35
     },
     {
       "symbol": "FISV",
-      "score_pct": -66,
+      "score_pct": -67,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -64,
+      "score_pct": -65,
       "solvency": 48
     },
     {
       "symbol": "ARE",
-      "score_pct": -59,
+      "score_pct": -61,
       "solvency": 23
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 92,
+      "score_pct": 85,
       "solvency": 86
     },
     {
-      "symbol": "TPL",
+      "symbol": "MRNA",
       "score_pct": 73,
+      "solvency": 60
+    },
+    {
+      "symbol": "TPL",
+      "score_pct": 72,
       "solvency": 78
     },
     {
       "symbol": "PANW",
-      "score_pct": 72,
+      "score_pct": 71,
       "solvency": 80
     },
     {
-      "symbol": "MRNA",
-      "score_pct": 72,
-      "solvency": 60
-    },
-    {
-      "symbol": "INTC",
-      "score_pct": 71,
-      "solvency": 57
+      "symbol": "CIEN",
+      "score_pct": 70,
+      "solvency": 63
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.75,
-    "stocks_covered": 486
+    "portfolio_pct": 11.92,
+    "stocks_covered": 484
   }
 }
