@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 486,
-    "overvalued": 255,
-    "undervalued": 231
+    "total": 489,
+    "overvalued": 261,
+    "undervalued": 228
   },
   "equal_weight": {
-    "portfolio_pct": -7.1,
-    "median_pct": 3.0
+    "portfolio_pct": -6.69,
+    "median_pct": 4
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 68,
-    "Moderately undervalued (10-30%)": 109,
-    "Slightly undervalued (<10%)": 54,
+    "Strongly undervalued (>30%)": 66,
+    "Moderately undervalued (10-30%)": 112,
+    "Slightly undervalued (<10%)": 50,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 44,
-    "Moderately overvalued (10-30%)": 99,
-    "Strongly overvalued (>30%)": 112
+    "Slightly overvalued (<10%)": 52,
+    "Moderately overvalued (10-30%)": 102,
+    "Strongly overvalued (>30%)": 107
   },
   "most_undervalued": [
     {
@@ -31,12 +31,12 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -67,
+      "score_pct": -66,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -65,
+      "score_pct": -63,
       "solvency": 48
     },
     {
@@ -63,17 +63,17 @@
     },
     {
       "symbol": "PANW",
-      "score_pct": 71,
+      "score_pct": 69,
       "solvency": 80
     },
     {
       "symbol": "CIEN",
-      "score_pct": 70,
+      "score_pct": 69,
       "solvency": 63
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.92,
-    "stocks_covered": 484
+    "portfolio_pct": 12.07,
+    "stocks_covered": 486
   }
 }
