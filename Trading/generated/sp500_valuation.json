@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 489,
-    "overvalued": 261,
-    "undervalued": 228
+    "total": 491,
+    "overvalued": 254,
+    "undervalued": 237
   },
   "equal_weight": {
-    "portfolio_pct": -6.69,
-    "median_pct": 4
+    "portfolio_pct": -7.77,
+    "median_pct": 3
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 66,
+    "Strongly undervalued (>30%)": 73,
     "Moderately undervalued (10-30%)": 112,
-    "Slightly undervalued (<10%)": 50,
+    "Slightly undervalued (<10%)": 52,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 52,
-    "Moderately overvalued (10-30%)": 102,
-    "Strongly overvalued (>30%)": 107
+    "Slightly overvalued (<10%)": 48,
+    "Moderately overvalued (10-30%)": 106,
+    "Strongly overvalued (>30%)": 100
   },
   "most_undervalued": [
     {
@@ -31,30 +31,25 @@
     },
     {
       "symbol": "FISV",
-      "score_pct": -66,
+      "score_pct": -67,
       "solvency": 31
     },
     {
       "symbol": "IT",
-      "score_pct": -63,
+      "score_pct": -65,
       "solvency": 48
     },
     {
       "symbol": "ARE",
-      "score_pct": -61,
+      "score_pct": -63,
       "solvency": 23
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 85,
+      "score_pct": 84,
       "solvency": 86
-    },
-    {
-      "symbol": "MRNA",
-      "score_pct": 73,
-      "solvency": 60
     },
     {
       "symbol": "TPL",
@@ -62,18 +57,23 @@
       "solvency": 78
     },
     {
-      "symbol": "PANW",
-      "score_pct": 69,
-      "solvency": 80
+      "symbol": "MRNA",
+      "score_pct": 71,
+      "solvency": 60
     },
     {
       "symbol": "CIEN",
-      "score_pct": 69,
+      "score_pct": 70,
       "solvency": 63
+    },
+    {
+      "symbol": "DDOG",
+      "score_pct": 68,
+      "solvency": 81
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.07,
-    "stocks_covered": 486
+    "portfolio_pct": 11.52,
+    "stocks_covered": 488
   }
 }
