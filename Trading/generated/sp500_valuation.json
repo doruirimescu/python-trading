@@ -1,33 +1,33 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 491,
+    "total": 484,
     "overvalued": 254,
-    "undervalued": 237
+    "undervalued": 230
   },
   "equal_weight": {
-    "portfolio_pct": -7.77,
-    "median_pct": 3
+    "portfolio_pct": -7.48,
+    "median_pct": 5.0
   },
   "distribution": {
     "Strongly undervalued (>30%)": 73,
-    "Moderately undervalued (10-30%)": 112,
-    "Slightly undervalued (<10%)": 52,
+    "Moderately undervalued (10-30%)": 110,
+    "Slightly undervalued (<10%)": 47,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 48,
-    "Moderately overvalued (10-30%)": 106,
-    "Strongly overvalued (>30%)": 100
+    "Slightly overvalued (<10%)": 47,
+    "Moderately overvalued (10-30%)": 104,
+    "Strongly overvalued (>30%)": 103
   },
   "most_undervalued": [
+    {
+      "symbol": "PSKY",
+      "score_pct": -80,
+      "solvency": 35
+    },
     {
       "symbol": "CHTR",
       "score_pct": -79,
       "solvency": 15
-    },
-    {
-      "symbol": "PSKY",
-      "score_pct": -79,
-      "solvency": 35
     },
     {
       "symbol": "FISV",
@@ -41,14 +41,14 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -63,
+      "score_pct": -62,
       "solvency": 23
     }
   ],
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 84,
+      "score_pct": 85,
       "solvency": 86
     },
     {
@@ -57,23 +57,23 @@
       "solvency": 78
     },
     {
-      "symbol": "MRNA",
-      "score_pct": 71,
-      "solvency": 60
-    },
-    {
       "symbol": "CIEN",
-      "score_pct": 70,
+      "score_pct": 72,
       "solvency": 63
     },
     {
+      "symbol": "MRNA",
+      "score_pct": 72,
+      "solvency": 60
+    },
+    {
       "symbol": "DDOG",
-      "score_pct": 68,
+      "score_pct": 69,
       "solvency": 81
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.52,
-    "stocks_covered": 488
+    "portfolio_pct": 12.24,
+    "stocks_covered": 481
   }
 }
