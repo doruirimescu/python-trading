@@ -1,37 +1,37 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 484,
-    "overvalued": 254,
-    "undervalued": 230
+    "total": 491,
+    "overvalued": 266,
+    "undervalued": 225
   },
   "equal_weight": {
-    "portfolio_pct": -7.48,
-    "median_pct": 5.0
+    "portfolio_pct": -7.0,
+    "median_pct": 3
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 73,
-    "Moderately undervalued (10-30%)": 110,
+    "Strongly undervalued (>30%)": 69,
+    "Moderately undervalued (10-30%)": 109,
     "Slightly undervalued (<10%)": 47,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 47,
-    "Moderately overvalued (10-30%)": 104,
+    "Slightly overvalued (<10%)": 57,
+    "Moderately overvalued (10-30%)": 106,
     "Strongly overvalued (>30%)": 103
   },
   "most_undervalued": [
+    {
+      "symbol": "CHTR",
+      "score_pct": -80,
+      "solvency": 15
+    },
     {
       "symbol": "PSKY",
       "score_pct": -80,
       "solvency": 35
     },
     {
-      "symbol": "CHTR",
-      "score_pct": -79,
-      "solvency": 15
-    },
-    {
       "symbol": "FISV",
-      "score_pct": -67,
+      "score_pct": -68,
       "solvency": 31
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -62,
+      "score_pct": -63,
       "solvency": 23
     }
   ],
@@ -62,18 +62,18 @@
       "solvency": 63
     },
     {
-      "symbol": "MRNA",
-      "score_pct": 72,
-      "solvency": 60
+      "symbol": "DDOG",
+      "score_pct": 68,
+      "solvency": 81
     },
     {
-      "symbol": "DDOG",
-      "score_pct": 69,
-      "solvency": 81
+      "symbol": "PANW",
+      "score_pct": 68,
+      "solvency": 80
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.24,
-    "stocks_covered": 481
+    "portfolio_pct": 12.69,
+    "stocks_covered": 488
   }
 }
