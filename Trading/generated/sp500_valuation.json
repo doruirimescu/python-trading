@@ -1,48 +1,48 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 491,
-    "overvalued": 266,
-    "undervalued": 225
+    "total": 484,
+    "overvalued": 260,
+    "undervalued": 224
   },
   "equal_weight": {
-    "portfolio_pct": -7.0,
-    "median_pct": 3
+    "portfolio_pct": -6.91,
+    "median_pct": 4.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 69,
-    "Moderately undervalued (10-30%)": 109,
-    "Slightly undervalued (<10%)": 47,
+    "Strongly undervalued (>30%)": 67,
+    "Moderately undervalued (10-30%)": 111,
+    "Slightly undervalued (<10%)": 46,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 57,
-    "Moderately overvalued (10-30%)": 106,
-    "Strongly overvalued (>30%)": 103
+    "Slightly overvalued (<10%)": 48,
+    "Moderately overvalued (10-30%)": 110,
+    "Strongly overvalued (>30%)": 102
   },
   "most_undervalued": [
-    {
-      "symbol": "CHTR",
-      "score_pct": -80,
-      "solvency": 15
-    },
     {
       "symbol": "PSKY",
       "score_pct": -80,
       "solvency": 35
     },
     {
-      "symbol": "FISV",
-      "score_pct": -68,
-      "solvency": 31
+      "symbol": "CHTR",
+      "score_pct": -79,
+      "solvency": 15
     },
     {
-      "symbol": "IT",
-      "score_pct": -65,
-      "solvency": 48
+      "symbol": "FISV",
+      "score_pct": -67,
+      "solvency": 31
     },
     {
       "symbol": "ARE",
       "score_pct": -63,
       "solvency": 23
+    },
+    {
+      "symbol": "IT",
+      "score_pct": -63,
+      "solvency": 48
     }
   ],
   "most_overvalued": [
@@ -53,12 +53,12 @@
     },
     {
       "symbol": "TPL",
-      "score_pct": 72,
+      "score_pct": 73,
       "solvency": 78
     },
     {
       "symbol": "CIEN",
-      "score_pct": 72,
+      "score_pct": 71,
       "solvency": 63
     },
     {
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.69,
-    "stocks_covered": 488
+    "portfolio_pct": 12.61,
+    "stocks_covered": 482
   }
 }
