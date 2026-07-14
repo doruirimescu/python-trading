@@ -1,48 +1,48 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 484,
-    "overvalued": 260,
-    "undervalued": 224
+    "total": 487,
+    "overvalued": 259,
+    "undervalued": 228
   },
   "equal_weight": {
-    "portfolio_pct": -6.91,
-    "median_pct": 4.0
+    "portfolio_pct": -7.49,
+    "median_pct": 4
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 67,
-    "Moderately undervalued (10-30%)": 111,
-    "Slightly undervalued (<10%)": 46,
+    "Strongly undervalued (>30%)": 70,
+    "Moderately undervalued (10-30%)": 116,
+    "Slightly undervalued (<10%)": 42,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 48,
-    "Moderately overvalued (10-30%)": 110,
-    "Strongly overvalued (>30%)": 102
+    "Slightly overvalued (<10%)": 46,
+    "Moderately overvalued (10-30%)": 113,
+    "Strongly overvalued (>30%)": 100
   },
   "most_undervalued": [
+    {
+      "symbol": "CHTR",
+      "score_pct": -80,
+      "solvency": 15
+    },
     {
       "symbol": "PSKY",
       "score_pct": -80,
       "solvency": 35
     },
     {
-      "symbol": "CHTR",
-      "score_pct": -79,
-      "solvency": 15
+      "symbol": "FISV",
+      "score_pct": -68,
+      "solvency": 31
     },
     {
-      "symbol": "FISV",
-      "score_pct": -67,
-      "solvency": 31
+      "symbol": "IT",
+      "score_pct": -65,
+      "solvency": 48
     },
     {
       "symbol": "ARE",
       "score_pct": -63,
       "solvency": 23
-    },
-    {
-      "symbol": "IT",
-      "score_pct": -63,
-      "solvency": 48
     }
   ],
   "most_overvalued": [
@@ -62,18 +62,18 @@
       "solvency": 63
     },
     {
-      "symbol": "DDOG",
-      "score_pct": 68,
-      "solvency": 81
+      "symbol": "PANW",
+      "score_pct": 70,
+      "solvency": 80
     },
     {
-      "symbol": "PANW",
-      "score_pct": 68,
-      "solvency": 80
+      "symbol": "DDOG",
+      "score_pct": 69,
+      "solvency": 81
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.61,
-    "stocks_covered": 482
+    "portfolio_pct": 12.65,
+    "stocks_covered": 485
   }
 }
