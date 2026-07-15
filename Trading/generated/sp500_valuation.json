@@ -1,37 +1,37 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 487,
-    "overvalued": 259,
-    "undervalued": 228
+    "total": 490,
+    "overvalued": 261,
+    "undervalued": 229
   },
   "equal_weight": {
-    "portfolio_pct": -7.49,
-    "median_pct": 4
+    "portfolio_pct": -7.37,
+    "median_pct": 3.0
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 70,
-    "Moderately undervalued (10-30%)": 116,
-    "Slightly undervalued (<10%)": 42,
+    "Strongly undervalued (>30%)": 68,
+    "Moderately undervalued (10-30%)": 113,
+    "Slightly undervalued (<10%)": 48,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 46,
-    "Moderately overvalued (10-30%)": 113,
-    "Strongly overvalued (>30%)": 100
+    "Slightly overvalued (<10%)": 50,
+    "Moderately overvalued (10-30%)": 115,
+    "Strongly overvalued (>30%)": 96
   },
   "most_undervalued": [
+    {
+      "symbol": "PSKY",
+      "score_pct": -81,
+      "solvency": 35
+    },
     {
       "symbol": "CHTR",
       "score_pct": -80,
       "solvency": 15
     },
     {
-      "symbol": "PSKY",
-      "score_pct": -80,
-      "solvency": 35
-    },
-    {
       "symbol": "FISV",
-      "score_pct": -68,
+      "score_pct": -67,
       "solvency": 31
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -63,
+      "score_pct": -62,
       "solvency": 23
     }
   ],
@@ -57,23 +57,23 @@
       "solvency": 78
     },
     {
-      "symbol": "CIEN",
-      "score_pct": 71,
-      "solvency": 63
-    },
-    {
       "symbol": "PANW",
-      "score_pct": 70,
+      "score_pct": 71,
       "solvency": 80
     },
     {
       "symbol": "DDOG",
       "score_pct": 69,
       "solvency": 81
+    },
+    {
+      "symbol": "CIEN",
+      "score_pct": 69,
+      "solvency": 63
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.65,
-    "stocks_covered": 485
+    "portfolio_pct": 13.01,
+    "stocks_covered": 487
   }
 }
