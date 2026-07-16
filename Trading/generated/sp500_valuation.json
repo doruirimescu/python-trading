@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 490,
-    "overvalued": 261,
-    "undervalued": 229
+    "total": 491,
+    "overvalued": 268,
+    "undervalued": 223
   },
   "equal_weight": {
-    "portfolio_pct": -7.37,
-    "median_pct": 3.0
+    "portfolio_pct": -6.4,
+    "median_pct": 5
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 68,
-    "Moderately undervalued (10-30%)": 113,
-    "Slightly undervalued (<10%)": 48,
+    "Strongly undervalued (>30%)": 66,
+    "Moderately undervalued (10-30%)": 105,
+    "Slightly undervalued (<10%)": 52,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 50,
-    "Moderately overvalued (10-30%)": 115,
-    "Strongly overvalued (>30%)": 96
+    "Slightly overvalued (<10%)": 56,
+    "Moderately overvalued (10-30%)": 119,
+    "Strongly overvalued (>30%)": 93
   },
   "most_undervalued": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "symbol": "CHTR",
-      "score_pct": -80,
+      "score_pct": -79,
       "solvency": 15
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "symbol": "IT",
-      "score_pct": -65,
+      "score_pct": -63,
       "solvency": 48
     },
     {
@@ -47,8 +47,13 @@
   ],
   "most_overvalued": [
     {
-      "symbol": "TSLA",
+      "symbol": "CRWD",
       "score_pct": 85,
+      "solvency": 64
+    },
+    {
+      "symbol": "TSLA",
+      "score_pct": 84,
       "solvency": 86
     },
     {
@@ -58,22 +63,17 @@
     },
     {
       "symbol": "PANW",
-      "score_pct": 71,
+      "score_pct": 70,
       "solvency": 80
     },
     {
       "symbol": "DDOG",
-      "score_pct": 69,
+      "score_pct": 68,
       "solvency": 81
-    },
-    {
-      "symbol": "CIEN",
-      "score_pct": 69,
-      "solvency": 63
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 13.01,
-    "stocks_covered": 487
+    "portfolio_pct": 12.47,
+    "stocks_covered": 488
   }
 }
