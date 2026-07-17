@@ -2,26 +2,26 @@
   "file": "sp500_today.html",
   "stocks": {
     "total": 491,
-    "overvalued": 268,
-    "undervalued": 223
+    "overvalued": 266,
+    "undervalued": 225
   },
   "equal_weight": {
-    "portfolio_pct": -6.4,
-    "median_pct": 5
+    "portfolio_pct": -6.9,
+    "median_pct": 4
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 66,
-    "Moderately undervalued (10-30%)": 105,
-    "Slightly undervalued (<10%)": 52,
+    "Strongly undervalued (>30%)": 67,
+    "Moderately undervalued (10-30%)": 113,
+    "Slightly undervalued (<10%)": 45,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 56,
-    "Moderately overvalued (10-30%)": 119,
+    "Slightly overvalued (<10%)": 58,
+    "Moderately overvalued (10-30%)": 115,
     "Strongly overvalued (>30%)": 93
   },
   "most_undervalued": [
     {
       "symbol": "PSKY",
-      "score_pct": -81,
+      "score_pct": -82,
       "solvency": 35
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "symbol": "ARE",
-      "score_pct": -62,
+      "score_pct": -61,
       "solvency": 23
     }
   ],
@@ -63,7 +63,7 @@
     },
     {
       "symbol": "PANW",
-      "score_pct": 70,
+      "score_pct": 71,
       "solvency": 80
     },
     {
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 12.47,
+    "portfolio_pct": 11.68,
     "stocks_covered": 488
   }
 }
