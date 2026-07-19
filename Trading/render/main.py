@@ -12,22 +12,25 @@ from typing import Optional
 from loan.loan_vs_investment import perform_simulation
 from loan.loan import LoanJsonParser
 from stock.pvgo_calculator import calculate_pvgo
-from stock.iv_15 import calculate_iv15_tragic_algebra
+from stock.iv_15 import fetch_iv15_fundamentals, compute_iv15
 from stock.yf_stock.dividend_sustainability import get_data, analyze_dividend_sustainability
 
 app = FastAPI()
 
 _cache: dict = {}
 _CACHE_TTL = 1800  # 30 minutes
+# Errors (mostly Yahoo rate limits) are cached briefly so retry-clicks
+# don't keep hammering Yahoo and prolong the block on this server's IP.
+_ERROR_TTL = 120
 
 def _cache_get(key):
     entry = _cache.get(key)
-    if entry and (time.time() - entry[1]) < _CACHE_TTL:
+    if entry and (time.time() - entry[1]) < entry[2]:
         return entry[0]
     return None
 
-def _cache_set(key, value):
-    _cache[key] = (value, time.time())
+def _cache_set(key, value, ttl=_CACHE_TTL):
+    _cache[key] = (value, time.time(), ttl)
 
 
 def verify_token(x_api_token: str = Header(default="")):
@@ -131,14 +134,20 @@ def iv15_calculate(
     _: None = Depends(verify_token),
 ):
     # manual_sbc is accepted in dollars; frontend sends millions * 1e6
-    key = ('iv15', ticker.upper(), growth_rate, terminal_multiple, manual_sbc)
-    cached = _cache_get(key)
-    if cached is not None:
-        return cached
-    result = calculate_iv15_tragic_algebra(ticker, growth_rate, terminal_multiple, manual_sbc)
+    # The Yahoo fetch only depends on the ticker, so it is cached per ticker
+    # and the DCF math is recomputed per request — changing growth/multiple/SBC
+    # assumptions never triggers a new Yahoo call.
+    symbol = ticker.upper()
+    key = ('iv15-fundamentals', symbol)
+    fundamentals = _cache_get(key)
+    if fundamentals is None:
+        fundamentals = fetch_iv15_fundamentals(symbol)
+        _cache_set(key, fundamentals, ttl=_ERROR_TTL if isinstance(fundamentals, str) else _CACHE_TTL)
+    if isinstance(fundamentals, str):
+        return {"error": fundamentals}
+    result = compute_iv15(fundamentals, symbol, growth_rate, terminal_multiple, manual_sbc)
     if isinstance(result, str):
         return {"error": result}
-    _cache_set(key, result)
     return result
 
 
@@ -147,9 +156,10 @@ def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05, _: None = Dep
     key = ('pvgo', ticker.upper(), market_risk_premium)
     cached = _cache_get(key)
     if cached is not None:
-        return cached
+        return {"error": cached} if isinstance(cached, str) else cached
     result = calculate_pvgo(ticker, market_risk_premium)
     if isinstance(result, str):
+        _cache_set(key, result, ttl=_ERROR_TTL)
         return {"error": result}
     _cache_set(key, result)
     return result

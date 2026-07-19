@@ -1,6 +1,6 @@
 fastapi
 uvicorn
 numpy
-yfinance
+yfinance==1.5.1
 python-multipart
 curl_cffi
