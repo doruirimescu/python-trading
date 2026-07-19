@@ -4,7 +4,7 @@ from Trading.utils.write_to_file import read_json_file
 from Trading.utils.custom_logging import get_logger
 from Trading.config.config import DATA_STORAGE_PATH
 from Trading.utils.calculations import calculate_net_profit_eur
-from Trading.live.hedge.fixed_conversion_rates import convert_currency_to_eur
+from Trading.live.hedge.fixed_conversion_rates import `convert_currency_to_eur
 from functools import partial
 from typing import List
 from dataclasses import dataclass

@@ -39,3 +39,6 @@ playwright
 yfinance==0.2.66
 
 fredapi
+
+# IBKR integration
+ib_insync
