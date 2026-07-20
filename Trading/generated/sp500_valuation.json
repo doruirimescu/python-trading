@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 491,
-    "overvalued": 266,
-    "undervalued": 225
+    "total": 489,
+    "overvalued": 261,
+    "undervalued": 228
   },
   "equal_weight": {
-    "portfolio_pct": -6.9,
+    "portfolio_pct": -7.3,
     "median_pct": 4
   },
   "distribution": {
-    "Strongly undervalued (>30%)": 67,
-    "Moderately undervalued (10-30%)": 113,
-    "Slightly undervalued (<10%)": 45,
+    "Strongly undervalued (>30%)": 68,
+    "Moderately undervalued (10-30%)": 117,
+    "Slightly undervalued (<10%)": 43,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 58,
-    "Moderately overvalued (10-30%)": 115,
-    "Strongly overvalued (>30%)": 93
+    "Slightly overvalued (<10%)": 53,
+    "Moderately overvalued (10-30%)": 117,
+    "Strongly overvalued (>30%)": 91
   },
   "most_undervalued": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "symbol": "CHTR",
-      "score_pct": -79,
+      "score_pct": -80,
       "solvency": 15
     },
     {
@@ -47,14 +47,14 @@
   ],
   "most_overvalued": [
     {
-      "symbol": "CRWD",
-      "score_pct": 85,
-      "solvency": 64
+      "symbol": "TSLA",
+      "score_pct": 83,
+      "solvency": 86
     },
     {
-      "symbol": "TSLA",
-      "score_pct": 84,
-      "solvency": 86
+      "symbol": "CRWD",
+      "score_pct": 82,
+      "solvency": 64
     },
     {
       "symbol": "TPL",
@@ -63,7 +63,7 @@
     },
     {
       "symbol": "PANW",
-      "score_pct": 71,
+      "score_pct": 69,
       "solvency": 80
     },
     {
@@ -73,7 +73,7 @@
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.68,
-    "stocks_covered": 488
+    "portfolio_pct": 11.39,
+    "stocks_covered": 486
   }
 }
