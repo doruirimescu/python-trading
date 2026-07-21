@@ -1,22 +1,22 @@
 {
   "file": "sp500_today.html",
   "stocks": {
-    "total": 489,
-    "overvalued": 261,
-    "undervalued": 228
+    "total": 490,
+    "overvalued": 259,
+    "undervalued": 231
   },
   "equal_weight": {
-    "portfolio_pct": -7.3,
-    "median_pct": 4
+    "portfolio_pct": -7.4,
+    "median_pct": 3.5
   },
   "distribution": {
     "Strongly undervalued (>30%)": 68,
-    "Moderately undervalued (10-30%)": 117,
-    "Slightly undervalued (<10%)": 43,
+    "Moderately undervalued (10-30%)": 115,
+    "Slightly undervalued (<10%)": 48,
     "Fairly valued": 0,
-    "Slightly overvalued (<10%)": 53,
-    "Moderately overvalued (10-30%)": 117,
-    "Strongly overvalued (>30%)": 91
+    "Slightly overvalued (<10%)": 49,
+    "Moderately overvalued (10-30%)": 120,
+    "Strongly overvalued (>30%)": 90
   },
   "most_undervalued": [
     {
@@ -36,7 +36,7 @@
     },
     {
       "symbol": "IT",
-      "score_pct": -63,
+      "score_pct": -65,
       "solvency": 48
     },
     {
@@ -48,17 +48,17 @@
   "most_overvalued": [
     {
       "symbol": "TSLA",
-      "score_pct": 83,
+      "score_pct": 84,
       "solvency": 86
     },
     {
       "symbol": "CRWD",
-      "score_pct": 82,
+      "score_pct": 81,
       "solvency": 64
     },
     {
       "symbol": "TPL",
-      "score_pct": 73,
+      "score_pct": 74,
       "solvency": 78
     },
     {
@@ -67,13 +67,13 @@
       "solvency": 80
     },
     {
-      "symbol": "DDOG",
+      "symbol": "CIEN",
       "score_pct": 68,
-      "solvency": 81
+      "solvency": 63
     }
   ],
   "market_cap_weighted": {
-    "portfolio_pct": 11.39,
-    "stocks_covered": 486
+    "portfolio_pct": 11.98,
+    "stocks_covered": 487
   }
 }
