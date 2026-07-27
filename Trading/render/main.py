@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 import json as json_lib
 import time
+from importlib.metadata import PackageNotFoundError, version
 
 from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,11 @@ from typing import Optional
 
 from loan.loan_vs_investment import perform_simulation
 from loan.loan import LoanJsonParser
-from stock.pvgo_calculator import calculate_pvgo
+from stock.pvgo_calculator import (
+    compute_pvgo,
+    fetch_pvgo_fundamentals,
+    fetch_risk_free_rate,
+)
 from stock.iv_15 import fetch_iv15_fundamentals, compute_iv15
 from stock.yf_stock.dividend_sustainability import get_data, analyze_dividend_sustainability
 
@@ -19,6 +24,8 @@ app = FastAPI()
 
 _cache: dict = {}
 _CACHE_TTL = 1800  # 30 minutes
+_PVGO_FUNDAMENTALS_TTL = 21600  # beta and forward EPS change infrequently
+_RISK_FREE_RATE_TTL = 3600
 # Errors (mostly Yahoo rate limits) are cached briefly so retry-clicks
 # don't keep hammering Yahoo and prolong the block on this server's IP.
 _ERROR_TTL = 120
@@ -37,6 +44,20 @@ def verify_token(x_api_token: str = Header(default="")):
     expected = os.getenv("API_TOKEN")
     if expected and x_api_token != expected:
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+@app.get("/health")
+def health():
+    try:
+        yfinance_version = version("yfinance")
+    except PackageNotFoundError:
+        yfinance_version = "not installed"
+    return {
+        "status": "ok",
+        "yfinance_version": yfinance_version,
+        "render_git_commit": os.getenv("RENDER_GIT_COMMIT"),
+    }
+
 
 origins = [
     "https://doruirimescu.github.io",
@@ -153,15 +174,40 @@ def iv15_calculate(
 
 @app.get("/pvgo/calculate")
 def pvgo_calculate(ticker: str, market_risk_premium: float = 0.05, _: None = Depends(verify_token)):
-    key = ('pvgo', ticker.upper(), market_risk_premium)
-    cached = _cache_get(key)
-    if cached is not None:
-        return {"error": cached} if isinstance(cached, str) else cached
-    result = calculate_pvgo(ticker, market_risk_premium)
+    symbol = ticker.strip().upper()
+
+    fundamentals_key = ('pvgo-fundamentals', symbol)
+    fundamentals = _cache_get(fundamentals_key)
+    if fundamentals is None:
+        fundamentals = fetch_pvgo_fundamentals(symbol)
+        _cache_set(
+            fundamentals_key,
+            fundamentals,
+            ttl=_ERROR_TTL if isinstance(fundamentals, str) else _PVGO_FUNDAMENTALS_TTL,
+        )
+    if isinstance(fundamentals, str):
+        return {"error": fundamentals}
+
+    risk_free_rate_key = ('pvgo-risk-free-rate',)
+    risk_free_rate = _cache_get(risk_free_rate_key)
+    if risk_free_rate is None:
+        risk_free_rate = fetch_risk_free_rate()
+        _cache_set(
+            risk_free_rate_key,
+            risk_free_rate,
+            ttl=_ERROR_TTL if isinstance(risk_free_rate, str) else _RISK_FREE_RATE_TTL,
+        )
+    if isinstance(risk_free_rate, str):
+        return {"error": risk_free_rate}
+
+    result = compute_pvgo(
+        fundamentals,
+        risk_free_rate,
+        symbol,
+        market_risk_premium,
+    )
     if isinstance(result, str):
-        _cache_set(key, result, ttl=_ERROR_TTL)
         return {"error": result}
-    _cache_set(key, result)
     return result
 
 
