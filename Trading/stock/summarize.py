@@ -44,28 +44,37 @@ def load_entries_from_html(html_path: Path) -> list:
     html = html_path.read_text()
 
     # Find the bar trace region: "marker":{"color":[...]} comes just before "x":[...] "y":[...]
-    # Locate the marker color array (first occurrence with red/green)
-    color_marker = '"color":["green"'
-    if color_marker not in html:
-        color_marker = '"color":["red"'
-    ci = html.find(color_marker)
+    # Match the key generically (not a specific first color) since the first
+    # bar's color depends on the data and may be neither red nor green first.
+    ci = html.find('"color":[')
     if ci == -1:
-        raise ValueError("Cannot find marker color array in HTML")
+        raise ValueError(
+            f"Cannot find a Plotly marker color array in {html_path}. The chart's "
+            "HTML structure may have changed (e.g. a Plotly/Kaleido upgrade); "
+            "prefer loading the underlying stock/data/*_analysis_*.json file instead."
+        )
 
-    colors = _extract_json_array(html[ci - 10:], "color")
+    colors = _extract_json_array(html[ci:], "color")
+    if not colors:
+        # The chart was rendered with zero stocks, most likely because every
+        # ticker fetch failed or was rate-limited that day. That's a data
+        # problem, not an HTML-parsing problem, so surface it as "no entries"
+        # rather than raising.
+        return []
 
     x_idx = html.find('"x":[', ci)
-    tickers = _extract_json_array(html[x_idx - 5:], "x")
+    tickers = _extract_json_array(html[x_idx:], "x")
 
     y_idx = html.find('"y":[', x_idx)
-    scores = _extract_json_array(html[y_idx - 5:], "y")
+    scores = _extract_json_array(html[y_idx:], "y")
 
     text_idx = html.find('"text":[', ci)
-    texts = _extract_json_array(html[text_idx - 5:], "text")
+    texts = _extract_json_array(html[text_idx:], "text")
 
-    if not (len(colors) == len(tickers) == len(scores)):
+    if not (len(colors) == len(tickers) == len(scores) == len(texts)):
         raise ValueError(
-            f"Array length mismatch: colors={len(colors)}, tickers={len(tickers)}, scores={len(scores)}"
+            f"Array length mismatch in {html_path}: colors={len(colors)}, "
+            f"tickers={len(tickers)}, scores={len(scores)}, texts={len(texts)}"
         )
 
     entries = []
@@ -94,12 +103,19 @@ def resolve_and_load(path: Path) -> list:
     if path.suffix == ".json":
         return load_entries_from_json(path)
 
-    # Try to find the corresponding JSON first
-    json_name = path.stem + ".json"
+    # The HTML chart (e.g. docs/sp500_today.html) is rendered from a same-day
+    # analysis JSON such as Trading/stock/data/sp500_analysis_2026-07-29.json.
+    # Prefer that structured source: scraping Plotly's generated HTML is
+    # brittle across Plotly/Kaleido versions and breaks whenever the chart
+    # has zero entries (e.g. a day where every ticker fetch was rate-limited).
+    prefix = re.sub(r"_today$", "", path.stem)  # "sp500_today" -> "sp500"
     for parent in path.parents:
-        candidate = parent / "stock" / "data" / json_name
-        if candidate.exists():
-            return load_entries_from_json(candidate)
+        for data_dir in (parent / "Trading" / "stock" / "data", parent / "stock" / "data"):
+            if not data_dir.is_dir():
+                continue
+            candidates = sorted(data_dir.glob(f"{prefix}_analysis_*.json"), reverse=True)
+            if candidates:
+                return load_entries_from_json(candidates[0])
 
     # Fall back to parsing the HTML directly
     return load_entries_from_html(path)
@@ -299,7 +315,11 @@ def summarize(path: Path, market_cap: bool = False):
     entries = resolve_and_load(path)
 
     if not entries:
-        sys.exit("No valid entries found.")
+        sys.exit(
+            f"No valid entries found in {path}. The underlying analysis run likely "
+            "produced 0 results (e.g. Yahoo/Alphaspread rate-limiting) rather than "
+            "this being a parsing bug."
+        )
 
     n = len(entries)
     scores = [signed_score(e) for e in entries]
@@ -382,7 +402,7 @@ def summarize(path: Path, market_cap: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize index valuation")
-    parser.add_argument("--file", action="store_true", help="Path to analysis .html or .json file")
+    parser.add_argument("--file", type=str, default=None, help="Path to analysis .html or .json file")
     parser.add_argument("--market-cap", action="store_true", help="Also compute market-cap-weighted valuation (fetches via yfinance, cached)")
     args = parser.parse_args()
     if not args.file:
