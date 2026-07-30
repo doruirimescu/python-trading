@@ -20,7 +20,12 @@ RUN cd deps/ && \
 RUN pip install --no-cache-dir -r Trading/requirements.txt
 
 # Browser binary for Playwright-based scraping (Trading/stock/gurufocus) -
-# the pip package alone doesn't ship the actual browser.
+# the pip package alone doesn't ship the actual browser. Pin the install
+# path instead of letting it default to ~/.cache/ms-playwright: GitHub
+# Actions "container:" jobs override HOME to /github/home at runtime, which
+# is different from HOME during this build, so the browser installed here
+# would otherwise be looked for (and not found) in the wrong place.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN python3 -m playwright install --with-deps chromium
 
 # Arguments that will be passed during the build
