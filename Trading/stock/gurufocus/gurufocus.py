@@ -9,6 +9,7 @@ class GurufocusAnalysis(BaseModel):
     company_name: Optional[str] = None
     ticker: Optional[str] = None
     market_cap: Optional[str] = None
+    price: Optional[float] = None
     financial_strength: Optional[float] = None
     piotroski_f_score: Optional[float] = None
     gf_value_rank: Optional[float] = None
@@ -123,17 +124,30 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
             break
 
     # --- Extract GF Value ---
+    # GuruFocus renders this header as "GF Value™:$269.6" (note the trademark
+    # symbol, and the dollar figure embedded directly in the header text rather
+    # than in a separate sibling span) - match loosely and pull the number out
+    # with a regex instead of relying on exact text/markup.
     for header in soup.find_all("h2"):
-        if "GF Value:" in header.get_text(strip=True):
-            value_span = header.find_next("span", class_="t-primary")
-            if value_span:
+        text = header.get_text(strip=True)
+        if text.startswith("GF Value") and ":" in text and "Rank" not in text:
+            m = re.search(r"([\d,]+\.?\d*)", text.split(":", 1)[-1])
+            if m:
                 try:
-                    data["gf_value"] = float(
-                        value_span.get_text(strip=True).replace("$", "")
-                    )
+                    data["gf_value"] = float(m.group(1).replace(",", ""))
                 except ValueError:
                     pass
             break
+
+    # --- Extract current share price ---
+    price_span = soup.find("span", class_="bold t-body-lg")
+    if price_span:
+        m = re.search(r"([\d,]+\.\d+)", price_span.get_text(strip=True))
+        if m:
+            try:
+                data["price"] = float(m.group(1).replace(",", ""))
+            except ValueError:
+                pass
 
     # --- Extract Altman Z-Score ---
     for td in soup.find_all("td"):
@@ -156,6 +170,39 @@ def extract_stock_info(soup: BeautifulSoup) -> GurufocusAnalysis:
     data["momentum_rank"] = extract_header_rank("Momentum Rank")  # e.g., 4/10
 
     return GurufocusAnalysis(**data)
+
+
+def to_valuation_analysis(symbol: str, gf: GurufocusAnalysis):
+    """Map a GurufocusAnalysis onto the shared Analysis schema (symbol,
+    valuation_type, valuation_score, solvency_score, profitability_score) that
+    visualize.py/summarize.py/filter_nasdaq_json.py already consume, so the
+    fetch source (Alphaspread vs. GuruFocus) is invisible downstream.
+
+    Returns None if there isn't enough data (price and GF Value) to compute a
+    valuation deviation.
+    """
+    from Trading.stock.alphaspread.alphaspread import Analysis, ValuationType
+
+    if not gf.price or not gf.gf_value:
+        return None
+
+    deviation_pct = round((gf.price - gf.gf_value) / gf.gf_value * 100)
+    valuation_type = (
+        ValuationType.OVERVALUED if deviation_pct > 0 else ValuationType.UNDERVALUED
+    )
+    solvency_score = (
+        round(gf.financial_strength * 10) if gf.financial_strength is not None else None
+    )
+    profitability_score = (
+        round(gf.profitability_rank * 10) if gf.profitability_rank is not None else None
+    )
+    return Analysis(
+        symbol=symbol,
+        valuation_type=valuation_type,
+        valuation_score=abs(deviation_pct),
+        solvency_score=solvency_score,
+        profitability_score=profitability_score,
+    )
 
 
 LAST_PARENS = re.compile(r"\(([^()]*)\)(?!.*\([^()]*\))")

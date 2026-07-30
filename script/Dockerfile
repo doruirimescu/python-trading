@@ -19,6 +19,10 @@ RUN cd deps/ && \
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r Trading/requirements.txt
 
+# Browser binary for Playwright-based scraping (Trading/stock/gurufocus) -
+# the pip package alone doesn't ship the actual browser.
+RUN python3 -m playwright install --with-deps chromium
+
 # Arguments that will be passed during the build
 ARG GH_USERNAME
 ARG CLONE_TOKEN
