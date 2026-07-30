@@ -7,8 +7,13 @@ on:
         description: 'Branch name to pull the image from'
         required: true
         default: 'master'
-  schedule:
-    - cron: '0 18 * * 1-5' # At 18:00 on every day-of-week from Monday through Friday
+  # Automatic schedule disabled: GuruFocus (and, before it, Alphaspread)
+  # rate-limits/Cloudflare-blocks GitHub Actions' shared runner IPs, so the
+  # valuation fetch step fails there. Run script/daily_workflow.sh locally
+  # instead for now; trigger this workflow manually (workflow_dispatch) if
+  # you ever need a CI run.
+  # schedule:
+  #   - cron: '0 18 * * 1-5' # At 18:00 on every day-of-week from Monday through Friday
 jobs:
   daily-workflow:
     runs-on: ubuntu-latest
