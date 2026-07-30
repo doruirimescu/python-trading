@@ -1,15 +1,11 @@
 import asyncio
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 import requests
-import asyncio
-import aiohttp
-from typing import List, Dict
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 DEFAULT_UA = (
@@ -78,19 +74,6 @@ async def download_rendered_html_async(
             await browser.close()
 
 
-import asyncio
-from typing import Dict, List, Optional, Tuple
-
-from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
-
-DEFAULT_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
-
-
 # Helper: render a URL in Playwright and return (url, soup|None)
 async def to_beautiful_soup_rendered_async(
     context,
@@ -151,7 +134,6 @@ def scrape_urls_async(urls: List[str], concurrency: int = 10) -> Dict[str, Beaut
     return asyncio.run(gather_rendered_html(clean_urls, concurrency))
 
 
-from playwright.sync_api import sync_playwright
 def download_rendered_html(url: str, filename: str, wait_selector: str = "body"):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
