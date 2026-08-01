@@ -1,0 +1,61 @@
+{
+  "date": "2026-08-01",
+  "liquidity_stress_score": 47.18,
+  "status": "ORANGE",
+  "components": {
+    "SOFR_FF": {
+      "desc": "SOFR \u2212 FF Spread (%)",
+      "score": 46.61,
+      "weight": 0.15,
+      "value": 0.02
+    },
+    "WRESBAL": {
+      "desc": "Bank Reserve Balances ($B)",
+      "score": 54.75,
+      "weight": 0.15,
+      "value": 2984570.0
+    },
+    "STLFSI4": {
+      "desc": "Financial Stress Index",
+      "score": 26.54,
+      "weight": 0.12,
+      "value": -0.8263
+    },
+    "RRPONTSYD": {
+      "desc": "Overnight RRP ($B)",
+      "score": 56.96,
+      "weight": 0.12,
+      "value": 2.151
+    },
+    "T10Y2Y": {
+      "desc": "10Y \u2212 2Y Yield Spread (%)",
+      "score": 60.46,
+      "weight": 0.1,
+      "value": 0.47
+    },
+    "WALCL_YOY": {
+      "desc": "Fed Balance Sheet YoY (%)",
+      "score": 25.39,
+      "weight": 0.1,
+      "value": 1.4659
+    },
+    "WDTGAL": {
+      "desc": "Treasury Gen. Account ($B)",
+      "score": 71.96,
+      "weight": 0.08,
+      "value": 970442.0
+    },
+    "VIXCLS": {
+      "desc": "VIX (MOVE proxy)",
+      "score": 44.44,
+      "weight": 0.08,
+      "value": 17.09
+    },
+    "DTB3_SOFR": {
+      "desc": "3M T-Bill \u2212 SOFR (%)",
+      "score": 33.97,
+      "weight": 0.05,
+      "value": 0.04
+    }
+  }
+}
