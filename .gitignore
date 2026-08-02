@@ -10,3 +10,10 @@ Logger/__pycache__
 Logger/tests/__pycache__
 Trading/Live/scripts/data/
 Trading/Live/scripts/log/
+
+# Moved to https://github.com/doruirimescu/stock-market-data.
+# The analysis scripts still write to these paths locally; ignore the output
+# so it does not get committed back here.
+docs/
+papers/
+Trading/generated/

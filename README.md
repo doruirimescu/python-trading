@@ -26,7 +26,7 @@ There is a lot of code that deals with data from [xAPI](http://developers.xstore
 * Alerts [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/live/alert)
 * Alphaspread cli for stock analysis [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/stock/alphaspread)
 * Rest api [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/api)
-* Daily nasdaq 100 analysis with alphaspread [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/generated)
+* Daily nasdaq 100 analysis with alphaspread [here](https://github.com/doruirimescu/stock-market-data/tree/master/generated)
 * Dividend growth sustainability analysis [here](https://github.com/doruirimescu/python-trading/blob/master/Trading/stock/yfinance/dividend_sustainability.py)
 * Symbols management, this needs to be frameworked [here](https://github.com/doruirimescu/python-trading/tree/master/Trading/symbols)
 * Dealing with time [here](https://github.com/doruirimescu/python-trading/blob/master/Trading/utils/time.py). Always use these helpers.
@@ -37,15 +37,15 @@ Whenever something really important comes up, it is eventually extracted as a st
 * [Exception With Retry](https://github.com/doruirimescu/exception-with-retry)
 
 ### Papers
-Yes, I write papers. Some are more mathematical, some are light reads, other are unpublished manuscripts kept in a folder in my room.
-* [Light read] A method for classifying and assessing trades based on exit and entry conditions [here](https://github.com/doruirimescu/python-trading/blob/master/papers/bounded_unbounded_trades.md)
-* [Heavy maths] Optimal risk management, basically an independent derivation of Kelly's criterion [here](https://github.com/doruirimescu/python-trading/blob/master/papers/Optimal%20risk%20management.pdf)
-* [Trading strategy] A Quantitative Approach to Selecting Stocks in a Ranging Market [here](https://github.com/doruirimescu/python-trading/blob/master/papers/ranging_market.md)
-* [My magnum opum strategy] [This](https://github.com/doruirimescu/python-trading/blob/master/papers/mean_reversion_strategy.md) is a work in progress, residing mostly in my head and on scattered papers
+Yes, I write papers. Some are more mathematical, some are light reads, other are unpublished manuscripts kept in a folder in my room. They now live in [stock-market-data](https://github.com/doruirimescu/stock-market-data/tree/master/papers).
+* [Light read] A method for classifying and assessing trades based on exit and entry conditions [here](https://github.com/doruirimescu/stock-market-data/blob/master/papers/bounded_unbounded_trades.md)
+* [Heavy maths] Optimal risk management, basically an independent derivation of Kelly's criterion [here](https://github.com/doruirimescu/stock-market-data/blob/master/papers/Optimal%20risk%20management.pdf)
+* [Trading strategy] A Quantitative Approach to Selecting Stocks in a Ranging Market [here](https://github.com/doruirimescu/stock-market-data/blob/master/papers/ranging_market.md)
+* [My magnum opum strategy] [This](https://github.com/doruirimescu/stock-market-data/blob/master/papers/mean_reversion_strategy.md) is a work in progress, residing mostly in my head and on scattered papers
 
 
 # Pipeline structure
-![automation_flow drawio](papers/automation-flow.png)
+![automation_flow drawio](https://raw.githubusercontent.com/doruirimescu/stock-market-data/master/papers/automation-flow.png)
 
 The main pipeline consists of two parts: main and other workflows.
 
