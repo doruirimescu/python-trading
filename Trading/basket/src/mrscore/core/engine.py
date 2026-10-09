@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isnan
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 import numpy as np
 
@@ -66,7 +66,12 @@ class MeanReversionEngine:
         prices: np.ndarray,
         returns: Optional[np.ndarray],
         dates: Optional[np.ndarray] = None,
+        on_bar: Optional[Callable[[int, float, float, float], None]] = None,
     ) -> ScoreResult:
+        """
+        on_bar: optional tracing hook, called as on_bar(t, mean, vol, z) for every
+        bar that produced a finite z-score. It observes only; it cannot change the run.
+        """
         prices = np.asarray(prices, dtype=np.float64)
         if prices.ndim != 1:
             raise ValueError("prices must be 1D")
@@ -146,6 +151,8 @@ class MeanReversionEngine:
             z = (p - mean) / vol
             if not np.isfinite(z):
                 continue
+            if on_bar is not None:
+                on_bar(t, mean, vol, z)
 
             # 1) update active events (revert / fail)
             if active:

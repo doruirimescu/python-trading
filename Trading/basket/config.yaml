@@ -17,20 +17,29 @@ data:
   price_field: close
   returns_mode: log
   min_bars_required: 100
+  # Developed-market country ETFs: one global driver, temporary currency/sector
+  # divergence. Best walk-forward result of the universes tested (Oct 2026).
   tickers:
-  - ZURN.SW
-  - BUCN.SW
-  - VBSN.SW
-  - HBAN.SW
-  - SREN.SW
-  - PGHN.SW
-  - NOVN.SW
-  - NESN.SW
-  - RO.SW
+  - EWG   # Germany
+  - EWQ   # France
+  - EWU   # United Kingdom
+  - EWJ   # Japan
+  - EWC   # Canada
+  - EWA   # Australia
+  - EWL   # Switzerland
+  - EWN   # Netherlands
+  - EWD   # Sweden
+
+  # Previous universe (Swiss large caps):
+  # tickers: [ZURN.SW, BUCN.SW, VBSN.SW, HBAN.SW, SREN.SW, PGHN.SW, NOVN.SW, NESN.SW, RO.SW]
+  # Runner-up (US utilities):
+  # tickers: [NEE, DUK, SO, D, AEP, XEL, ED, EXC, SRE]
 
   period: 5y
   interval: 1d
-  ending_date: "2026-06-05"  # optional YYYY-MM-DD
+  # Keep a fixed date: the cache key ignores "today", so null would reuse stale data.
+  # Bump it to refresh.
+  ending_date: "2026-10-08"  # optional YYYY-MM-DD
   cache:
     enabled: true
     path: .cache/yfinance
@@ -109,7 +118,7 @@ scoring:
   volatility_buckets: 15
   record_empty_scores: false
   compute_sharpe: true
-  score_metric: sharpe
+  score_metric: reversion_rate  # picked better out-of-sample baskets than sharpe
 
 diagnostics:
   enabled: true

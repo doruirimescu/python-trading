@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 
@@ -126,7 +126,12 @@ class RatioMeanReversionBacktester:
         panel: AlignedPanel,
         ratio_spec: RatioSpec,
         job_id: str,
+        on_bar: Optional[Callable[[int, float, float, float], None]] = None,
     ) -> BacktestResult:
+        """
+        on_bar: optional tracing hook, called as on_bar(t, mean, vol, z) for every
+        bar that produced a finite z-score of the signal series.
+        """
         bt = self.config.backtest
         assert bt is not None
 
@@ -325,6 +330,8 @@ class RatioMeanReversionBacktester:
             z = (s - mean) / vol
             if not np.isfinite(z):
                 continue
+            if on_bar is not None:
+                on_bar(t, mean, vol, z)
 
             # Detect whether ratio is far enough from mean to justify switching
             direction = self.deviation_detector.detect(price=s, mean=mean, volatility=vol)

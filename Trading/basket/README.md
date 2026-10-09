@@ -100,6 +100,31 @@ Backtest trades are currently recorded with a single status (`EXPIRED`) for both
 
 Because this status is not informative today, the trade summary CSV omits it.
 
+## Web UI (Basket Rotation on Investing Nexus)
+
+Run results are published as the **Basket Rotation** pages of Investing Nexus:
+<https://doruirimescu.github.io/stock-market-data/basket/>. The pages live in the
+[stock-market-data](https://github.com/doruirimescu/stock-market-data) repo under
+`docs/basket/`; this repo produces their data with `mrscore.cli.export_web`.
+`web.sh` wraps the whole loop:
+
+```bash
+./web.sh export    # run config.yaml and write a new run into the site's docs/basket/data
+./web.sh start     # preview locally at http://127.0.0.1:8765/basket/ (opens a browser)
+./web.sh stop      # stop the preview server   (also: status, restart)
+./web.sh publish   # commit docs/basket/ in the site repo and push it to GitHub Pages
+```
+
+The site repo is expected at `~/personal/stock-market-data`; set `BASKET_SITE_REPO`
+to use another checkout. `publish` commits only `docs/basket/`.
+
+| Page | What it shows |
+|---|---|
+| Overview | Leaderboard of the top-k basket ratios, score distribution of every scanned ratio, ticker membership, universe returns and correlations |
+| Basket | One ratio in depth: ratio + configured mean with engine events, rotation z-score with the leg held, equity vs buy & hold, drawdown, trade blotter with legs, event diagnostics |
+| Strategy Lab | Edit any config parameter and re-run the whole scan and backtests in the browser (a JS port of this engine, parity-checked against the Python run), a 2-D robustness sweep, and `config.yaml` export |
+| Algorithm | The pipeline, event lifecycle and rotation rules, rendered with the selected run's parameters |
+
 ## Intended use cases
 - Screening and ranking symbols by mean-reversion tendency under consistent definitions.
 - Comparing the stability of mean reversion across volatility regimes and parameter sets.

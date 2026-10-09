@@ -24,3 +24,5 @@ dist/
 
 # OS
 .DS_Store
+.web-server.pid
+.web-server.log

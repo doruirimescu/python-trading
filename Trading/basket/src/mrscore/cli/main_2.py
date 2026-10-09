@@ -274,14 +274,100 @@ def _summarize_trades_for_job(
     return "\n".join(lines), rows
 
 
+def load_price_panel(cfg) -> tuple[AlignedPanel, str]:
+    """Load the aligned close-price panel for cfg.data, via the on-disk cache when enabled."""
+    cache_cfg = cfg.data.cache
+    cache_root = Path(cache_cfg.path).expanduser() if cache_cfg.enabled else None
+
+    panel_payload = panel_cache_payload(
+        tickers=cfg.data.tickers,
+        period=cfg.data.period,
+        interval=cfg.data.interval,
+        ending_date=cfg.data.ending_date,
+        price_field=cfg.data.price_field,
+        align="intersection",
+        normalize_by_first=False,
+        union_fill="none",
+    )
+    panel_key = compute_cache_key(panel_payload)
+
+    if cache_root is not None:
+        panel_raw = load_panel_from_cache(cache_root, panel_key)
+        if panel_raw is not None:
+            logger.info("Panel cache hit: %s", panel_key)
+            return panel_raw, panel_key
+
+    loader = YFinanceLoader()
+    histories = loader.load(
+        YFinanceLoadRequest(
+            tickers=cfg.data.tickers,
+            period=cfg.data.period,
+            interval=cfg.data.interval,
+            auto_adjust=True,
+            ending_date=cfg.data.ending_date,
+            cache_enabled=cache_cfg.enabled,
+            cache_path=cache_cfg.path,
+        )
+    )
+    logger.info("Loaded histories: %d tickers", len(histories))
+
+    panel_raw = build_price_panel(
+        histories=histories,
+        symbols=cfg.data.tickers,
+        field=OHLC.CLOSE,
+        align="intersection",
+        normalize_by_first=False,
+    )
+    if cache_root is not None:
+        store_panel_to_cache(cache_root, panel_key, panel_raw, panel_payload)
+    return panel_raw, panel_key
+
+
+def load_ratio_jobs(cfg, ru: RatioUniverse, panel_key: str) -> list[RatioJob]:
+    """Enumerate the ratio jobs for cfg.ratio_universe, via the on-disk cache when enabled."""
+    cache_cfg = cfg.data.cache
+    cache_root = Path(cache_cfg.path).expanduser() if cache_cfg.enabled else None
+    ratio_cfg = cfg.ratio_universe
+
+    ratio_jobs_payload = ratio_jobs_cache_payload(
+        panel_key=panel_key,
+        k_num=ratio_cfg.k_num,
+        k_den=ratio_cfg.k_den,
+        unordered_if_equal_k=ratio_cfg.unordered_if_equal_k,
+        disallow_overlap=ratio_cfg.disallow_overlap,
+        max_jobs=ratio_cfg.max_jobs,
+    )
+    ratio_jobs_key = compute_cache_key(ratio_jobs_payload)
+
+    if cache_root is not None:
+        ratio_jobs = load_ratio_jobs_from_cache(cache_root, ratio_jobs_key, ru=ru)
+        if ratio_jobs is not None:
+            logger.info("Ratio jobs cache hit: %s (jobs=%d)", ratio_jobs_key, len(ratio_jobs))
+            return ratio_jobs
+
+    ratio_jobs = list(
+        ru.iter_ratio_jobs(
+            k_num=ratio_cfg.k_num,
+            k_den=ratio_cfg.k_den,
+            unordered_if_equal_k=ratio_cfg.unordered_if_equal_k,
+            disallow_overlap=ratio_cfg.disallow_overlap,
+            max_jobs=ratio_cfg.max_jobs,
+        )
+    )
+    if cache_root is not None:
+        store_ratio_jobs_to_cache(
+            cache_root,
+            ratio_jobs_key,
+            ru=ru,
+            jobs=ratio_jobs,
+            payload=ratio_jobs_payload,
+        )
+    return ratio_jobs
+
+
 def main():
     cfg = load_config("config.yaml")  # loader returns RootConfig in your project
     tickers = cfg.data.tickers
-    period = cfg.data.period
-    interval = cfg.data.interval
-    ending_date = cfg.data.ending_date
-    cache_cfg = cfg.data.cache
-    cache_root = Path(cache_cfg.path).expanduser() if cache_cfg.enabled else None
 
     # Build composed application (engine + components)
     app = build_app(cfg)
@@ -293,48 +379,7 @@ def main():
 
     logger.info("Starting main_2: tickers=%s", tickers)
 
-    panel_payload = panel_cache_payload(
-        tickers=tickers,
-        period=period,
-        interval=interval,
-        ending_date=ending_date,
-        price_field=cfg.data.price_field,
-        align="intersection",
-        normalize_by_first=False,
-        union_fill="none",
-    )
-    panel_key = compute_cache_key(panel_payload)
-
-    panel_raw = None
-    if cache_root is not None:
-        panel_raw = load_panel_from_cache(cache_root, panel_key)
-        if panel_raw is not None:
-            logger.info("Panel cache hit: %s", panel_key)
-
-    if panel_raw is None:
-        loader = YFinanceLoader()
-        histories = loader.load(
-            YFinanceLoadRequest(
-                tickers=tickers,
-                period=period,
-                interval=interval,
-                auto_adjust=True,
-                ending_date=ending_date,
-                cache_enabled=cache_cfg.enabled,
-                cache_path=cache_cfg.path,
-            )
-        )
-        logger.info("Loaded histories: %d tickers", len(histories))
-
-        panel_raw = build_price_panel(
-            histories=histories,
-            symbols=tickers,
-            field=OHLC.CLOSE,
-            align="intersection",
-            normalize_by_first=False,
-        )
-        if cache_root is not None:
-            store_panel_to_cache(cache_root, panel_key, panel_raw, panel_payload)
+    panel_raw, panel_key = load_price_panel(cfg)
     panel_for_ru = AlignedPanel(
         dates=panel_raw.dates,
         symbols=panel_raw.symbols,
@@ -355,40 +400,7 @@ def main():
         vol_unit,
     )
 
-    ratio_jobs_payload = ratio_jobs_cache_payload(
-        panel_key=panel_key,
-        k_num=ratio_cfg.k_num,
-        k_den=ratio_cfg.k_den,
-        unordered_if_equal_k=ratio_cfg.unordered_if_equal_k,
-        disallow_overlap=ratio_cfg.disallow_overlap,
-        max_jobs=ratio_cfg.max_jobs,
-    )
-    ratio_jobs_key = compute_cache_key(ratio_jobs_payload)
-
-    ratio_jobs = None
-    if cache_root is not None:
-        ratio_jobs = load_ratio_jobs_from_cache(cache_root, ratio_jobs_key, ru=ru)
-        if ratio_jobs is not None:
-            logger.info("Ratio jobs cache hit: %s (jobs=%d)", ratio_jobs_key, len(ratio_jobs))
-
-    if ratio_jobs is None:
-        ratio_jobs = list(
-            ru.iter_ratio_jobs(
-                k_num=ratio_cfg.k_num,
-                k_den=ratio_cfg.k_den,
-                unordered_if_equal_k=ratio_cfg.unordered_if_equal_k,
-                disallow_overlap=ratio_cfg.disallow_overlap,
-                max_jobs=ratio_cfg.max_jobs,
-            )
-        )
-        if cache_root is not None:
-            store_ratio_jobs_to_cache(
-                cache_root,
-                ratio_jobs_key,
-                ru=ru,
-                jobs=ratio_jobs,
-                payload=ratio_jobs_payload,
-            )
+    ratio_jobs = load_ratio_jobs(cfg, ru, panel_key)
 
     jobs, scores, processed_jobs = _select_top_k_jobs(
         ru=ru,
