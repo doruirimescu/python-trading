@@ -5,7 +5,7 @@ from typing import Any, Dict, Mapping
 
 from pydantic import ValidationError
 
-from mrscore.config.models import RootConfig
+from mrscore.config.models import RootConfig, TrendPortfolioRootConfig
 from mrscore.utils.errors import ConfigLoadError, ConfigValidationError
 
 
@@ -44,3 +44,11 @@ def parse_root_config(config_dict: Mapping[str, Any]) -> RootConfig:
 def load_config(path: str | Path) -> RootConfig:
     config_dict = load_yaml_file(path)
     return parse_root_config(config_dict)
+
+
+def load_trend_config(path: str | Path) -> TrendPortfolioRootConfig:
+    config_dict = load_yaml_file(path)
+    try:
+        return TrendPortfolioRootConfig.model_validate(dict(config_dict))
+    except ValidationError as e:
+        raise ConfigValidationError(f"Trend config schema validation failed: {e}") from e

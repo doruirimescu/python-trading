@@ -110,6 +110,7 @@ Run results are published as the **Basket Rotation** pages of Investing Nexus:
 
 ```bash
 ./web.sh export    # run config.yaml and write a new run into the site's docs/basket/data
+./web.sh trend     # run config_trend.yaml and refresh the Sector Trend research page
 ./web.sh start     # preview locally at http://127.0.0.1:8765/basket/ (opens a browser)
 ./web.sh stop      # stop the preview server   (also: status, restart)
 ./web.sh publish   # commit docs/basket/ in the site repo and push it to GitHub Pages
@@ -124,6 +125,32 @@ to use another checkout. `publish` commits only `docs/basket/`.
 | Basket | One ratio in depth: ratio + configured mean with engine events, rotation z-score with the leg held, equity vs buy & hold, drawdown, trade blotter with legs, event diagnostics |
 | Strategy Lab | Edit any config parameter and re-run the whole scan and backtests in the browser (a JS port of this engine, parity-checked against the Python run), a 2-D robustness sweep, and `config.yaml` export |
 | Algorithm | The pipeline, event lifecycle and rotation rules, rendered with the selected run's parameters |
+
+## Sector trend portfolio
+
+A second strategy, from the search for a durable edge vs the S&P 500 (`research/edge_research.py`):
+hold the nine Select Sector SPDRs at 1/9 each, but at every month-end move any sector that
+closes below the average of its last 10 month-end closes into intermediate Treasuries; trade
+at the next close, 5 bps per side. Implemented in `mrscore.backtest.trend_portfolio`
+(`run_trend_portfolio`, `performance`), configured by `config_trend.yaml` (validated by
+`TrendPortfolioRootConfig`), tested in `tests/test_trend_portfolio.py`.
+
+| 2000-01 → 2026-10 | CAGR | Max drawdown | Volatility | Sharpe |
+|---|---|---|---|---|
+| Sector trend | +8.5% | −17% | 10% | 0.66 |
+| S&P 500 (SPY) | +8.3% | −55% | 19% | 0.41 |
+
+It held its drawdown in both halves (−16% in 2000–2012, −17% in 2013–2026) and across
+6–14 month lookbacks, but trails the S&P 500 in strong bull years (2013–2026: +9.4%/yr vs
++14.8%/yr). Basket mean reversion added no edge on sectors, so it is not part of this strategy.
+
+```bash
+./web.sh trend     # run config_trend.yaml → the site's Sector Trend page data
+./web.sh publish   # commit and push the site
+python3 research/edge_research.py   # the comparison harness (UNIVERSE, RISKOFF, SMA_M env vars)
+```
+
+Published at <https://doruirimescu.github.io/stock-market-data/basket/trend.html>.
 
 ## Intended use cases
 - Screening and ranking symbols by mean-reversion tendency under consistent definitions.

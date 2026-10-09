@@ -1,0 +1,38 @@
+# Trend-filtered sector portfolio (mrscore.backtest.trend_portfolio).
+# Each sector holds 1/9 while its month-end close is above its 10-month average;
+# otherwise that slice sits in intermediate Treasuries. Published as the
+# "Sector Trend" research page by mrscore.cli.export_trend.
+config_version: 1
+
+data:
+  price_field: close
+  returns_mode: simple
+  min_bars_required: 1
+  tickers: [XLK, XLF, XLE, XLV, XLY, XLP, XLI, XLU, XLB]  # Select Sector SPDRs, all since Dec 1998
+  # 1999-01-01 → ending_date: one year of warm-up for the 10-month average before 2000.
+  period: 10142d
+  interval: 1d
+  ending_date: "2026-10-08"  # fixed on purpose: the cache key ignores "today"
+  cache:
+    enabled: true
+    path: .cache/yfinance
+
+trend_portfolio:
+  sma_months: 10
+  # VFITX (Vanguard intermediate Treasuries) has history before 2002;
+  # IEF is the tradable ETF equivalent from 2002 on.
+  risk_off: VFITX
+  cash_rate: ^IRX
+  execution_lag_bars: 1
+  costs_bps: 5.0
+  leverage: 1.0
+  financing_spread_bps: 50.0
+  initial_cash: 100000
+
+benchmark: SPY
+
+research:
+  evaluate_from: "2000-01-03"
+  split_date: "2013-01-01"
+  sma_months_sweep: [6, 8, 10, 12, 14]
+  leverage_sweep: [1.25, 1.5]

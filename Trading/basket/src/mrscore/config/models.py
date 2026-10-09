@@ -355,3 +355,50 @@ class RootConfig(StrictBaseModel):
     ratio_universe: RatioUniverseConfig
 
     backtest: Optional[BacktestConfig] = None
+
+
+# ---------------------------
+# Trend-filter portfolio (separate root config: no ratio engine involved)
+# ---------------------------
+
+class TrendPortfolioParams(StrictBaseModel):
+    # Each data.tickers asset holds 1/N while its month-end close is above the SMA of
+    # its last `sma_months` month-end closes; otherwise its slice moves to `risk_off`.
+    sma_months: int = Field(10, ge=1)
+    risk_off: str = "IEF"
+    # Ticker quoting an annualized yield in percent (e.g. ^IRX), used for Sharpe and
+    # leverage financing. None means a 0% cash rate.
+    cash_rate: Optional[str] = "^IRX"
+    execution_lag_bars: int = Field(1, ge=0)
+    costs_bps: float = Field(5.0, ge=0.0)  # per side, on traded notional
+    leverage: float = Field(1.0, gt=0.0, le=3.0)
+    financing_spread_bps: float = Field(50.0, ge=0.0)  # over the cash rate, per year
+    initial_cash: float = Field(100_000.0, gt=0.0)
+
+
+class TrendResearchConfig(StrictBaseModel):
+    # Report window starts here; earlier data only warms up the SMA.
+    evaluate_from: Optional[date] = None
+    # Sub-periods are [evaluate_from, split) and [split, end].
+    split_date: Optional[date] = None
+    sma_months_sweep: List[int] = Field(default_factory=lambda: [6, 8, 10, 12, 14])
+    leverage_sweep: List[float] = Field(default_factory=lambda: [1.25, 1.5])
+
+
+class TrendPortfolioRootConfig(StrictBaseModel):
+    config_version: Literal[1]
+    data: DataConfig
+    trend_portfolio: TrendPortfolioParams
+    benchmark: Optional[str] = "SPY"
+    research: TrendResearchConfig = Field(default_factory=TrendResearchConfig)
+
+    @model_validator(mode="after")
+    def validate_symbols(self):
+        if not self.data.tickers:
+            raise ValueError("data.tickers must list the portfolio assets")
+        if self.trend_portfolio.risk_off in self.data.tickers:
+            raise ValueError("trend_portfolio.risk_off must not be one of data.tickers")
+        r = self.research
+        if r.split_date and r.evaluate_from and r.split_date <= r.evaluate_from:
+            raise ValueError("research.split_date must be after research.evaluate_from")
+        return self

@@ -5,6 +5,7 @@
 # Pages); this repo produces the run data for them.
 #
 #   ./web.sh export    run config.yaml and write a new run into the site
+#   ./web.sh trend     run config_trend.yaml and refresh the Sector Trend research page
 #   ./web.sh start     serve the site locally (background) and open the basket pages
 #   ./web.sh stop      stop the local server
 #   ./web.sh status    show whether it is running
@@ -32,6 +33,11 @@ need_site() {
 export_run() {
   need_site
   (cd "$ROOT" && PYTHONPATH=src python3 -m mrscore.cli.export_web --out "$BASKET_DIR/data")
+}
+
+export_trend() {
+  need_site
+  (cd "$ROOT" && PYTHONPATH=src python3 -m mrscore.cli.export_trend --out "$BASKET_DIR/data")
 }
 
 start() {
@@ -77,7 +83,7 @@ publish() {
   local latest
   latest="$(ls docs/basket/data/runs | sort | tail -1)"
   # Commit only docs/basket, even if other files are staged.
-  git commit -m "Basket rotation: publish run ${latest%.js}" -- docs/basket
+  git commit -m "Basket rotation: publish latest results (run ${latest%.js})" -- docs/basket
   git push
   echo "Pushed. GitHub Pages updates in a minute or two:"
   echo "  https://doruirimescu.github.io/stock-market-data/basket/"
@@ -85,10 +91,11 @@ publish() {
 
 case "${1:-}" in
   export) export_run ;;
+  trend) export_trend ;;
   start) start ;;
   stop) stop ;;
   status) status ;;
   restart) stop; start ;;
   publish) publish ;;
-  *) echo "Usage: $0 {export|start|stop|status|restart|publish}"; exit 2 ;;
+  *) echo "Usage: $0 {export|trend|start|stop|status|restart|publish}"; exit 2 ;;
 esac
