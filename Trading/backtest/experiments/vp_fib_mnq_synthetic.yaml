@@ -1,0 +1,33 @@
+config_version: 1
+name: vp_fib_mnq_synthetic
+data:
+  source: synthetic
+  symbols: [MNQ]
+  start: "2022-01-03"
+  end: "2023-12-29"
+  freq: 5m
+  base_freq: 1m
+  session: rth
+  options: {seed: 11, bid_ask: true}
+strategy:
+  name: vp_fib_orderflow
+  params:
+    min_bar_volume: 8000      # synthetic 5m volume is ~10-50k at the open, far thinner than real MNQ
+    context_mode: any
+    # loosened so the random-walk synthetic data yields enough setups to exercise the pipeline (not tuned for edge)
+    zone_vs_value: discount
+    min_leg_atr: 1.5
+    abs_wick_min: 0.25
+    invalid_level: 1.0
+execution:
+  fill: next_open
+  slippage_ticks: 1
+  stop_extra_slippage_ticks: 1
+  flatten_at: "15:55"
+  session_flat: true
+  risk:
+    trade_window: ["09:30", "11:00"]
+    max_trades_per_day: 2
+    stop_after_consecutive_losses: 2
+initial_capital: 50000
+seed: 1

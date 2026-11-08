@@ -1,0 +1,28 @@
+# Real MNQ 1-minute OHLCV (Databento, continuous front-month). Data NOT downloaded yet: place the file at the path below.
+# Databento OHLCV carries no aggressor volume -> delta is APPROXIMATED (tick rule); see docs/STRATEGY_vp_fib_orderflow.md.
+config_version: 1
+name: vp_fib_mnq_databento
+data:
+  source: parquet
+  symbols: [MNQ]
+  start: "2019-06-03"
+  end: "2025-12-31"
+  freq: 5m
+  base_freq: 1m
+  session: rth
+  options: {path: data_store/databento/MNQ_1m.parquet, preset: databento_ohlcv_1m}
+strategy:
+  name: vp_fib_orderflow
+  params: {}              # all defaults (min_bar_volume 20000 MNQ contracts)
+execution:
+  fill: next_open
+  slippage_ticks: 1
+  stop_extra_slippage_ticks: 1
+  flatten_at: "15:55"
+  session_flat: true
+  risk:
+    trade_window: ["09:30", "11:00"]
+    max_trades_per_day: 2
+    stop_after_consecutive_losses: 2
+initial_capital: 50000
+seed: 1

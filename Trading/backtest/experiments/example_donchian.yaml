@@ -1,0 +1,14 @@
+config_version: 1
+name: donchian_daily_synth
+data: {source: synthetic, symbols: [SPY], start: "2010-01-04", end: "2023-12-29", freq: 1d}
+strategy:
+  name: donchian
+  params: {n: 20}
+  grid: auto
+execution: {fill: next_open, commission_bps: 1, slippage_bps: 1}
+robustness:
+  walkforward: {is_len: 750, oos_len: 250, scheme: rolling, purge: 5}
+  bootstrap_n: 500
+  mc_n: 500
+initial_capital: 100000
+seed: 1

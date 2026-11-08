@@ -1,0 +1,32 @@
+# NQ 1-minute OHLCV for the pre-MNQ period (2010-2019). 1 NQ = 10 MNQ: the NQ spec is overridden to
+# MNQ-equivalent economics (point_value 2.0, MNQ fees) so sizing/costs equal what MNQ would have traded.
+# volume_scale converts NQ contract volume to MNQ-equivalent volume for the 20,000-contract filter
+# (~4 MNQ per NQ contract by count; calibrate on the 2019+ overlap before trusting).
+config_version: 1
+name: vp_fib_nq_databento
+data:
+  source: parquet
+  symbols: [NQ]
+  start: "2010-06-07"
+  end: "2019-05-03"
+  freq: 5m
+  base_freq: 1m
+  session: rth
+  options: {path: data_store/databento/NQ_1m.parquet, preset: databento_ohlcv_1m}
+  instruments:
+    NQ: {point_value: 2.0, commission_per_contract: 0.5, exchange_fee_per_contract: 0.37}
+strategy:
+  name: vp_fib_orderflow
+  params: {volume_scale: 4.0}
+execution:
+  fill: next_open
+  slippage_ticks: 1
+  stop_extra_slippage_ticks: 1
+  flatten_at: "15:55"
+  session_flat: true
+  risk:
+    trade_window: ["09:30", "11:00"]
+    max_trades_per_day: 2
+    stop_after_consecutive_losses: 2
+initial_capital: 50000
+seed: 1

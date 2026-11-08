@@ -1,0 +1,6 @@
+# Instrument registry. commission_per_contract is per SIDE (USD). tick_size 0 => no tick rounding (equities/ETFs).
+MNQ: {kind: future, tick_size: 0.25, point_value: 2.0,  currency: USD, commission_per_contract: 0.5, exchange_fee_per_contract: 0.37, tz: America/New_York, session: globex}
+NQ:  {kind: future, tick_size: 0.25, point_value: 20.0, currency: USD, commission_per_contract: 1.0, exchange_fee_per_contract: 1.38, tz: America/New_York, session: globex}
+MES: {kind: future, tick_size: 0.25, point_value: 5.0,  currency: USD, commission_per_contract: 0.5, exchange_fee_per_contract: 0.37, tz: America/New_York, session: globex}
+ES:  {kind: future, tick_size: 0.25, point_value: 50.0, currency: USD, commission_per_contract: 1.0, exchange_fee_per_contract: 1.38, tz: America/New_York, session: globex}
+EQUITY: {kind: equity, tick_size: 0.0, point_value: 1.0, currency: USD, commission_per_contract: 0.0, exchange_fee_per_contract: 0.0, tz: America/New_York, session: equity}

@@ -1,0 +1,31 @@
+config_version: 1
+name: example_daily_sma_cross
+data:
+  source: synthetic          # swap for yfinance + symbols: [SPY] for real data
+  symbols: [SPY]
+  start: "2005-01-03"
+  end: "2024-12-31"
+  freq: 1d
+  cash: 0.02                 # constant 2% annual risk-free
+strategy:
+  name: sma_cross
+  params: {fast: 20, slow: 100, long_only: true}
+  warmup_sessions: 300       # history before `start` for window runs (default: 300 daily / 20 intraday)
+  grid: {fast: [10, 20, 30, 40], slow: [80, 100, 150, 200]}
+execution:
+  fill: next_open
+  commission_bps: 1.0
+  slippage_bps: 1.0
+initial_capital: 100000
+seed: 1
+# --- optional: parameter search + robustness (counts toward runs/_trials.jsonl; DSR/PBO need a grid)
+# `strategy.grid` may be a dict of param -> values or "auto" (use grid(...) hints on the strategy Params)
+robustness:
+  bootstrap_n: 1000
+  mc_n: 1000
+  cost_mults: [0, 1, 2, 3]
+  objective: sharpe
+  n_jobs: 1
+  walkforward: {is_len: 1000, oos_len: 250, scheme: rolling, purge: 5}
+analytics:
+  periods_per_year: 252
