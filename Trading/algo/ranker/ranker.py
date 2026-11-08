@@ -1,3 +1,8 @@
+"""Single-instrument range scorers.
+
+Superseded for screening by Trading/perfectshape (multi-instrument baskets, uptrends/downtrends/ranges,
+duration ranking); kept for live/range/filter_ranging_stocks.py.
+"""
 from Trading.model.history import History, OHLC
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional

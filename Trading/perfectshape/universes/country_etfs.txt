@@ -1,0 +1,20 @@
+# iShares MSCI country ETFs (developed + large emerging)
+EWG   # Germany
+EWQ   # France
+EWU   # United Kingdom
+EWJ   # Japan
+EWC   # Canada
+EWA   # Australia
+EWL   # Switzerland
+EWN   # Netherlands
+EWD   # Sweden
+EWP   # Spain
+EWI   # Italy
+EWH   # Hong Kong
+EWS   # Singapore
+EWY   # South Korea
+EWT   # Taiwan
+EWZ   # Brazil
+EWW   # Mexico
+INDA  # India
+MCHI  # China

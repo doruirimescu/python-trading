@@ -1,0 +1,12 @@
+# Offline smoke run: synthetic random walks with one planted pair per shape.
+config_version: 1
+name: smoke
+universe:
+  tickers: [S00, S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14,
+            S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29]
+data:
+  source: synthetic
+  synthetic: {n_bars: 1600, seed: 3, plant: {uptrend: [S03, S17], downtrend: [S08, S22], range: [S11, S26]}}
+search:
+  windows: [126, 252, 504, 1008]
+  seeds: 30

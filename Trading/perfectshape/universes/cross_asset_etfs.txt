@@ -1,0 +1,19 @@
+# Cross-asset ETFs: bonds, commodities, currencies, volatility-free macro sleeves
+TLT   # 20+y Treasuries
+IEF   # 7-10y Treasuries
+SHY   # 1-3y Treasuries
+TIP   # TIPS
+LQD   # IG corporate bonds
+HYG   # High-yield bonds
+EMB   # EM USD bonds
+GLD   # Gold
+SLV   # Silver
+USO   # Crude oil
+UNG   # Natural gas
+DBA   # Agriculture
+DBB   # Base metals
+UUP   # US dollar index
+FXE   # Euro
+FXY   # Yen
+FXF   # Swiss franc
+VNQ   # US REITs
