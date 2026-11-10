@@ -66,14 +66,16 @@ Size: all ratios are enumerated, so the count grows fast with the holdings used 
 Backtests buying and selling one ratio, in the browser: prices of its members and SPY come from the dashboard
 server (`/api/series`, the scan's price cache), and every change of a rule recomputes at once.
 
-* **Strategies**: band mean reversion (the scan's in-sample band, or a rolling band from past data only;
+* **Strategies**: band mean reversion (the scan's in-sample band; a rolling band of the last N days; or an
+  expanding band of every day since From, available after N days of warm-up; the last two use past data only;
   band percentile, entry beyond the edge in %, exit at a share of the band: 50% = median, 100% = opposite
   edge), z-score mean reversion (lookback, entry / exit / stop z), trend (moving-average crossover with a
   buffer), buy & hold the ratio. Directions: both, numerator up only, denominator up only.
 * **Execution**: long/short pair (with exposure per leg), rotation (all money in the basket expected to
   outperform, long only), numerator only; starting capital (default $10,000), costs in bps per side per leg,
   fill at the next close (default, no look-ahead) or the same close. **Risk exits**: stop loss, take profit,
-  maximum holding days (a stopped-out side is not re-entered until its signal resets).
+  maximum holding days (a stopped-out side is not re-entered until its signal resets). No position is opened on
+  the last bar of the period; whatever is open is closed at the last in-period close ("end of period").
 * **Report**: the ratio with its band / averages and every entry and exit; portfolio value against SPY and
   all members equal weight; drawdown; statistics (final value, total return, CAGR, volatility, Sharpe,
   Sortino, max drawdown, Calmar, trades, win rate, average / best / worst trade, profit factor, holding days,
@@ -84,16 +86,17 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
   be bookmarked or shared. The "all members, equal weight" line (holding every stock of the ratio) is off by
   default; tick it in the portfolio chart's legend.
 * **Find best rules** (the optimizer, in the page and as a button above the strategy):
-  * realistic conditions only: rolling band (past data only), fills at the next close; your position mode,
+  * realistic conditions only: rolling and expanding bands (past data only; band rules are searched with both,
+    listed as "band" and "band (expanding)"), fills at the next close; your position mode,
     exposure, capital, costs and directions are kept;
   * the period is split into **train** (first 70% by default) and **test** (the rest, never used to choose);
     by default a rule's train score is its **weakest of 3 consecutive train segments**, so it has to work
     throughout, not in one lucky stretch; rules with fewer than the minimum trades are ignored;
   * objective: Sharpe (default), CAGR, Calmar or total return; one strategy or every strategy;
-  * **Also search with the scan-window band** (tick, off by default): adds band rules on the scan's own band
-    (fitted on the window the scan scored), listed as "band (scan window)" next to the rolling-band rules.
-    This is in-sample (that band was drawn with the prices it is judged on, test included), so treat it as an
-    upper bound; it competes fairly only when the period starts at the scan window (the Trade Lab's default);
+  * **Change only within the current band** (tick, off by default): keeps the band picked in "Band from"
+    (scan window, rolling or expanding) and tunes only its settings; unticked, band rules are searched with both
+    past-only bands. With the scan-window band the search is in-sample (that band was drawn with the prices it
+    is judged on, test included), so treat its results as an upper bound;
   * search: Latin-hypercube sampling of the settings (40% of the budget), then a (mu + 1) evolution around the
     best rules with shrinking steps (lookbacks on a log scale). A backtest takes well under a millisecond, so
     the default 2,000 run in about a second. The search is randomised: a second run can surface different

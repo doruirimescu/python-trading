@@ -24,8 +24,8 @@
   Object.assign(PS.TIPS, {
     period: "The backtest runs from <b>From</b> to <b>To</b>. Both baskets are equal weight at the start date and then held as fixed shares, like the scan values them. Defaults: the start of the window the scan scored, to the last bar.",
     strategy: "<b>Band</b>: trade the ratio back into its band. <b>Z-score</b>: the same idea with a rolling mean and standard deviation. <b>Moving-average crossover</b>: follow the trend of the ratio. <b>Buy &amp; hold</b>: own the ratio for the whole period.",
-    band_src: "<b>Scan window</b>: the band the dashboard showed, fitted on the window the scan scored (in-sample: it knew the future of that window). <b>Rolling</b>: at each day, the band of the previous N days only, an honest out-of-sample test.",
-    band_lb: "Days of history used for the rolling band.",
+    band_src: "<b>Scan window</b>: the band the dashboard showed, fitted on the window the scan scored (in-sample: it knew the future of that window). <b>Rolling</b>: at each day, the band of the previous N days only. <b>Expanding</b>: at each day, the band of every day since <b>From</b> up to that day, so it remembers more and more. Rolling and expanding use past data only: honest out-of-sample tests.",
+    band_lb: "<b>Rolling</b>: the days of history in the band. <b>Expanding</b>: the warm-up, the days that must pass after <b>From</b> before the band exists and the first trade can happen; after that the window keeps growing.",
     band_pct: "Band = median ± the smaller half of the p to (100 − p) percentile range of the ratio. 10 ≈ the 10th to 90th percentile.",
     entry_buf: "Wait until the ratio is this much <b>beyond</b> the band edge before entering (0 = enter as soon as it leaves the band).",
     exit_frac: "Where a trade closes, as a share of the band from its entry edge: <b>50</b> = the median, <b>100</b> = the opposite edge, 25 = a quarter of the way back.",
@@ -47,7 +47,7 @@
     stop: "Close a trade that has lost this much. After a stop the same side is not re-entered until its signal resets.",
     tp: "Close a trade that has made this much.",
     maxdays: "Close a trade after this many trading days.",
-    opt_scan: "Also search band rules on the <b>scan's own band</b>, fitted on the window the scan scored (as “Band from: scan window”). Shown next to the rolling-band results, labelled <b>band (scan window)</b>. It is <b>in-sample</b>: that band was drawn with the prices the trades are judged on, so its results, test included, are an upper bound, not a forecast.",
+    opt_current: "<b>Ticked</b>: keep the band you picked in <b>Band from</b> (scan window, rolling or expanding) and only tune its settings. <b>Unticked</b>: band rules are searched with both past-only bands, rolling and expanding. With the <b>scan-window</b> band the search is <b>in-sample</b> (that band was drawn with the prices the trades are judged on), so its results, test included, are an upper bound, not a forecast.",
     show_ew: "Buy and hold every stock of the ratio (both baskets), equal weight at the start, no trading: did trading the ratio beat simply owning the same stocks?",
   });
   function addInfo(el, key) {
@@ -130,7 +130,7 @@
   function syncVisibility(o) {
     document.querySelectorAll("[data-for]").forEach((el) => (el.hidden = el.dataset.for !== o.strategy));
     document.querySelectorAll("[data-not-for]").forEach((el) => (el.hidden = el.dataset.notFor === o.strategy));
-    document.querySelectorAll("[data-for-src]").forEach((el) => (el.hidden = el.dataset.forSrc !== o.band_src));
+    document.querySelectorAll("[data-for-src]").forEach((el) => (el.hidden = !el.dataset.forSrc.split(" ").includes(o.band_src)));
     document.querySelectorAll("[data-for-mode]").forEach((el) => (el.hidden = el.dataset.forMode !== o.mode));
   }
 
@@ -144,7 +144,8 @@
   }
 
   function indicatorKey(o) {
-    if (o.strategy === "band") return o.band_src === "fixed" ? `bf|${o.band_pct}` : `br|${Math.round(o.band_lb)}|${o.band_pct}`;
+    if (o.strategy === "band") return o.band_src === "fixed" ? `bf|${o.band_pct}`
+      : `${o.band_src === "expanding" ? "be" : "br"}|${Math.round(o.band_lb)}|${o.band_pct}`;
     if (o.strategy === "zscore") return `z|${Math.round(o.z_lb)}|${o.z_in}`;
     if (o.strategy === "ma") return `m|${Math.round(o.ma_fast)}|${Math.round(o.ma_slow)}`;
     return "h";
@@ -162,6 +163,15 @@
         const b = symBand(Array.from(Y.slice(c0, c1 + 1)), o.band_pct);
         if (b) for (let t = 0; t < T; t++) [lo[t], mid[t], hi[t]] = b;
         calib = [c0, c1];
+      } else if (o.band_src === "expanding") {
+        // band of every sample since the start of the backtest, [s, t]: the window only grows. The lookback is
+        // the warm-up: no band (so no trade) before L samples of the period have been seen
+        const L = Math.max(20, Math.round(o.band_lb)), win = [];
+        let nan = 0;
+        for (let t = s; t < T; t++) {
+          Number.isFinite(Y[t]) ? sortedInsert(win, Y[t]) : nan++;
+          if (t - s + 1 >= L && win.length >= 5) [lo[t], mid[t], hi[t]] = bandOfSorted(win, o.band_pct);
+        }
       } else {
         // band of the window [t-L+1, t]: past and today only (the trade is filled at a later close)
         const L = Math.max(20, Math.round(o.band_lb)), t0 = Math.max(L - 1, s - 1);
@@ -312,7 +322,14 @@
     };
 
     for (let t = s; t <= e; t++) {
-      if (pending) { execute(t, pending); pending = null; }
+      if (pending) {
+        // no new position on the last bar of the period: an entry filled there could only be closed again at
+        // the same close (costs, no exposure). A pending exit still happens; a reversal becomes a plain exit.
+        if (t === e) {
+          if (pending.action === "close" || pending.action === "reverse") close(t, pending.reason);
+        } else execute(t, pending);
+        pending = null;
+      }
       eq[t] = value(t);
       if (t === e) break;
       // decide on today's close
@@ -552,8 +569,10 @@
   // "bandscan": band mean reversion on the scan's own band (fitted on the window the scan scored): in-sample,
   // offered with the "scan-window band" tick next to the realistic rolling band
   SPACE.bandscan = SPACE.band.filter((d) => d.k !== "band_lb");
-  const LABEL = { band: "band", bandscan: "band (scan window)", zscore: "z-score", ma: "MA cross" };
-  const REAL = (key) => (key === "bandscan" ? { strategy: "band", band_src: "fixed" } : { strategy: key, band_src: "rolling" });
+  SPACE.bandexp = SPACE.band.map((d) => (d.k === "band_lb" ? { k: "band_lb", lo: 40, hi: 504, log: true, step: 1 } : d));   // lookback = warm-up
+  const LABEL = { band: "band", bandexp: "band (expanding)", bandscan: "band (scan window)", zscore: "z-score", ma: "MA cross" };
+  const REAL = (key) => (key === "bandscan" ? { strategy: "band", band_src: "fixed" }
+    : key === "bandexp" ? { strategy: "band", band_src: "expanding" } : { strategy: key, band_src: "rolling" });
   const round = (x, step) => +(Math.round(x / step) * step).toFixed(4);
 
   function decode(strategy, u) {
@@ -570,6 +589,7 @@
     const stop = o.stop ? ` · stop ${o.stop}%` : "", days = o.maxdays ? ` · max ${o.maxdays}d` : "";
     if (strategy === "band") return `${o.band_lb}d band, p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
     if (strategy === "bandscan") return `scan-window band, p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
+    if (strategy === "bandexp") return `expanding band (${o.band_lb}d warm-up), p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
     if (strategy === "zscore") return `${o.z_lb}d z · in ${o.z_in} · out ${o.z_out}${o.z_stop ? ` · z stop ${o.z_stop}` : ""}${stop}${days}`;
     return `MA ${o.ma_fast}/${o.ma_slow} · buffer ${o.ma_buf}%${stop}`;
   }
@@ -592,7 +612,13 @@
     const split = s + Math.round((e - s) * Math.min(90, Math.max(30, +$("opt_split").value || 70)) / 100);
     if (split - s < 60 || e - split < 40) { setOptStatus("The period is too short to split into train and test; pick a longer one."); return; }
     const strategies = $("opt_all").checked ? ["band", "zscore", "ma"] : [user.strategy === "hold" ? "band" : user.strategy];
-    if ($("opt_scan").checked) strategies.push("bandscan");     // also the scan's own band (in-sample)
+    // band rules: the band picked in "Band from" only (tick), or both past-only bands, rolling and expanding
+    const BAND_KEY = { fixed: "bandscan", rolling: "band", expanding: "bandexp" };
+    if (strategies.includes("band")) {
+      const at = strategies.indexOf("band");
+      if ($("opt_current").checked) strategies[at] = BAND_KEY[user.band_src] || "band";
+      else strategies.splice(at + 1, 0, "bandexp");
+    }
     const fixed = { band_src: "rolling", lag: "1" };
     const seen = new Map(), results = [];
     optState = { running: true, stop: false };
@@ -629,11 +655,12 @@
     // your current rules under the same realistic conditions, as the reference row
     let reference = null;
     if (user.strategy !== "hold") {
-      const o = Object.assign({}, user, fixed);
+      const keepBand = $("opt_current").checked || user.band_src === "expanding";
+      const o = Object.assign({}, user, fixed, keepBand ? { band_src: user.band_src } : {});
       try {
         const tr = backtest(o, [s, split]), te = backtest(o, [split, e]);
         const sTr = stats(tr.eq, s, split), sTe = stats(te.eq, split, e);
-        reference = { strategy: user.strategy, params: user, train: sTr, test: sTe, nTr: tr.trades.length, nTe: te.trades.length,
+        reference = { strategy: user.strategy, params: Object.assign({}, user, { band_src: o.band_src }), train: sTr, test: sTe, nTr: tr.trades.length, nTe: te.trades.length,
           score: trainScore(o, tr, sTr), testScore: objective(sTe, te.trades.length, kind, 0), reference: true };
       } catch (err) { reference = null; }
     }
@@ -706,7 +733,8 @@
     const rows = optTop.map((r, i) => `<tr class="${i === 0 ? "best" : ""}"><td class="faint">${i + 1}</td><td>${LABEL[r.strategy]}</td>` +
       `<td class="cfg">${esc(describe(r.strategy, r.params))}</td>${cell(r, "train")}${cell(r, "test")}` +
       `<td><button class="btn sm${i === 0 ? " primary" : ""}" data-apply="${i}">Apply</button></td></tr>`);
-    if (reference) rows.push(`<tr><td class="faint">·</td><td class="muted">your rules</td><td class="cfg">${esc(describe(reference.strategy, reference.params))} <span class="faint">(rolling band, next close)</span></td>` +
+    if (reference) rows.push(`<tr><td class="faint">·</td><td class="muted">your rules</td><td class="cfg">${esc(describe(reference.strategy === "band" ? ({ fixed: "bandscan", expanding: "bandexp" }[reference.params.band_src] || "band") : reference.strategy, reference.params))} ` +
+      `<span class="faint">(${reference.strategy !== "band" ? "" : ({ fixed: "scan-window", expanding: "expanding" }[reference.params.band_src] || "rolling") + " band, "}next close)</span></td>` +
       `${cell(reference, "train")}${cell(reference, "test")}<td></td></tr>`);
     const objName = { sharpe: "Sharpe", cagr: "CAGR", calmar: "Calmar", total: "Return" }[kind];
     const scoreTip = segs > 1
@@ -737,6 +765,7 @@
     if (o.strategy === "hold") return `buy & hold the ratio · ${MODE_NAME[o.mode]}`;
     let t = describe(o.strategy, o);
     if (o.strategy === "band" && o.band_src === "fixed") t = t.replace(/^\d+d band/, "scan-window band");
+    if (o.strategy === "band" && o.band_src === "expanding") t = t.replace(/^(\d+)d band/, "expanding band ($1d warm-up)");
     return `${t} · ${MODE_NAME[o.mode]}${o.bps ? ` · ${o.bps} bps` : ""}${o.lag === "0" ? " · same-close fills" : ""}`;
   }
   // everything needed to reopen this exact analysis: the ratio, its scan context and every setting
@@ -847,7 +876,7 @@
     }
     if (P.get("optimize") === "1") {                // &optimize=1: start the search on load (&opt_all=1 for every strategy)
       if (P.get("opt_all") === "1") $("opt_all").checked = true;
-      if (P.get("opt_scan") === "1") $("opt_scan").checked = true;
+      if (P.get("opt_current") === "1") $("opt_current").checked = true;
       if (P.has("opt_budget")) $("opt_budget").value = P.get("opt_budget");
       optimize();
     }
