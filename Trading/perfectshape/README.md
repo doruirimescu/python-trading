@@ -81,7 +81,23 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
 * Baskets are equal weight at the start date, held as fixed shares (as the scan values them). Shorts assume
   free borrow; no interest on cash. With the scan's band the backtest is in-sample inside the band's window.
 * Every setting can also be put in the URL (`&strategy=zscore&z_in=2.5&mode=rotation`), so a backtest can
-  be bookmarked or shared.
+  be bookmarked or shared. The "all members, equal weight" line (holding every stock of the ratio) is off by
+  default; tick it in the portfolio chart's legend.
+* **Find best rules** (the optimizer, in the page and as a button above the strategy):
+  * realistic conditions only: rolling band (past data only), fills at the next close; your position mode,
+    exposure, capital, costs and directions are kept;
+  * the period is split into **train** (first 70% by default) and **test** (the rest, never used to choose);
+    by default a rule's train score is its **weakest of 3 consecutive train segments**, so it has to work
+    throughout, not in one lucky stretch; rules with fewer than the minimum trades are ignored;
+  * objective: Sharpe (default), CAGR, Calmar or total return; one strategy or every strategy;
+  * search: Latin-hypercube sampling of the settings (40% of the budget), then a (mu + 1) evolution around the
+    best rules with shrinking steps (lookbacks on a log scale). A backtest takes well under a millisecond, so
+    the default 2,000 run in about a second. The search is randomised: a second run can surface different
+    rules of similar quality;
+  * the leaderboard shows train and test side by side (rules that trade identically are shown once, and each
+    strategy's best is always listed) plus your current rules under the same conditions; **Apply** loads a
+    rule set and backtests it over the whole period. A rule that is good in train and poor in test is
+    overfitted, and a ratio whose best rules all fail in test has probably changed regime.
 
 **Holdings** (`holdings.py`): `universe.lists: ["etf:XLK"]` with `universe.limit: 20` works in any config.
 They come from State Street's daily holdings file of the fund (every constituent with its weight), cached per

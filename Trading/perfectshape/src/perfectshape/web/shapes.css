@@ -133,6 +133,20 @@ body.wide .container, body.wide .topbar-inner { max-width: 1680px; }
 }
 .tip b { color: var(--accent-ink); }
 
+/* ---------- Trade Lab: equity toggle and optimizer ---------- */
+.legend-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.legend-toggle input { margin: 0; }
+.opt-jump { width: 100%; justify-content: center; margin: 0 0 10px; }
+.opt-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 4px 22px; align-items: center; }
+.opt-controls .field { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 10px; align-items: center; margin: 4px 0; font-size: 13.5px; }
+.opt-controls .field > span { color: var(--muted); }
+.opt-controls .input { width: 100%; padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
+.opt-controls .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.opt-controls .btn { justify-self: start; }
+table.data td.cfg { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: normal; min-width: 260px; }
+table.data tr.best td { background: var(--accent-soft); }
+table.data th.grp { text-align: center; border-bottom: 1px solid var(--border); }
+
 pre.code {
   margin: 0; padding: 14px 16px; overflow: auto; max-height: 420px;
   font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--muted);

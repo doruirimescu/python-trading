@@ -47,6 +47,7 @@
     stop: "Close a trade that has lost this much. After a stop the same side is not re-entered until its signal resets.",
     tp: "Close a trade that has made this much.",
     maxdays: "Close a trade after this many trading days.",
+    show_ew: "Buy and hold every stock of the ratio (both baskets), equal weight at the start, no trading: did trading the ratio beat simply owning the same stocks?",
   });
   function addInfo(el, key) {
     if (!PS.TIPS[key] || el.querySelector(":scope > .info")) return;
@@ -132,7 +133,22 @@
     document.querySelectorAll("[data-for-mode]").forEach((el) => (el.hidden = el.dataset.forMode !== o.mode));
   }
 
-  // ---------------------------------------------------------------- indicators (arrays over all dates)
+  // ---------------------------------------------------------------- indicators (arrays over all dates, cached)
+  // binary-search insert / remove keep a rolling window sorted, so a rolling band costs O(L) per day, not a sort
+  function sortedInsert(a, v) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < v) lo = m + 1; else hi = m; } a.splice(lo, 0, v); }
+  function sortedRemove(a, v) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < v) lo = m + 1; else hi = m; } if (a[lo] === v) a.splice(lo, 1); }
+  function bandOfSorted(a, q) {
+    const lo = percentile(a, q), mid = percentile(a, 50), hi = percentile(a, 100 - q), h = Math.min(mid - lo, hi - mid);
+    return [mid - h, mid, mid + h];
+  }
+
+  function indicatorKey(o) {
+    if (o.strategy === "band") return o.band_src === "fixed" ? `bf|${o.band_pct}` : `br|${Math.round(o.band_lb)}|${o.band_pct}`;
+    if (o.strategy === "zscore") return `z|${Math.round(o.z_lb)}|${o.z_in}`;
+    if (o.strategy === "ma") return `m|${Math.round(o.ma_fast)}|${Math.round(o.ma_slow)}`;
+    return "h";
+  }
+
   function indicators(o, Y, s, e) {
     const T = Y.length, lo = new Float64Array(T).fill(NaN), mid = new Float64Array(T).fill(NaN), hi = new Float64Array(T).fill(NaN);
     const z = new Float64Array(T).fill(NaN), fast = new Float64Array(T).fill(NaN), slow = new Float64Array(T).fill(NaN);
@@ -146,23 +162,27 @@
         if (b) for (let t = 0; t < T; t++) [lo[t], mid[t], hi[t]] = b;
         calib = [c0, c1];
       } else {
-        const L = Math.max(20, Math.round(o.band_lb));
-        for (let t = L; t < T; t++) {
-          if (t < s - 1) continue;
-          const b = symBand(Array.from(Y.slice(t - L + 1, t + 1)), o.band_pct);
-          if (b) [lo[t], mid[t], hi[t]] = b;
+        // band of the window [t-L+1, t]: past and today only (the trade is filled at a later close)
+        const L = Math.max(20, Math.round(o.band_lb)), t0 = Math.max(L - 1, s - 1);
+        const win = [];
+        let nan = 0;
+        for (let i = t0 - L + 1; i <= t0; i++) Number.isFinite(Y[i]) ? sortedInsert(win, Y[i]) : nan++;
+        for (let t = t0; t < T; t++) {
+          if (nan === 0) [lo[t], mid[t], hi[t]] = bandOfSorted(win, o.band_pct);
+          if (t + 1 >= T) break;
+          const out = Y[t - L + 1], inn = Y[t + 1];
+          Number.isFinite(out) ? sortedRemove(win, out) : nan--;
+          Number.isFinite(inn) ? sortedInsert(win, inn) : nan++;
         }
       }
     } else if (o.strategy === "zscore") {
       const L = Math.max(10, Math.round(o.z_lb));
-      for (let t = L - 1; t < T; t++) {
-        if (t < s - 1) continue;
-        let m = 0, v = 0, n = 0;
-        for (let i = t - L + 1; i <= t; i++) if (Number.isFinite(Y[i])) { m += Y[i]; n++; }
-        if (n < L * 0.8) continue;
-        m /= n;
-        for (let i = t - L + 1; i <= t; i++) if (Number.isFinite(Y[i])) v += (Y[i] - m) ** 2;
-        const sd = Math.sqrt(v / n);
+      let sum = 0, sq = 0, n = 0;
+      for (let t = 0; t < T; t++) {
+        if (Number.isFinite(Y[t])) { sum += Y[t]; sq += Y[t] * Y[t]; n++; }
+        if (t >= L && Number.isFinite(Y[t - L])) { sum -= Y[t - L]; sq -= Y[t - L] * Y[t - L]; n--; }
+        if (t < L - 1 || n < L) continue;
+        const m = sum / n, sd = Math.sqrt(Math.max(sq / n - m * m, 0));
         if (sd > 0) { z[t] = (Y[t] - m) / sd; mid[t] = m; lo[t] = m - o.z_in * sd; hi[t] = m + o.z_in * sd; }
       }
     } else if (o.strategy === "ma") {
@@ -180,9 +200,24 @@
     return { lo, mid, hi, z, fast, slow, calib };
   }
 
+  // baskets normalised at a start index, and their indicators, cached (the optimizer re-runs thousands of times)
+  const BASES = new Map();
+  function base(s) {
+    let b = BASES.get(s);
+    if (!b) {
+      const N = basket(S.num, s), D = basket(S.den, s), T = S.dates.length, Y = new Float64Array(T);
+      for (let t = 0; t < T; t++) Y[t] = Math.log(N[t] / D[t]);
+      b = { N, D, Y, ind: new Map() };
+      if (BASES.size > 8) BASES.delete(BASES.keys().next().value);
+      BASES.set(s, b);
+    }
+    return b;
+  }
+
   // ---------------------------------------------------------------- the backtest
-  function backtest(o) {
-    const s = firstIndexOnOrAfter(o.from), e = lastIndexOnOrBefore(o.to);
+  /** run the rules over [s, e]: the dates of o.from / o.to, or the index range given */
+  function backtest(o, range) {
+    const s = range ? range[0] : firstIndexOnOrAfter(o.from), e = range ? range[1] : lastIndexOnOrBefore(o.to);
     if (e - s < 20) throw new Error("the period is too short (fewer than 20 trading days)");
     const late = [...S.num, ...S.den].filter((t) => S.close[t][s] == null);
     if (late.length) {
@@ -190,10 +225,14 @@
       throw new Error(`${late.join(", ")} ${late.length > 1 ? "have" : "has"} no price on ${S.dates[s]}: ` +
         `start on ${S.dates[first]} or later (the first day every member trades).`);
     }
-    const N = basket(S.num, s), D = basket(S.den, s);
-    const T = S.dates.length, Y = new Float64Array(T);
-    for (let t = 0; t < T; t++) Y[t] = Math.log(N[t] / D[t]);
-    const ind = indicators(o, Y, s, e);
+    const B = base(s), N = B.N, D = B.D, Y = B.Y;
+    const key = indicatorKey(o);
+    let ind = B.ind.get(key);
+    if (!ind) {
+      ind = indicators(o, Y, s, e);
+      if (B.ind.size > 400) B.ind.clear();
+      B.ind.set(key, ind);
+    }
     const allowLong = o.dirs !== "short", allowShort = o.dirs !== "long" && o.mode !== "longnum";
     const lag = +o.lag, bps = o.bps / 1e4, leg = o.mode === "pair" ? o.leg : 1;
     const legs = o.mode === "pair" ? 2 : 1;
@@ -203,7 +242,7 @@
     let pos = null;                  // {side, t0, N0, D0, E, equityBefore}
     let pending = null;              // {action: "open"|"close"|"reverse", side, reason}
     let blocked = { 1: false, "-1": false };
-    const eq = new Float64Array(T).fill(NaN);
+    const eq = new Float64Array(S.dates.length).fill(NaN);
     const trades = [];
 
     const value = (t) => {
@@ -387,7 +426,9 @@
     // equity
     const eqLine = (arr, name, color, w) => ({ x: dates, y: Array.from(arr.slice(s, e + 1)), mode: "lines", name, line: { color, width: w },
       hovertemplate: `%{x}<br>${name} %{y:$,.0f}<extra></extra>` });
-    const eqData = [eqLine(eq, "strategy", C.accent, 2), eqLine(ewEq, "all members", C.series2, 1.2)];
+    const showEW = $("show_ew").checked;            // off by default: the axes then fit strategy and SPY only
+    const eqData = [eqLine(eq, "strategy", C.accent, 2)];
+    if (showEW) eqData.push(eqLine(ewEq, "all members", C.series2, 1.2));
     if (spy) eqData.splice(1, 0, eqLine(spyEq, "SPY", C.neutral, 1.4));
     Plotly.react("c-equity", eqData, Nexus.plotlyLayout({ hovermode: "x unified", showlegend: false, margin: { l: 64, r: 14, t: 10, b: 36 },
       yaxis: { tickprefix: "$", tickformat: ",.0f" } }), cfg);
@@ -399,8 +440,8 @@
       yaxis: { tickformat: ".0%" } }), cfg);
 
     // statistics table
-    const row = (label, a, b, c) => `<tr><td>${label}</td><td class="num">${a}</td><td class="num">${b}</td><td class="num">${c}</td></tr>`;
-    $("stats").innerHTML = `<thead><tr><th>Measure</th><th class="num">Strategy</th><th class="num">SPY</th><th class="num">All members, equal weight</th></tr></thead><tbody>` +
+    const row = (label, a, b, c) => `<tr><td>${label}</td><td class="num">${a}</td><td class="num">${b}</td>${showEW ? `<td class="num">${c}</td>` : ""}</tr>`;
+    $("stats").innerHTML = `<thead><tr><th>Measure</th><th class="num">Strategy</th><th class="num">SPY</th>${showEW ? '<th class="num">All members, equal weight</th>' : ""}</tr></thead><tbody>` +
       row("Final value", money(st.final), spy ? money(spy.final) : "–", money(ew.final)) +
       row("Total return", signed(st.total), spy ? signed(spy.total) : "–", signed(ew.total)) +
       row("CAGR", signed(st.cagr), spy ? signed(spy.cagr) : "–", signed(ew.cagr)) +
@@ -455,6 +496,188 @@
   const allowShortNote = (o) => o.dirs !== "long" && o.mode !== "longnum";
   let lastTrades = [];
 
+
+  // ---------------------------------------------------------------- rule optimizer ("Find best rules")
+  // Realistic conditions only: rolling band (past data), next-close fills; the user's position mode, exposure,
+  // capital, costs and directions are kept. Each candidate is tuned on the train part of the period and also
+  // run on the test part, which the search never uses to choose.
+  // Search: Latin-hypercube sampling of the space (40% of the budget), then a (mu + 1) evolution around the
+  // best candidates with mutation steps that shrink over time. Parameters live in [0, 1]^d (log scale for
+  // lookbacks), so one mutation scheme fits all of them.
+  const STOPS = [0, 5, 10, 15, 20, 30], DAYS = [0, 20, 40, 60, 120, 250];
+  const SPACE = {
+    band: [{ k: "band_lb", lo: 40, hi: 504, log: true, step: 1 }, { k: "band_pct", lo: 5, hi: 30, step: 1 },
+      { k: "entry_buf", lo: 0, hi: 4, step: 0.25 }, { k: "exit_frac", lo: 20, hi: 100, step: 5 },
+      { k: "stop", v: STOPS }, { k: "maxdays", v: DAYS }],
+    zscore: [{ k: "z_lb", lo: 20, hi: 252, log: true, step: 1 }, { k: "z_in", lo: 1, hi: 3, step: 0.1 },
+      { k: "z_out", lo: 0, hi: 1, step: 0.1 }, { k: "z_stop", v: [0, 3, 3.5, 4, 5] }, { k: "stop", v: STOPS }, { k: "maxdays", v: DAYS }],
+    ma: [{ k: "ma_fast", lo: 1, hi: 60, log: true, step: 1 }, { k: "ma_slow", lo: 20, hi: 300, log: true, step: 1 },
+      { k: "ma_buf", lo: 0, hi: 3, step: 0.25 }, { k: "stop", v: STOPS }],
+  };
+  const LABEL = { band: "band", zscore: "z-score", ma: "MA cross" };
+  const round = (x, step) => +(Math.round(x / step) * step).toFixed(4);
+
+  function decode(strategy, u) {
+    const o = {};
+    SPACE[strategy].forEach((d, i) => {
+      if (d.v) o[d.k] = d.v[Math.min(d.v.length - 1, Math.floor(u[i] * d.v.length))];
+      else o[d.k] = round(d.log ? d.lo * Math.pow(d.hi / d.lo, u[i]) : d.lo + u[i] * (d.hi - d.lo), d.step);
+    });
+    if (strategy === "zscore") o.z_out = Math.min(o.z_out, round(o.z_in - 0.3, 0.1));
+    if (strategy === "ma") o.ma_slow = Math.max(o.ma_slow, o.ma_fast * 2);
+    return o;
+  }
+  function describe(strategy, o) {
+    const stop = o.stop ? ` · stop ${o.stop}%` : "", days = o.maxdays ? ` · max ${o.maxdays}d` : "";
+    if (strategy === "band") return `${o.band_lb}d band, p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
+    if (strategy === "zscore") return `${o.z_lb}d z · in ${o.z_in} · out ${o.z_out}${o.z_stop ? ` · z stop ${o.z_stop}` : ""}${stop}${days}`;
+    return `MA ${o.ma_fast}/${o.ma_slow} · buffer ${o.ma_buf}%${stop}`;
+  }
+  function objective(st, nTrades, kind, minTrades) {
+    if (!st || nTrades < minTrades) return -Infinity;
+    const v = kind === "sharpe" ? st.sharpe : kind === "cagr" ? st.cagr : kind === "total" ? st.total
+      : st.mdd < 0 ? st.cagr / -st.mdd : st.cagr > 0 ? 99 : 0;
+    return Number.isFinite(v) ? v : -Infinity;
+  }
+  const fmtObj = (v, kind) => (!Number.isFinite(v) ? "–" : kind === "cagr" || kind === "total" ? pct(v) : v.toFixed(2).replace("-", "−"));
+
+  let optState = null;       // {running, stop}
+  async function optimize() {
+    if (optState && optState.running) { optState.stop = true; return; }
+    const user = readSettings();
+    const kind = $("opt_obj").value, minTrades = Math.max(0, +$("opt_min").value || 0);
+    const budget = Math.max(50, Math.min(20000, +$("opt_budget").value || 2000));
+    const segs = Math.max(1, +$("opt_robust").value || 1);
+    const s = firstIndexOnOrAfter(user.from), e = lastIndexOnOrBefore(user.to);
+    const split = s + Math.round((e - s) * Math.min(90, Math.max(30, +$("opt_split").value || 70)) / 100);
+    if (split - s < 60 || e - split < 40) { setOptStatus("The period is too short to split into train and test; pick a longer one."); return; }
+    const strategies = $("opt_all").checked ? ["band", "zscore", "ma"] : [user.strategy === "hold" ? "band" : user.strategy];
+    const fixed = { band_src: "rolling", lag: "1" };
+    const seen = new Map(), results = [];
+    optState = { running: true, stop: false };
+    $("opt_run").textContent = "■ Stop"; $("opt_jump").disabled = true;
+    const t0 = performance.now();
+
+    const evaluate = (strategy, u) => {
+      const params = decode(strategy, u), key = strategy + JSON.stringify(params);
+      if (seen.has(key)) return seen.get(key);
+      const o = Object.assign({}, user, fixed, { strategy }, params);
+      let r;
+      try {
+        const tr = backtest(o, [s, split]), te = backtest(o, [split, e]);
+        const sTr = stats(tr.eq, s, split), sTe = stats(te.eq, split, e);
+        r = { strategy, params, u, train: sTr, test: sTe, nTr: tr.trades.length, nTe: te.trades.length,
+          score: trainScore(o, tr, sTr), testScore: objective(sTe, te.trades.length, kind, 0) };
+      } catch (err) { r = { strategy, params, u, score: -Infinity, error: err.message }; }
+      seen.set(key, r); results.push(r);
+      return r;
+    };
+    // train score: the whole train period, or (robust) the weakest of `segs` consecutive train segments, each a
+    // fresh backtest, so a rule has to work throughout the train period and not in one lucky stretch
+    const cuts = Array.from({ length: segs + 1 }, (_, i) => s + Math.round((split - s) * i / segs));
+    function trainScore(o, tr, sTr) {
+      const whole = objective(sTr, tr.trades.length, kind, minTrades);
+      if (segs === 1 || !Number.isFinite(whole)) return whole;
+      let worst = Infinity;
+      for (let i = 0; i < segs; i++) {
+        const b = backtest(o, [cuts[i], cuts[i + 1]]);
+        worst = Math.min(worst, objective(stats(b.eq, cuts[i], cuts[i + 1]), b.trades.length, kind, 1));
+      }
+      return worst;
+    }
+    // your current rules under the same realistic conditions, as the reference row
+    let reference = null;
+    if (user.strategy !== "hold") {
+      const o = Object.assign({}, user, fixed);
+      try {
+        const tr = backtest(o, [s, split]), te = backtest(o, [split, e]);
+        const sTr = stats(tr.eq, s, split), sTe = stats(te.eq, split, e);
+        reference = { strategy: user.strategy, params: user, train: sTr, test: sTe, nTr: tr.trades.length, nTe: te.trades.length,
+          score: trainScore(o, tr, sTr), testScore: objective(sTe, te.trades.length, kind, 0), reference: true };
+      } catch (err) { reference = null; }
+    }
+
+    const per = Math.floor(budget / strategies.length);
+    let done = 0;
+    for (const strategy of strategies) {
+      const dims = SPACE[strategy].length, explore = Math.ceil(per * 0.4);
+      // Latin hypercube: each dimension cut into `explore` strata, one sample per stratum, shuffled
+      const strata = Array.from({ length: dims }, () => { const a = Array.from({ length: explore }, (_, i) => i); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; });
+      for (let n = 0; n < per && !optState.stop; n++) {
+        let u;
+        if (n < explore) u = strata.map((a) => (a[n] + Math.random()) / explore);
+        else {
+          const pool = results.filter((r) => r.strategy === strategy && Number.isFinite(r.score)).sort((a, b) => b.score - a.score).slice(0, 6);
+          if (!pool.length) u = Array.from({ length: dims }, Math.random);
+          else {
+            const parent = pool[Math.floor(Math.random() * pool.length)].u;
+            const sigma = 0.22 * Math.pow(0.15, (n - explore) / Math.max(per - explore, 1));   // 0.22 -> 0.033
+            u = parent.map((x) => (Math.random() < 0.5 ? Math.min(1, Math.max(0, x + sigma * gauss())) : x));
+            if (u.every((x, i) => x === parent[i])) { const i = Math.floor(Math.random() * dims); u[i] = Math.min(1, Math.max(0, u[i] + sigma * gauss())); }
+          }
+        }
+        evaluate(strategy, u);
+        done++;
+        if (done % 12 === 0) {
+          setOptProgress(done / (per * strategies.length));
+          renderOpt(results, reference, kind, s, split, e, false, done, performance.now() - t0, segs);
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      }
+    }
+    setOptProgress(1);
+    renderOpt(results, reference, kind, s, split, e, true, done, performance.now() - t0, segs);
+    optState.running = false;
+    $("opt_run").textContent = "✦ Find best rules"; $("opt_jump").disabled = false;
+  }
+  function gauss() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  const setOptProgress = (f) => ($("opt_bar").firstElementChild.style.width = (f * 100).toFixed(1) + "%");
+  const setOptStatus = (html) => ($("opt_status").innerHTML = html);
+
+  let optTop = [];
+  function renderOpt(results, reference, kind, s, split, e, finished, done, ms, segs) {
+    const ok = results.filter((r) => Number.isFinite(r.score)).sort((a, b) => b.score - a.score);
+    // rule sets that trade identically (same train / test results) are shown once; with several strategies,
+    // each strategy's best is always listed
+    const sig = (r) => [r.strategy, r.nTr, r.nTe, r.train.final.toFixed(2), r.test.final.toFixed(2)].join("|");
+    const shown = new Set(), top = [];
+    const take = (r) => { if (!shown.has(sig(r))) { shown.add(sig(r)); top.push(r); } };
+    for (const st of new Set(ok.map((r) => r.strategy))) { const b = ok.find((r) => r.strategy === st); if (b) take(b); }
+    for (const r of ok) { if (top.length >= 12) break; take(r); }
+    optTop = top.sort((a, b) => b.score - a.score);
+    const name = $("opt_obj").selectedOptions[0].textContent;
+    setOptStatus(`${finished ? (optState && optState.stop ? "Stopped" : "Done") : "Searching"}: ${done} backtests in ${(ms / 1000).toFixed(1)} s · ` +
+      `${ok.length} met the minimum of trades · train ${S.dates[s]} → ${S.dates[split]}, test ${S.dates[split]} → ${S.dates[e]} · ranked by ` +
+      `${name.toLowerCase()} in train${segs > 1 ? ` (the weakest of ${segs} train segments)` : ""}.` +
+      (finished && optTop.length ? ` <b>Apply</b> loads a rule set into the form (with the rolling band and next-close fills) and backtests it over the whole period.` : "") +
+      (finished && !optTop.length ? ` <span class="neg">No rule set reached the minimum number of trades: lower it or lengthen the period.</span>` : ""));
+    const cell = (r, part) => {
+      const st = r[part], n = part === "train" ? r.nTr : r.nTe;
+      if (!st) return `<td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td>`;
+      const sc = part === "train" ? r.score : r.testScore;
+      return `<td class="num"><b>${fmtObj(sc, kind)}</b></td><td class="num">${signed(st.cagr)}</td><td class="num"><span class="neg">${pct(st.mdd)}</span></td><td class="num">${n}</td>`;
+    };
+    const rows = optTop.map((r, i) => `<tr class="${i === 0 ? "best" : ""}"><td class="faint">${i + 1}</td><td>${LABEL[r.strategy]}</td>` +
+      `<td class="cfg">${esc(describe(r.strategy, r.params))}</td>${cell(r, "train")}${cell(r, "test")}` +
+      `<td><button class="btn sm${i === 0 ? " primary" : ""}" data-apply="${i}">Apply</button></td></tr>`);
+    if (reference) rows.push(`<tr><td class="faint">·</td><td class="muted">your rules</td><td class="cfg">${esc(describe(reference.strategy, reference.params))} <span class="faint">(rolling band, next close)</span></td>` +
+      `${cell(reference, "train")}${cell(reference, "test")}<td></td></tr>`);
+    const objName = { sharpe: "Sharpe", cagr: "CAGR", calmar: "Calmar", total: "Return" }[kind];
+    $("opt_table").innerHTML = `<thead><tr><th></th><th></th><th></th><th class="grp" colspan="4">Train (tuned on${segs > 1 ? `, score = weakest of ${segs} segments` : ""})</th><th class="grp" colspan="4">Test (never seen by the search)</th><th></th></tr>` +
+      `<tr><th>#</th><th data-list="subtitle">Strategy</th><th data-list="title">Rules</th>` +
+      `<th class="num" data-list="value" data-list-prefix="train">${objName}</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th>` +
+      `<th class="num" data-list="note" data-list-prefix="test">${objName}</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th><th></th></tr></thead>` +
+      `<tbody>${rows.join("")}</tbody>`;
+    $("opt_table").querySelectorAll("[data-apply]").forEach((b) => (b.onclick = () => {
+      const r = optTop[+b.dataset.apply];
+      applySettings(Object.assign({ strategy: r.strategy, band_src: "rolling", lag: "1" }, r.params));
+      render(readSettings());
+      document.querySelector(".chart-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+  }
+  $("opt_run").onclick = optimize;
+  $("opt_jump").onclick = () => { document.getElementById("optimizer").scrollIntoView({ behavior: "smooth", block: "start" }); if (!optState || !optState.running) optimize(); };
+
   // ---------------------------------------------------------------- page
   function header() {
     const names = S.names || {};
@@ -492,7 +715,14 @@
     document.querySelectorAll(".lab-side .field").forEach((fl) => { const i = fl.querySelector("input, select"); if (i && fl.querySelector("span")) addInfo(fl.querySelector("span"), i.id); });
     document.querySelectorAll("[data-tip-for]").forEach((el) => addInfo(el, el.dataset.tipFor));
     document.querySelectorAll(".lab-side input, .lab-side select").forEach((el) => el.addEventListener("input", changed));
+    $("show_ew").checked = P.get("show_ew") === "1";
+    $("show_ew").addEventListener("change", () => render(readSettings()));
     if (window.Nexus && Nexus.onThemeChange) Nexus.onThemeChange(() => render(readSettings()));
     render(readSettings());
+    if (P.get("optimize") === "1") {                // &optimize=1: start the search on load (&opt_all=1 for every strategy)
+      if (P.get("opt_all") === "1") $("opt_all").checked = true;
+      if (P.has("opt_budget")) $("opt_budget").value = P.get("opt_budget");
+      optimize();
+    }
   })();
 })();

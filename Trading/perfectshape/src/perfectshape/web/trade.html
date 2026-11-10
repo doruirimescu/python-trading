@@ -44,6 +44,7 @@
         </div>
         <div class="group">
           <h4><span data-tip-for="strategy">Strategy</span></h4>
+          <button type="button" class="btn sm primary opt-jump" id="opt_jump">✦ Find best rules</button>
           <label class="field wide"><select class="input" id="strategy">
             <option value="band">Band mean reversion</option>
             <option value="zscore">Z-score mean reversion</option>
@@ -101,7 +102,9 @@
         <div class="two-col">
           <div class="panel chart-panel">
             <div class="chart-head"><h3>Portfolio value</h3>
-              <div class="legend"><span><i class="ln sw-accent"></i>strategy</span><span><i class="ln sw-neutral"></i>SPY</span><span><i class="ln sw-series-2"></i>all members, equal weight</span></div></div>
+              <div class="legend"><span><i class="ln sw-accent"></i>strategy</span><span><i class="ln sw-neutral"></i>SPY</span>
+                <label class="legend-toggle"><input type="checkbox" id="show_ew"> <i class="ln sw-series-2"></i>all members, equal weight
+                  <button type="button" class="info" data-tip="show_ew" aria-label="About this line">i</button></label></div></div>
             <div id="c-equity" class="chart h-md"></div>
           </div>
           <div class="panel chart-panel">
@@ -109,6 +112,30 @@
               <div class="legend"><span><i class="sw-over"></i>strategy</span><span><i class="ln sw-neutral"></i>SPY</span></div></div>
             <div id="c-dd" class="chart h-md"></div>
           </div>
+        </div>
+
+        <h2 class="section" id="optimizer">Find best rules</h2>
+        <div class="panel opt-panel">
+          <p class="muted small" style="margin:0 0 12px">Searches the settings of the strategy for the best result under <b>realistic conditions only</b>:
+            the band is rolling (past data only), every signal is filled at the next close, and your position mode, exposure and costs are kept.
+            Each candidate is tuned on the first part of the period (<b>train</b>) and then run on the rest, which the search never looks at
+            (<b>test</b>). By default a rule is scored by its <b>weakest of three consecutive train segments</b>, so it has to work
+            consistently rather than in one lucky stretch. A rule that is good in train and poor in test is still overfitted: prefer rules that hold up in both.</p>
+          <div class="opt-controls">
+            <label class="field"><span>Optimize for</span><select class="input" id="opt_obj">
+              <option value="sharpe">Sharpe ratio</option><option value="cagr">CAGR</option><option value="calmar">Calmar (CAGR / max DD)</option>
+              <option value="total">total return</option></select></label>
+            <label class="field"><span>Train on the first (%)</span><input class="input" type="number" id="opt_split" min="30" max="90" step="5" value="70"></label>
+            <label class="field"><span>Score in train</span><select class="input" id="opt_robust">
+              <option value="3">weakest of 3 segments</option><option value="1">whole train period</option></select></label>
+            <label class="field"><span>Min trades in train</span><input class="input" type="number" id="opt_min" min="0" step="1" value="6"></label>
+            <label class="field"><span>Backtests to run</span><input class="input" type="number" id="opt_budget" min="50" max="20000" step="500" value="2000"></label>
+            <label class="check"><input type="checkbox" id="opt_all"> <span>Try every strategy</span></label>
+            <button type="button" class="btn primary" id="opt_run">✦ Find best rules</button>
+          </div>
+          <div class="progress" id="opt_bar"><div></div></div>
+          <div class="muted small" id="opt_status" style="margin-top:8px">Not run yet.</div>
+          <div class="table-wrap" style="margin-top:12px"><table class="data" data-list id="opt_table"></table></div>
         </div>
 
         <h2 class="section">Statistics</h2>
