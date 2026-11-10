@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab · Perfect Shapes</title>
+  <meta name="description" content="Build a sector basket-ratio scan, run it, follow and pause it live.">
+  <link rel="stylesheet" href="https://doruirimescu.github.io/nexus-design/nexus.css">
+  <link rel="stylesheet" href="/assets/shapes.css">
+  <script src="https://doruirimescu.github.io/nexus-design/nexus.js"></script>
+  <link rel="icon" href="https://doruirimescu.github.io/nexus-design/favicon.svg">
+</head>
+<body class="wide">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">P</span>Perfect Shapes</a>
+      <nav class="nav">
+        <a href="/" class="active">Lab</a>
+        <a href="/runs/LATEST/report.html" target="_blank">Latest report</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Sector basket ratios · research</div>
+        <h1>Perfect Shapes <span class="gradient-text">Lab</span></h1>
+        <p class="lead">Pick a sector ETF and the scan builds every <mark>3 vs 3 ratio of its holdings</mark>, (A + B + C) / (D + E + F),
+          then ranks them by <span class="hl-accent">straight-line trend</span> and by <span class="hl-accent">tradable range</span>.
+          Results update after every lookback window; pause and resume at any time. Refreshing this page never stops a scan.</p>
+      </div>
+    </div>
+    <div class="notice" id="error" hidden></div>
+
+    <div class="lab">
+      <aside class="panel lab-side" aria-label="Scan configuration">
+        <div class="group">
+          <h4><span data-tip-for="sector">Sector</span> <span class="muted small" id="hold-count"></span></h4>
+          <label class="field"><span>ETF</span><select class="input" id="etf"></select></label>
+          <label class="field"><span>Top holdings by weight</span><input class="input" type="number" id="top" min="4" max="80"></label>
+          <div class="muted small">Click a stock to exclude it; the next one by weight takes its place.</div>
+          <div class="hold-list" id="hold"><div class="muted small" style="padding:10px">Loading holdings…</div></div>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="baskets">Baskets</span></h4>
+          <label class="field"><span>Numerator stocks</span><select class="input" id="kn"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          <label class="field"><span>Denominator stocks</span><select class="input" id="kd"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          <label class="check"><input type="checkbox" id="overlap"> <span>Allow a stock in both legs</span></label>
+          <label class="field"><span>Max ratios per window</span><input class="input" type="number" id="maxratios" min="1000" step="100000"></label>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="shapes">Shapes</span></h4>
+          <div class="toggle-row" id="shapes"></div>
+          <h4 style="margin-top:14px"><span data-tip-for="windows">Lookback windows</span></h4>
+          <div class="toggle-row" id="windows"></div>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="scoring">Scoring</span></h4>
+          <label class="field"><span>Threshold</span><input class="input" type="number" id="threshold" step="0.05" min="0" max="1"></label>
+          <label class="field"><span>Min trend / yr (%)</span><input class="input" type="number" id="minret" step="1" min="0"></label>
+          <label class="field"><span>Range band (pct)</span><input class="input" type="number" id="bandpct" step="1" min="1" max="40"></label>
+          <label class="field"><span>Range exit</span><select class="input" id="exit"><option value="mid">median</option><option value="opposite">opposite edge</option></select></label>
+          <label class="field"><span>Harvest scale</span><input class="input" type="number" id="harvest" step="0.01" min="0.01"></label>
+          <label class="field"><span>Pain scale</span><input class="input" type="number" id="pain" step="0.5" min="0.1"></label>
+          <label class="field"><span>Range min held (years)</span><input class="input" type="number" id="minheld" step="0.5" min="0"></label>
+          <label class="field"><span>Holdout (trading days)</span><input class="input" type="number" id="holdout" step="1" min="0" max="252"></label>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="output">Output</span></h4>
+          <label class="field"><span>Results per shape</span><input class="input" type="number" id="topn" min="1" max="200"></label>
+          <label class="field"><span>Max results per stock</span><input class="input" type="number" id="maxper" min="1" max="20"></label>
+          <label class="field"><span>Run name</span><input class="input" type="text" id="name"></label>
+          <div class="estimate" id="est">…</div>
+        </div>
+      </aside>
+
+      <section style="min-width:0">
+        <div class="panel run-panel">
+          <div class="run-buttons">
+            <button class="btn primary" id="play" disabled>▶ Play</button>
+            <button class="btn" id="stop" disabled>■ Stop</button>
+          </div>
+          <div class="run-status">
+            <div class="run-line"><span class="badge" id="badge">Idle</span><span class="muted" id="stage">Configure a scan and press Play.</span>
+              <span class="faint" id="timing"></span></div>
+            <div class="progress" id="bar"><div></div></div>
+          </div>
+        </div>
+        <div class="run-links muted" id="links"></div>
+
+        <div class="kpis tight" id="kpis"></div>
+
+        <h2 class="section">Results</h2>
+        <div id="report"><div class="panel empty-state">Results appear after the first lookback window and update as the scan proceeds.</div></div>
+
+        <h2 class="section">Config</h2>
+        <div class="toolbar">
+          <span class="muted small">The exact config the scan runs; save it to run the same scan from the command line.</span>
+          <div style="display:flex;gap:8px;align-items:center"><span class="muted small" id="saved"></span><button class="btn sm" id="copy">Copy</button><button class="btn sm primary" id="save">Save to configs/</button></div>
+        </div>
+        <pre class="code" id="yaml"></pre>
+
+        <details class="log" style="margin-top:18px"><summary>Scan log</summary><pre class="code" id="log" style="margin-top:8px"></pre></details>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">Local research tool (perfectshape). In-sample search: some shapes are coincidence. Not investment advice.</div>
+  </footer>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="/assets/report.js"></script>
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+  <script src="/assets/dashboard.js"></script>
+</body>
+</html>

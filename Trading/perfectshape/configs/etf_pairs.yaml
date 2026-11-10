@@ -1,0 +1,34 @@
+# Ratio scan of single ETFs over the broad ETF mix (universes/etf_mix.txt): A / B trends and ranges.
+# 39 ETFs, 1 vs 1 -> 741 ratios per window, a few seconds. Basket version: etf_ratios.yaml.
+config_version: 1
+name: etf_pairs
+universe:
+  lists: [etf_mix]
+data:
+  source: yfinance
+  end: null
+  years: 11
+  cache_dir: data_cache
+  max_age_days: 1
+search:
+  mode: ratio
+  shapes: [uptrend, range]
+  windows: [63, 126, 252, 378, 504, 756, 1008, 1260, 1512, 2016, 2520]
+  holdout_bars: 21
+ratio:
+  k_num: 1
+  k_den: 1
+  allow_overlap: false
+  keep_per_window: 300
+scoring:
+  space: log
+  threshold: 0.6
+  min_annual_return: 0.05      # relative moves are smaller than outright ones
+  min_range_height: 0.10
+  max_range_drift: 0.5
+  complexity_penalty: 0.0      # every ratio has the same size, a penalty would only shift the threshold
+ranking:
+  top_n: 30
+  require_alive: true
+  max_overlap: 0.5
+  max_per_member: 3

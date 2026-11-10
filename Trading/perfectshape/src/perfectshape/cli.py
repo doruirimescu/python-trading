@@ -3,6 +3,7 @@
   perfectshape scan configs/sp500.yaml [--top 10] [--shape uptrend] [--end 2026-10-30] [--limit 50]
   perfectshape universe list | show <name> | refresh sp500
   perfectshape fetch configs/sp500.yaml          # warm the price cache only
+  perfectshape dashboard [--port 8765] [--open]  # web UI: configure, run, pause, live results
 
 Exit codes: 0 ok, 2 config error, 3 data error.
 """
@@ -31,6 +32,11 @@ def main(argv: list[str] | None = None) -> int:
     fe = sub.add_parser("fetch", help="download/refresh the price cache for a config's universe")
     fe.add_argument("config")
 
+    db = sub.add_parser("dashboard", help="web dashboard: build a config, run it, follow / pause it live")
+    db.add_argument("--host", default="127.0.0.1")
+    db.add_argument("--port", type=int, default=8765)
+    db.add_argument("--open", action="store_true", help="open a browser tab")
+
     un = sub.add_parser("universe", help="manage instrument lists")
     un.add_argument("action", choices=["list", "show", "refresh"])
     un.add_argument("name", nargs="?")
@@ -39,6 +45,11 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO if args.verbose or args.cmd != "universe" else logging.WARNING,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
     logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+
+    if args.cmd == "dashboard":
+        from perfectshape.dashboard.server import serve
+        serve(args.host, args.port, open_browser=args.open)
+        return 0
 
     if args.cmd == "universe":
         return _universe(args)
@@ -81,7 +92,11 @@ def main(argv: list[str] | None = None) -> int:
     for shape, results in out.ranked.items():
         print(f"\n== {shape}: {len(results)} ranked of {out.n_candidates[shape]} candidates")
         for i, r in enumerate(results[: args.top], 1):
-            print(f"{i:>3}. held {r.duration / ppy:4.1f}y  score {r.score:.3f}  "
+            m = r.metrics
+            band = (f"harvest {m['harvest']:+6.1%}/yr  {m['trades_per_year']:4.1f} tr/yr  band {m['swing_up']:+6.1%}  "
+                    f"now {m['band_pos']:4.0%}  ") if "harvest" in m else ""
+            on = f" (on {r.ref_window / ppy:.1f}y)" if r.ref_window and r.ref_window != r.duration else ""
+            print(f"{i:>3}. held {r.duration / ppy:4.1f}y{on}  score {r.score:.3f}  {band}"
                   f"{'alive ' if r.alive else 'BROKEN'}  {_fmt_members(r)}")
     print(f"\nrun: {run_dir}\nreport: {run_dir / 'report.html'}")
     return 0

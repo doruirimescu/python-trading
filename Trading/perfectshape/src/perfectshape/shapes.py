@@ -76,6 +76,59 @@ def max_rally(Y: np.ndarray) -> np.ndarray:
     return (Y - np.minimum.accumulate(Y, axis=0)).max(axis=0)
 
 
+def range_band(Y: np.ndarray, q: float, axis=0):
+    """Symmetric trading band of each column: (lo, mid, hi) = median -+ h, where h is the smaller half of the
+    [q, 100-q] percentile band. A one-sided spike stretches only one half, so it cannot widen the band."""
+    plo, mid, phi = np.percentile(Y, [q, 50, 100 - q], axis=axis)
+    h = np.minimum(mid - plo, phi - mid)
+    return mid - h, mid, mid + h
+
+
+def band_trades(Y: np.ndarray, lo: np.ndarray, mid: np.ndarray, hi: np.ndarray, exit: str = "mid",
+                segments: int = 1):
+    """Completed band trades per column, the log move they capture at minimum, and their spread over time.
+
+    A trade opens when the curve leaves the band (<= lo: long, >= hi: short) and closes when it next reaches
+    the median (exit="mid") or the opposite edge (exit="opposite"). Returns (n_trades, capture, coverage,
+    adverse): capture is the summed edge-to-exit distance (overshoot beyond the edge is not counted);
+    coverage is the share of ``segments`` equal parts of the window in which at least one trade closed;
+    adverse is the worst move against an open trade, measured from the edge where it opened.
+    """
+    T = Y.shape[0]
+    cols = np.arange(Y.shape[1])[None, :]
+    rows = np.arange(T)[:, None]
+
+    def ffill(state):                        # 9 = no event on this bar: carry the last state forward
+        idx = np.where(state != 9, rows, -1)
+        last = np.maximum.accumulate(idx, axis=0)
+        return np.where(last >= 0, state[np.maximum(last, 0), cols], 9)
+
+    edge = np.where(Y <= lo, -1, np.where(Y >= hi, 1, 9))
+    if exit == "opposite":
+        f = ffill(edge)
+        prev, cur = f[:-1], f[1:]
+        c_lo = (prev == -1) & (cur == 1)
+        c_hi = (prev == 1) & (cur == -1)
+        gain_lo = gain_hi = hi - lo
+    else:
+        above = Y >= mid
+        cross = np.zeros_like(above)
+        cross[1:] = above[1:] != above[:-1]
+        f = ffill(np.where(edge != 9, edge, np.where(cross, 0, 9)))
+        prev, cur = f[:-1], f[1:]
+        c_lo = (prev == -1) & (cur != -1)               # long closed: crossed back up through the median
+        c_hi = (prev == 1) & (cur != 1)                 # short closed
+        gain_lo, gain_hi = mid - lo, hi - mid
+    against = np.where(f == -1, lo - Y, np.where(f == 1, Y - hi, 0.0))
+    adverse = np.maximum(against.max(axis=0), 0.0)
+    closed = c_lo | c_hi                                # (T-1, m): a trade closed on this bar
+    n_lo, n_hi = c_lo.sum(axis=0), c_hi.sum(axis=0)
+    bounds = np.linspace(0, closed.shape[0], segments + 1).astype(int)
+    per_seg = np.add.reduceat(closed, bounds[:-1], axis=0) if closed.shape[0] else np.zeros((segments, Y.shape[1]))
+    coverage = (per_seg > 0).sum(axis=0) / segments
+    return n_lo + n_hi, n_lo * gain_lo + n_hi * gain_hi, coverage, adverse
+
+
 def zone_swings(Y: np.ndarray, lo_q: float = 20, hi_q: float = 80) -> np.ndarray:
     """Number of alternations between the lower zone (<= lo_q pct) and the upper zone (>= hi_q pct)."""
     lo = np.percentile(Y, lo_q, axis=0)
@@ -153,11 +206,20 @@ class Downtrend(_Trend):
 
 @register_shape
 class Range(Shape):
-    """A bounded, oscillating basket: flat drift, a band wide enough to trade, and several swings across it.
+    """A bounded, oscillating basket that pays to trade: flat drift, and frequent, large swings across a band.
 
-    Successor of Trading.algo.ranker.RobustRangeScorer: percentile boundaries (outlier-robust), a drift
-    penalty (here: quadratic trend component vs band height, so arcs count as drift too) and an
-    oscillation reward (here: completed swings between the lower and upper zones).
+    Successor of Trading.algo.ranker.RobustRangeScorer: percentile band (outlier-robust), a drift penalty
+    (quadratic trend component vs band height, so arcs count as drift too) and an oscillation reward. The
+    reward is the **harvest**: the annual log move captured by trading the band (enter when the curve
+    leaves it, exit at the median or the opposite edge, see :func:`band_trades`), so more trades and wider
+    bands both score higher, and its **coverage**: the share of the window's parts in which a trade closed, so
+    one-off excursions do not pass for a repeatable range, and its **pain**: the worst move against an open
+    trade beyond the edge, in half-bands (a squeeze that runs far past the band before reverting is a range
+    nobody could have held). The band is symmetric around the median (:func:`range_band`) so a one-sided
+    spike can neither widen it nor earn an outsized credit.
+    score = sqrt(flatness * coverage * (1 - exp(-harvest / range_harvest_scale))
+                 * exp(-max(0, pain - 1) / range_pain_scale)).
+    The band is fitted on the same window it trades: a descriptive, in-sample measure.
     """
 
     name = "range"
@@ -165,25 +227,44 @@ class Range(Shape):
 
     def score(self, curves, cfg):
         Y = to_space(curves, cfg.space)
-        p5, p50, p95 = np.percentile(Y, [5, 50, 95], axis=0)
-        band = p95 - p5
-        height = band if cfg.space == "log" else band / np.maximum(np.abs(p50), 1e-12)
+        q = cfg.range_band_pct
+        lo, mid, hi = range_band(Y, q)
+        band = hi - lo
+        scale = 1.0 if cfg.space == "log" else np.maximum(np.abs(mid), 1e-12)   # -> relative moves
+        height = band / scale
+        # band size as tradable moves: buy at the bottom edge and sell at the top edge, or the reverse
+        if cfg.space == "log":
+            swing_up, swing_down = np.expm1(band), -np.expm1(-band)
+        else:
+            swing_up = band / np.maximum(np.abs(lo), 1e-12)
+            swing_down = band / np.maximum(np.abs(hi), 1e-12)
         drift_curve = poly_fit(Y, 2)
         drift = drift_curve.max(axis=0) - drift_curve.min(axis=0)
         drift_ratio = drift / np.maximum(band, 1e-12)
-        swings = zone_swings(Y)
-        swing_score = 1.0 - np.exp(-swings / 3.0)
+        n_trades, capture, coverage, adverse = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
+        pain = adverse / np.maximum((hi - lo) / 2, 1e-12)     # worst move against a trade, in half-bands
+        capture = capture / scale
+        years = max(Y.shape[0] - 1, 1) / cfg.periods_per_year
+        harvest = capture / years                                             # log move per year
+        per_trade = np.where(n_trades > 0, capture / np.maximum(n_trades, 1), 0.0)
+        harvest_score = 1.0 - np.exp(-harvest / cfg.range_harvest_scale)
         flat = np.clip(1.0 - drift_ratio, 0, 1)
-        soft = np.sqrt(flat * swing_score)
+        pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
+        soft = np.sqrt(flat * coverage * harvest_score * pain_score)
         gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
+        rel = np.expm1 if cfg.space == "log" else (lambda x: x)
         return ScoreResult(
             score=np.where(gate, soft, 0.0),
             soft=soft * np.clip(height / max(cfg.min_range_height, 1e-9), 0, 1),
-            metrics={"height": height, "drift_ratio": drift_ratio, "swings": swings.astype(float)},
+            metrics={"harvest": rel(harvest), "trades_per_year": n_trades / years, "per_trade": rel(per_trade),
+                     "coverage": coverage, "pain": pain, "worst_against": -np.expm1(-adverse / scale)
+                     if cfg.space == "log" else adverse / scale,
+                     "swing_up": swing_up, "swing_down": swing_down, "height": height,
+                     "drift_ratio": drift_ratio, "swings": zone_swings(Y, q, 100 - q).astype(float)},
         )
 
     def channel(self, fit_curve, cfg):
         Y = to_space(fit_curve, cfg.space)
-        p5, p95 = np.percentile(Y, [5, 95])
-        pad = 0.25 * (p95 - p5)
-        return lambda t: (p5 - pad, p95 + pad)
+        lo, _, hi = range_band(Y, cfg.range_band_pct)
+        pad = 0.25 * (hi - lo)
+        return lambda t: (lo - pad, hi + pad)
