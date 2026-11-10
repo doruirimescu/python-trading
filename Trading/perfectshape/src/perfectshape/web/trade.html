@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trade Lab · Perfect Shapes</title>
+  <meta name="description" content="Backtest entry and exit rules on one basket ratio: trades, equity vs the S&P 500, drawdown, statistics.">
+  <link rel="stylesheet" href="https://doruirimescu.github.io/nexus-design/nexus.css">
+  <link rel="stylesheet" href="/assets/shapes.css">
+  <script src="https://doruirimescu.github.io/nexus-design/nexus.js"></script>
+  <link rel="icon" href="https://doruirimescu.github.io/nexus-design/favicon.svg">
+</head>
+<body class="wide">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">P</span>Perfect Shapes</a>
+      <nav class="nav">
+        <a href="/">Lab</a>
+        <a href="#" class="active">Trade Lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" id="eyebrow">Trade Lab</div>
+        <h1>Trade <span class="gradient-text">Lab</span></h1>
+        <p class="lead">Backtest buying and selling this ratio: pick the entry and exit rules on the left and everything
+          below is recomputed at once. A <mark>$10,000</mark> portfolio is compared with holding the
+          <span class="hl-accent">S&amp;P 500 (SPY)</span> over the same period.</p>
+      </div>
+    </div>
+    <div class="notice" id="error" hidden></div>
+
+    <div class="panel anatomy" id="anatomy"><div class="muted">Loading prices…</div></div>
+
+    <div class="lab">
+      <aside class="panel lab-side" aria-label="Strategy">
+        <div class="group">
+          <h4><span data-tip-for="period">Period</span></h4>
+          <label class="field"><span>From</span><input class="input" type="date" id="from"></label>
+          <label class="field"><span>To</span><input class="input" type="date" id="to"></label>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="strategy">Strategy</span></h4>
+          <label class="field wide"><select class="input" id="strategy">
+            <option value="band">Band mean reversion</option>
+            <option value="zscore">Z-score mean reversion</option>
+            <option value="ma">Trend: moving-average crossover</option>
+            <option value="hold">Buy &amp; hold the ratio</option>
+          </select></label>
+          <div data-for="band">
+            <label class="field"><span>Band from</span><select class="input" id="band_src">
+              <option value="fixed">scan window (in-sample)</option><option value="rolling">rolling (past only)</option></select></label>
+            <label class="field" data-for-src="rolling"><span>Rolling lookback (days)</span><input class="input" type="number" id="band_lb" min="20" step="1"></label>
+            <label class="field"><span>Band percentile</span><input class="input" type="number" id="band_pct" min="1" max="40" step="1"></label>
+            <label class="field"><span>Entry beyond edge (%)</span><input class="input" type="number" id="entry_buf" step="0.5" min="0"></label>
+            <label class="field"><span>Exit at (% of band)</span><input class="input" type="number" id="exit_frac" step="5" min="0" max="150"></label>
+          </div>
+          <div data-for="zscore">
+            <label class="field"><span>Lookback (days)</span><input class="input" type="number" id="z_lb" min="10" step="1"></label>
+            <label class="field"><span>Enter at |z| ≥</span><input class="input" type="number" id="z_in" step="0.1" min="0.1"></label>
+            <label class="field"><span>Exit at |z| ≤</span><input class="input" type="number" id="z_out" step="0.1" min="0"></label>
+            <label class="field"><span>Stop at |z| ≥ (0 = off)</span><input class="input" type="number" id="z_stop" step="0.1" min="0"></label>
+          </div>
+          <div data-for="ma">
+            <label class="field"><span>Fast average (days)</span><input class="input" type="number" id="ma_fast" min="1" step="1"></label>
+            <label class="field"><span>Slow average (days)</span><input class="input" type="number" id="ma_slow" min="2" step="1"></label>
+            <label class="field"><span>Crossover buffer (%)</span><input class="input" type="number" id="ma_buf" step="0.5" min="0"></label>
+          </div>
+          <label class="field" data-not-for="hold"><span>Directions</span><select class="input" id="dirs">
+            <option value="both">both</option><option value="long">numerator up only</option><option value="short">denominator up only</option></select></label>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="execution">Execution</span></h4>
+          <label class="field"><span>Position</span><select class="input" id="mode">
+            <option value="pair">pair (long/short)</option><option value="rotation">rotation</option><option value="longnum">numerator only</option></select></label>
+          <label class="field" data-for-mode="pair"><span>Exposure per leg (×)</span><input class="input" type="number" id="leg" step="0.25" min="0.25" max="3"></label>
+          <label class="field"><span>Starting capital ($)</span><input class="input" type="number" id="capital" step="1000" min="100"></label>
+          <label class="field"><span>Costs per side (bps)</span><input class="input" type="number" id="bps" step="1" min="0"></label>
+          <label class="field"><span>Fill at</span><select class="input" id="lag"><option value="1">next close</option><option value="0">same close</option></select></label>
+        </div>
+        <div class="group">
+          <h4><span data-tip-for="risk">Risk exits</span></h4>
+          <label class="field"><span>Stop loss (%, 0 = off)</span><input class="input" type="number" id="stop" step="1" min="0"></label>
+          <label class="field"><span>Take profit (%, 0 = off)</span><input class="input" type="number" id="tp" step="1" min="0"></label>
+          <label class="field"><span>Max holding (days, 0 = off)</span><input class="input" type="number" id="maxdays" step="5" min="0"></label>
+        </div>
+      </aside>
+
+      <section style="min-width:0">
+        <div class="kpis tight" id="kpis"></div>
+
+        <div class="panel chart-panel">
+          <div class="chart-head"><h3>Ratio, rules and trades</h3>
+            <div class="legend"><span><i class="ln sw-accent"></i>ratio</span><span><i class="band sw-neutral"></i>band / averages</span>
+              <span><i class="sw-under"></i>enter: numerator up</span><span><i class="sw-series-2"></i>enter: denominator up</span><span><i class="sw-neutral"></i>exit</span></div></div>
+          <div id="c-ratio" class="chart h-lg"></div>
+        </div>
+        <div class="two-col">
+          <div class="panel chart-panel">
+            <div class="chart-head"><h3>Portfolio value</h3>
+              <div class="legend"><span><i class="ln sw-accent"></i>strategy</span><span><i class="ln sw-neutral"></i>SPY</span><span><i class="ln sw-series-2"></i>all members, equal weight</span></div></div>
+            <div id="c-equity" class="chart h-md"></div>
+          </div>
+          <div class="panel chart-panel">
+            <div class="chart-head"><h3>Drawdown</h3>
+              <div class="legend"><span><i class="sw-over"></i>strategy</span><span><i class="ln sw-neutral"></i>SPY</span></div></div>
+            <div id="c-dd" class="chart h-md"></div>
+          </div>
+        </div>
+
+        <h2 class="section">Statistics</h2>
+        <div class="table-wrap"><table class="data" data-list="cards" id="stats"></table></div>
+
+        <h2 class="section">Trades</h2>
+        <div class="toolbar"><span class="muted small" id="trades-note"></span>
+          <button class="btn sm" id="copy-trades">Copy as CSV</button></div>
+        <div class="table-wrap scroll-y" style="max-height:520px"><table class="data" data-list id="trades"></table></div>
+
+        <h2 class="section">Calendar years</h2>
+        <div class="table-wrap"><table class="data" data-list id="years"></table></div>
+
+        <p class="muted small" style="margin-top:18px" id="caveat"></p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">Backtests are in-sample unless the band is rolling and the period starts after the scan's fit end. Past results do not predict future ones. Not investment advice.</div>
+  </footer>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="/assets/report.js"></script>
+  <script src="/assets/trade.js"></script>
+</body>
+</html>

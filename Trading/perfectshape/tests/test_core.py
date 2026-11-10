@@ -470,3 +470,15 @@ def test_dashboard_check_config_estimates_and_rejects():
     assert not check_config(raw)["ok"]
     raw["search"]["shapes"] = ["downtrend"]
     assert "rising B/A" in check_config(raw)["error"]
+
+
+def test_trade_lab_series_payload_aligns_members_and_benchmark():
+    from perfectshape.dashboard.server import series_payload
+    data = _small_ratio_cfg().data
+    out = series_payload(["S01", "S02"], ["S03", "S04"], "SPY", data)
+    n = len(out["dates"])
+    assert n == 1300 and out["bench"] == "SPY"
+    assert set(out["close"]) == {"S01", "S02", "S03", "S04", "SPY"}
+    assert all(len(v) == n for v in out["close"].values())
+    with pytest.raises(ValueError, match="required"):
+        series_payload(["S01"], [], "SPY", data)

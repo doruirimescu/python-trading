@@ -42,45 +42,13 @@
     el.appendChild(b);
   }
   function installTips() {
+    // the bubbles themselves (hover, focus, tap, positioning) are handled page-wide by report.js
+    Object.assign(PS.TIPS, TIPS);
     document.querySelectorAll(".lab-side .field, .lab-side .check").forEach((f) => {
       const input = f.querySelector("input, select");
       if (input) addInfo(f.querySelector("span"), input.id);
     });
     document.querySelectorAll("[data-tip-for]").forEach((el) => addInfo(el, el.dataset.tipFor));
-    const tip = $("tip");
-    let owner = null;
-    const place = (b) => {
-      const r = b.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
-      if (r.bottom < 0 || r.top > window.innerHeight) return hide();            // bubble scrolled away
-      const vw = window.innerWidth, vh = window.innerHeight;
-      let x = r.right + 10, y = r.top - 6;                                       // right of the bubble
-      if (x + w > vw - 8) x = r.left - w - 10;                                   // else left of it
-      if (x < 8) { x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), vw - w - 8); y = r.bottom + 8; }  // else below
-      y = Math.min(Math.max(8, y), vh - h - 8);
-      tip.style.left = x + "px"; tip.style.top = y + "px";
-    };
-    const show = (b) => {
-      owner && owner.setAttribute("aria-expanded", "false");
-      owner = b; b.setAttribute("aria-expanded", "true");
-      tip.innerHTML = TIPS[b.dataset.tip]; tip.hidden = false;
-      place(b);
-    };
-    const hide = () => { tip.hidden = true; owner && owner.setAttribute("aria-expanded", "false"); owner = null; };
-    document.querySelectorAll(".info").forEach((b) => {
-      b.addEventListener("mouseenter", () => show(b));
-      b.addEventListener("mouseleave", hide);
-      b.addEventListener("focus", () => show(b));
-      b.addEventListener("blur", hide);
-      // a click (or a tap on touch screens) only shows; clicking elsewhere or Esc hides
-      b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); show(b); });
-    });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
-    document.addEventListener("click", hide);
-    // scrolling (also the scroll-into-view of a keyboard focus) moves the tooltip with its bubble
-    const follow = () => owner && place(owner);
-    document.querySelector(".lab-side").addEventListener("scroll", follow, { passive: true });
-    window.addEventListener("scroll", follow, { passive: true });
-    window.addEventListener("resize", follow);
   }
   let DEF = null, HOLD = [], excluded = new Set(), nameTouched = false;
   let state = "idle", lastV = -1, checkOk = false, est = {}, lastStatus = null, runId = null;
@@ -285,7 +253,7 @@
         s.payload_meta = { symbols: P.panel.symbols, requested: P.panel.requested,
           found: Object.fromEntries(Object.entries(P.shapes).map(([k, v]) => [k, { n: v.items.length, best: Math.max(0, ...v.items.map((i) => i.score)) }])) };
         const y = window.scrollY;
-        PS.renderReport(P, $("report"));
+        PS.renderReport(P, $("report"), { onOpen: PS.openTradeLab });
         window.scrollTo(0, y);
       } else if (lastStatus) {
         s.payload_meta = lastStatus.payload_meta;

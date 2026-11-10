@@ -48,6 +48,9 @@ Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, them
   continues it. **■ Stop** abandons it (partial results stay on the page, nothing is written).
 * When it finishes the run is written to `runs/` like a CLI run, with links to its report, CSV and summary.
   Reopening the page while a scan runs or after it finished restores its config and results.
+* **Results with many tickers** show as `#rank ⓘ` plus the tickers, cut with "…" when long; hover or tap the
+  ⓘ for every member with its company name (tables keep ticker chips up to 4 tickers per ratio).
+* **Click a result** (table row or chart card) to open it in the **Trade Lab** (below), in a new window.
 * **Refreshing never stops a scan**: it runs in the server's background thread, and the page only follows it.
   The front end (`src/perfectshape/web/`: `dashboard.html`, `dashboard.js`, `report.js`, `shapes.css`) is read
   from disk on every request, so a style or layout edit shows up on the next refresh while the scan keeps
@@ -57,6 +60,28 @@ Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, them
 Size: all ratios are enumerated, so the count grows fast with the holdings used and the basket size (table in
 "Ratio mode" below: 20 stocks = 388 k ratios at 3 vs 3, 4.4 M at 4 vs 4, 23 M at 5 vs 5); `ratio.max_ratios`
 (25 M) caps a run. Pick the holdings that matter rather than the whole fund.
+
+### Trade Lab (`/trade.html`, `web/trade.js`)
+
+Backtests buying and selling one ratio, in the browser: prices of its members and SPY come from the dashboard
+server (`/api/series`, the scan's price cache), and every change of a rule recomputes at once.
+
+* **Strategies**: band mean reversion (the scan's in-sample band, or a rolling band from past data only;
+  band percentile, entry beyond the edge in %, exit at a share of the band: 50% = median, 100% = opposite
+  edge), z-score mean reversion (lookback, entry / exit / stop z), trend (moving-average crossover with a
+  buffer), buy & hold the ratio. Directions: both, numerator up only, denominator up only.
+* **Execution**: long/short pair (with exposure per leg), rotation (all money in the basket expected to
+  outperform, long only), numerator only; starting capital (default $10,000), costs in bps per side per leg,
+  fill at the next close (default, no look-ahead) or the same close. **Risk exits**: stop loss, take profit,
+  maximum holding days (a stopped-out side is not re-entered until its signal resets).
+* **Report**: the ratio with its band / averages and every entry and exit; portfolio value against SPY and
+  all members equal weight; drawdown; statistics (final value, total return, CAGR, volatility, Sharpe,
+  Sortino, max drawdown, Calmar, trades, win rate, average / best / worst trade, profit factor, holding days,
+  time in the market, beta and correlation to SPY); the trade list (copy as CSV); calendar-year returns.
+* Baskets are equal weight at the start date, held as fixed shares (as the scan values them). Shorts assume
+  free borrow; no interest on cash. With the scan's band the backtest is in-sample inside the band's window.
+* Every setting can also be put in the URL (`&strategy=zscore&z_in=2.5&mode=rotation`), so a backtest can
+  be bookmarked or shared.
 
 **Holdings** (`holdings.py`): `universe.lists: ["etf:XLK"]` with `universe.limit: 20` works in any config.
 They come from State Street's daily holdings file of the fund (every constituent with its weight), cached per

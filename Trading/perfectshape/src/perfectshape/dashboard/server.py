@@ -45,7 +45,9 @@ log = logging.getLogger(__name__)
 # (the scan runs in this process's background thread, so a page reload never touches it)
 WEB = Path(__file__).resolve().parents[1] / "web"
 ASSETS = {"shapes.css": "text/css; charset=utf-8", "report.js": "text/javascript; charset=utf-8",
-          "dashboard.js": "text/javascript; charset=utf-8"}
+          "dashboard.js": "text/javascript; charset=utf-8", "trade.js": "text/javascript; charset=utf-8"}
+PAGES = {"/": "dashboard.html", "/index.html": "dashboard.html", "/trade.html": "trade.html"}
+BENCHMARK = "SPY"
 # seconds per (ratio x bar x shape), measured on XLU top 16 at 3 vs 3 (80,080 ratios, 11 windows, 2 shapes:
 # 24 s); machine and data dependent (pruning skips more on noisier universes), for estimates only
 SECONDS_PER_RATIO_BAR = 1.5e-8
@@ -253,8 +255,10 @@ class _Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         q = parse_qs(url.query)
         try:
-            if url.path in ("/", "/index.html"):
-                return self._send(200, (WEB / "dashboard.html").read_bytes(), "text/html; charset=utf-8")
+            if url.path in PAGES:
+                return self._send(200, (WEB / PAGES[url.path]).read_bytes(), "text/html; charset=utf-8")
+            if url.path == "/api/series":
+                return self._json(self._series(q))
             if url.path.startswith("/assets/"):
                 name = url.path[len("/assets/"):]
                 if name in ASSETS:
@@ -303,6 +307,12 @@ class _Handler(BaseHTTPRequestHandler):
         except Exception as e:  # noqa: BLE001
             self._json({"ok": False, "error": f"{type(e).__name__}: {e}"}, 500)
 
+    def _series(self, q: dict) -> dict:
+        split = lambda key: [t for t in (q.get(key, [""])[0]).split(",") if t]
+        cfg = self.manager.cfg
+        data_cfg = cfg.data if cfg is not None else RunConfig.model_validate(DEFAULT_CONFIG).data
+        return series_payload(split("num"), split("den"), q.get("bench", [BENCHMARK])[0], data_cfg, split("lists"))
+
     def _run_file(self, rel: str) -> None:
         root = (PROJECT_ROOT / "runs").resolve()
         target = (root / rel).resolve()
@@ -311,6 +321,34 @@ class _Handler(BaseHTTPRequestHandler):
         ctype = {".html": "text/html; charset=utf-8", ".csv": "text/csv", ".json": "application/json",
                  ".md": "text/markdown; charset=utf-8"}.get(target.suffix, "application/octet-stream")
         self._send(200, target.read_bytes(), ctype)
+
+
+def series_payload(num: list[str], den: list[str], bench: str, data_cfg, lists: list[str] = ()) -> dict:
+    """Aligned daily closes of a ratio's members plus the benchmark, for the Trade Lab (from the price cache).
+
+    -> {dates, num, den, names, bench, close: {ticker: [price or None, ...]}}
+    """
+    from perfectshape.data.sources import load_panel
+    from perfectshape.universe import build_universe
+
+    if not num or not den:
+        raise ValueError("num= and den= are required")
+    panel = load_panel(list(dict.fromkeys(num + den + [bench])), data_cfg)
+    missing = [t for t in num + den if t not in panel.symbols]
+    if missing:
+        raise ValueError(f"no price data for {', '.join(missing)}")
+    names: dict[str, str] = {}
+    if lists:
+        try:
+            u = build_universe(lists)
+            names = {t: u.name(t) for t in num + den if u.name(t)}
+        except Exception:  # noqa: BLE001 - names are cosmetic
+            pass
+    has_bench = bench in panel.symbols
+    col = lambda t: [None if v != v else round(float(v), 6) for v in panel.close[:, panel.symbols.index(t)]]
+    return {"dates": [str(d) for d in panel.dates], "num": num, "den": den, "names": names,
+            "bench": bench if has_bench else None,
+            "close": {t: col(t) for t in dict.fromkeys(num + den + ([bench] if has_bench else []))}}
 
 
 def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = False) -> None:
