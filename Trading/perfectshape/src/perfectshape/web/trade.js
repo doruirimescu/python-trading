@@ -47,6 +47,7 @@
     stop: "Close a trade that has lost this much. After a stop the same side is not re-entered until its signal resets.",
     tp: "Close a trade that has made this much.",
     maxdays: "Close a trade after this many trading days.",
+    opt_scan: "Also search band rules on the <b>scan's own band</b>, fitted on the window the scan scored (as “Band from: scan window”). Shown next to the rolling-band results, labelled <b>band (scan window)</b>. It is <b>in-sample</b>: that band was drawn with the prices the trades are judged on, so its results, test included, are an upper bound, not a forecast.",
     show_ew: "Buy and hold every stock of the ratio (both baskets), equal weight at the start, no trading: did trading the ratio beat simply owning the same stocks?",
   });
   function addInfo(el, key) {
@@ -548,7 +549,11 @@
     ma: [{ k: "ma_fast", lo: 1, hi: 60, log: true, step: 1 }, { k: "ma_slow", lo: 20, hi: 300, log: true, step: 1 },
       { k: "ma_buf", lo: 0, hi: 3, step: 0.25 }, { k: "stop", v: STOPS }],
   };
-  const LABEL = { band: "band", zscore: "z-score", ma: "MA cross" };
+  // "bandscan": band mean reversion on the scan's own band (fitted on the window the scan scored): in-sample,
+  // offered with the "scan-window band" tick next to the realistic rolling band
+  SPACE.bandscan = SPACE.band.filter((d) => d.k !== "band_lb");
+  const LABEL = { band: "band", bandscan: "band (scan window)", zscore: "z-score", ma: "MA cross" };
+  const REAL = (key) => (key === "bandscan" ? { strategy: "band", band_src: "fixed" } : { strategy: key, band_src: "rolling" });
   const round = (x, step) => +(Math.round(x / step) * step).toFixed(4);
 
   function decode(strategy, u) {
@@ -564,6 +569,7 @@
   function describe(strategy, o) {
     const stop = o.stop ? ` · stop ${o.stop}%` : "", days = o.maxdays ? ` · max ${o.maxdays}d` : "";
     if (strategy === "band") return `${o.band_lb}d band, p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
+    if (strategy === "bandscan") return `scan-window band, p${o.band_pct} · enter ${o.entry_buf}% out · exit at ${o.exit_frac}%${stop}${days}`;
     if (strategy === "zscore") return `${o.z_lb}d z · in ${o.z_in} · out ${o.z_out}${o.z_stop ? ` · z stop ${o.z_stop}` : ""}${stop}${days}`;
     return `MA ${o.ma_fast}/${o.ma_slow} · buffer ${o.ma_buf}%${stop}`;
   }
@@ -586,6 +592,7 @@
     const split = s + Math.round((e - s) * Math.min(90, Math.max(30, +$("opt_split").value || 70)) / 100);
     if (split - s < 60 || e - split < 40) { setOptStatus("The period is too short to split into train and test; pick a longer one."); return; }
     const strategies = $("opt_all").checked ? ["band", "zscore", "ma"] : [user.strategy === "hold" ? "band" : user.strategy];
+    if ($("opt_scan").checked) strategies.push("bandscan");     // also the scan's own band (in-sample)
     const fixed = { band_src: "rolling", lag: "1" };
     const seen = new Map(), results = [];
     optState = { running: true, stop: false };
@@ -595,7 +602,7 @@
     const evaluate = (strategy, u) => {
       const params = decode(strategy, u), key = strategy + JSON.stringify(params);
       if (seen.has(key)) return seen.get(key);
-      const o = Object.assign({}, user, fixed, { strategy }, params);
+      const o = Object.assign({}, user, fixed, REAL(strategy), params);
       let r;
       try {
         const tr = backtest(o, [s, split]), te = backtest(o, [split, e]);
@@ -670,6 +677,7 @@
 
   let optTop = [];
   function renderOpt(results, reference, kind, s, split, e, finished, done, ms, segs) {
+    const scanUsed = results.some((r) => r.strategy === "bandscan");
     const ok = results.filter((r) => Number.isFinite(r.score)).sort((a, b) => b.score - a.score);
     // rule sets that trade identically (same train / test results) are shown once; with several strategies,
     // each strategy's best is always listed
@@ -683,7 +691,9 @@
     setOptStatus(`${finished ? (optState && optState.stop ? "Stopped" : "Done") : "Searching"}: ${done} backtests in ${(ms / 1000).toFixed(1)} s · ` +
       `${ok.length} met the minimum of trades · train ${S.dates[s]} → ${S.dates[split]}, test ${S.dates[split]} → ${S.dates[e]} · ranked by ` +
       `${name.toLowerCase()} in train${segs > 1 ? ` (the weakest of ${segs} train segments)` : ""}.` +
-      (finished && optTop.length ? ` <b>Apply</b> loads a rule set into the form (with the rolling band and next-close fills) and backtests it over the whole period.` : "") +
+      (finished && optTop.length ? ` <b>Apply</b> loads a rule set into the form (with its band and next-close fills) and backtests it over the whole period.` : "") +
+      (scanUsed ? ` <span class="neg">“band (scan window)” rows are in-sample: that band was fitted on the scan's window (${esc(P.get("fit_from") || "?")} → ${esc(P.get("fit_end") || "?")}), ` +
+        `so it already knew the prices the trades are judged on, in train and in test alike.</span>` : "") +
       (finished && !optTop.length ? ` <span class="neg">No rule set reached the minimum number of trades: lower it or lengthen the period.</span>` : ""));
     // train: the score the ranking uses, then the whole train period; test: the same objective, then the rest
     const cell = (r, part) => {
@@ -711,7 +721,7 @@
     $("opt_table").querySelectorAll("[data-apply]").forEach((b) => (b.onclick = () => {
       const r = optTop[+b.dataset.apply];
       splitDate = S.dates[split];
-      applySettings(Object.assign({ strategy: r.strategy, band_src: "rolling", lag: "1" }, r.params));
+      applySettings(Object.assign({ lag: "1" }, REAL(r.strategy), r.params));
       render(readSettings());
       document.querySelector(".chart-panel").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
@@ -837,6 +847,7 @@
     }
     if (P.get("optimize") === "1") {                // &optimize=1: start the search on load (&opt_all=1 for every strategy)
       if (P.get("opt_all") === "1") $("opt_all").checked = true;
+      if (P.get("opt_scan") === "1") $("opt_scan").checked = true;
       if (P.has("opt_budget")) $("opt_budget").value = P.get("opt_budget");
       optimize();
     }

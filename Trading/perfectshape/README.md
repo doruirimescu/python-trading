@@ -90,6 +90,10 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
     by default a rule's train score is its **weakest of 3 consecutive train segments**, so it has to work
     throughout, not in one lucky stretch; rules with fewer than the minimum trades are ignored;
   * objective: Sharpe (default), CAGR, Calmar or total return; one strategy or every strategy;
+  * **Also search with the scan-window band** (tick, off by default): adds band rules on the scan's own band
+    (fitted on the window the scan scored), listed as "band (scan window)" next to the rolling-band rules.
+    This is in-sample (that band was drawn with the prices it is judged on, test included), so treat it as an
+    upper bound; it competes fairly only when the period starts at the scan window (the Trade Lab's default);
   * search: Latin-hypercube sampling of the settings (40% of the budget), then a (mu + 1) evolution around the
     best rules with shrinking steps (lookbacks on a log scale). A backtest takes well under a millisecond, so
     the default 2,000 run in about a second. The search is randomised: a second run can surface different
