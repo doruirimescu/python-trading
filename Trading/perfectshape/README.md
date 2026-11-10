@@ -94,10 +94,22 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
     best rules with shrinking steps (lookbacks on a log scale). A backtest takes well under a millisecond, so
     the default 2,000 run in about a second. The search is randomised: a second run can surface different
     rules of similar quality;
+  * the leaderboard's first train column is the **score** the ranking uses (with "weakest of 3 segments", the
+    objective on the weakest third of train); the return, CAGR, drawdown and trades after it are for the whole
+    train period. After **Apply**, the charts mark the train | test boundary and the statistics table adds
+    **Train** and **Test** columns, separate backtests that match the leaderboard; the whole-period column is
+    one continuous run (money compounds through both parts, trades carry across), so it is not train + test;
   * the leaderboard shows train and test side by side (rules that trade identically are shown once, and each
     strategy's best is always listed) plus your current rules under the same conditions; **Apply** loads a
     rule set and backtests it over the whole period. A rule that is good in train and poor in test is
     overfitted, and a ratio whose best rules all fail in test has probably changed regime.
+
+**Saved analyses**: in the Trade Lab, **💾 Save analysis** stores the ratio, every setting (including the
+optimizer's train | test boundary) and a snapshot of the results, with a name and notes, as
+`analyses/<date>_<name>.json` (git-ignored). The dashboard lists them under **Saved analyses** (Open reloads the
+Trade Lab with every setting, Delete asks for a confirming click). A reopened analysis shows its name, notes and
+the results when saved next to today's (prices are refreshed); Save then updates it, Save as new copies it, and
+the page address reopens it.
 
 **Holdings** (`holdings.py`): `universe.lists: ["etf:XLK"]` with `universe.limit: 20` works in any config.
 They come from State Street's daily holdings file of the fund (every constituent with its weight), cached per

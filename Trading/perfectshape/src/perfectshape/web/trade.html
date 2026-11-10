@@ -30,6 +30,21 @@
           below is recomputed at once. A <mark>$10,000</mark> portfolio is compared with holding the
           <span class="hl-accent">S&amp;P 500 (SPY)</span> over the same period.</p>
       </div>
+      <div class="page-controls"><button type="button" class="btn primary" id="save_open">💾 Save analysis</button></div>
+    </div>
+    <div class="panel saved-info" id="saved_info" hidden></div>
+    <div class="panel save-panel" id="save_panel" hidden>
+      <div class="save-grid">
+        <label class="field-stack"><span>Name</span><input class="input" type="text" id="save_name" maxlength="200"></label>
+        <label class="field-stack"><span>Notes</span><textarea class="input" id="save_notes" rows="3" maxlength="5000"
+          placeholder="Why this ratio, what to watch, entry plan…"></textarea></label>
+      </div>
+      <div class="save-actions">
+        <button type="button" class="btn primary" id="save_go">Save</button>
+        <button type="button" class="btn" id="save_new" hidden>Save as new</button>
+        <button type="button" class="btn" id="save_cancel">Cancel</button>
+        <span class="muted small" id="save_status">Saves the ratio, every setting on this page and a snapshot of the results; open it again from the dashboard's <b>Saved analyses</b>.</span>
+      </div>
     </div>
     <div class="notice" id="error" hidden></div>
 
@@ -140,6 +155,7 @@
 
         <h2 class="section">Statistics</h2>
         <div class="table-wrap"><table class="data" data-list="cards" id="stats"></table></div>
+        <p class="muted small" id="split-note" style="margin-top:8px"></p>
 
         <h2 class="section">Trades</h2>
         <div class="toolbar"><span class="muted small" id="trades-note"></span>

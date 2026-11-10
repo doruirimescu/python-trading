@@ -372,6 +372,9 @@
     const { s, e, eq, trades } = bt, C = window.Nexus ? Nexus.colors : {};
     const dates = S.dates.slice(s, e + 1);
     const st = stats(eq, s, e);
+    const si = splitDate ? firstIndexOnOrAfter(splitDate) : -1;
+    const split = si > s + 20 && si < e - 20 ? si : null;        // train / test boundary after an optimizer Apply
+    const boundary = split ? Nexus.events([{ x: S.dates[split], label: "train | test", tone: "accent" }]) : { shapes: [], annotations: [] };
     // benchmarks: SPY and all members equal weight, same capital, same days
     const B = S.bench ? S.close[S.bench] : null;
     const spyEq = new Float64Array(S.dates.length).fill(NaN), ewEq = new Float64Array(S.dates.length).fill(NaN);
@@ -381,8 +384,7 @@
     }
     const spy = B ? stats(spyEq, s, e) : null, ew = stats(ewEq, s, e);
     const bc = spy ? betaCorr(st.rets, spy.rets) : { beta: NaN, corr: NaN };
-    const wins = trades.filter((t) => t.ret > 0), losses = trades.filter((t) => t.ret <= 0);
-    const grossWin = wins.reduce((a, t) => a + t.pnl, 0), grossLoss = -losses.reduce((a, t) => a + t.pnl, 0);
+    const wins = trades.filter((t) => t.ret > 0);
     const avgDays = trades.length ? trades.reduce((a, t) => a + t.t1 - t.t0, 0) / trades.length : NaN;
 
     // KPIs
@@ -394,6 +396,11 @@
       kpi("Sharpe", num(st.sharpe), `SPY ${spy ? num(spy.sharpe) : "–"} · Sortino ${num(st.sortino)}`) +
       kpi("Trades", trades.length, trades.length ? `${(wins.length / trades.length * 100).toFixed(0)}% winners · ${num(avgDays, 0)} days avg` : "no trade triggered") +
       kpi("In the market", (bt.exposure * 100).toFixed(0) + "%", `beta to SPY ${num(bc.beta)} · corr ${num(bc.corr)}`);
+    // snapshot of the results, saved with an analysis
+    lastSummary = { from: S.dates[s], to: S.dates[e], strategy: o.strategy, mode: o.mode, rules: rulesText(o), capital: o.capital,
+      final: st.final, total: st.total, cagr: st.cagr, sharpe: st.sharpe, mdd: st.mdd, trades: trades.length,
+      win_rate: trades.length ? wins.length / trades.length : null, spy_total: spy ? spy.total : null, spy_cagr: spy ? spy.cagr : null };
+    if (analysis) showSavedInfo();
 
     if (!window.Plotly || !window.Nexus) return;
     const cfg = Object.assign({}, Nexus.plotlyConfig, { displaylogo: false });
@@ -422,7 +429,7 @@
     if (fe && fe < S.dates[e]) eras.push({ x0: fe, x1: S.dates[e], label: "after the scan (holdout)", tone: "neutral" });
     const bands = Nexus.bands(eras);
     Plotly.react("c-ratio", data, Nexus.plotlyLayout({ hovermode: "closest", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
-      yaxis: { type: "log", tickformat: ".3f" }, shapes: bands.shapes, annotations: bands.annotations }), cfg);
+      yaxis: { type: "log", tickformat: ".3f" }, shapes: [...bands.shapes, ...boundary.shapes], annotations: [...bands.annotations, ...boundary.annotations] }), cfg);
     // equity
     const eqLine = (arr, name, color, w) => ({ x: dates, y: Array.from(arr.slice(s, e + 1)), mode: "lines", name, line: { color, width: w },
       hovertemplate: `%{x}<br>${name} %{y:$,.0f}<extra></extra>` });
@@ -431,35 +438,60 @@
     if (showEW) eqData.push(eqLine(ewEq, "all members", C.series2, 1.2));
     if (spy) eqData.splice(1, 0, eqLine(spyEq, "SPY", C.neutral, 1.4));
     Plotly.react("c-equity", eqData, Nexus.plotlyLayout({ hovermode: "x unified", showlegend: false, margin: { l: 64, r: 14, t: 10, b: 36 },
-      yaxis: { tickprefix: "$", tickformat: ",.0f" } }), cfg);
+      yaxis: { tickprefix: "$", tickformat: ",.0f" }, shapes: boundary.shapes, annotations: boundary.annotations }), cfg);
     // drawdown
     const ddData = [{ x: dates, y: st.dd, mode: "lines", name: "strategy", fill: "tozeroy", line: { color: C.negative, width: 1 },
       hovertemplate: "%{x}<br>strategy %{y:.1%}<extra></extra>" }];
     if (spy) ddData.push({ x: dates, y: spy.dd, mode: "lines", name: "SPY", line: { color: C.neutral, width: 1.2 }, hovertemplate: "%{x}<br>SPY %{y:.1%}<extra></extra>" });
     Plotly.react("c-dd", ddData, Nexus.plotlyLayout({ hovermode: "x unified", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
-      yaxis: { tickformat: ".0%" } }), cfg);
+      yaxis: { tickformat: ".0%" }, shapes: boundary.shapes }), cfg);
 
-    // statistics table
-    const row = (label, a, b, c) => `<tr><td>${label}</td><td class="num">${a}</td><td class="num">${b}</td>${showEW ? `<td class="num">${c}</td>` : ""}</tr>`;
-    $("stats").innerHTML = `<thead><tr><th>Measure</th><th class="num">Strategy</th><th class="num">SPY</th>${showEW ? '<th class="num">All members, equal weight</th>' : ""}</tr></thead><tbody>` +
-      row("Final value", money(st.final), spy ? money(spy.final) : "–", money(ew.final)) +
-      row("Total return", signed(st.total), spy ? signed(spy.total) : "–", signed(ew.total)) +
-      row("CAGR", signed(st.cagr), spy ? signed(spy.cagr) : "–", signed(ew.cagr)) +
-      row("Volatility (annual)", pct(st.vol).replace("+", ""), spy ? pct(spy.vol).replace("+", "") : "–", pct(ew.vol).replace("+", "")) +
-      row("Sharpe (rf 0)", num(st.sharpe), spy ? num(spy.sharpe) : "–", num(ew.sharpe)) +
-      row("Sortino", num(st.sortino), spy ? num(spy.sortino) : "–", num(ew.sortino)) +
-      row("Max drawdown", `<span class="neg">${pct(st.mdd)}</span>`, spy ? `<span class="neg">${pct(spy.mdd)}</span>` : "–", `<span class="neg">${pct(ew.mdd)}</span>`) +
-      row("Calmar (CAGR / max DD)", num(st.calmar), spy ? num(spy.calmar) : "–", num(ew.calmar)) +
-      row("Trades", trades.length, "–", "–") +
-      row("Win rate", trades.length ? (wins.length / trades.length * 100).toFixed(0) + "%" : "–", "–", "–") +
-      row("Average trade", trades.length ? signed(trades.reduce((a, t) => a + t.ret, 0) / trades.length) : "–", "–", "–") +
-      row("Average win / loss", `${wins.length ? pct(wins.reduce((a, t) => a + t.ret, 0) / wins.length) : "–"} / ${losses.length ? pct(losses.reduce((a, t) => a + t.ret, 0) / losses.length) : "–"}`, "–", "–") +
-      row("Best / worst trade", trades.length ? `${pct(Math.max(...trades.map((t) => t.ret)))} / ${pct(Math.min(...trades.map((t) => t.ret)))}` : "–", "–", "–") +
-      row("Profit factor", grossLoss > 0 ? num(grossWin / grossLoss) : wins.length ? "∞" : "–", "–", "–") +
-      row("Average holding (days)", num(avgDays, 0), "–", "–") +
-      row("Time in the market", (bt.exposure * 100).toFixed(0) + "%", "100%", "100%") +
-      row("Beta / correlation to SPY", `${num(bc.beta)} / ${num(bc.corr)}`, "1.00 / 1.00", spy ? (() => { const x = betaCorr(ew.rets, spy.rets); return `${num(x.beta)} / ${num(x.corr)}`; })() : "–") +
-      `</tbody>`;
+    // statistics table: whole period, then (after Apply from the optimizer) the train and test parts run on
+    // their own, exactly as the optimizer ran them, then the benchmarks
+    const part = (b, s0, e0) => {
+      const sp = stats(b.eq, s0, e0);
+      return { st: sp, trades: b.trades, exposure: b.exposure, bc: spy ? betaCorr(sp.rets, stats(spyEq, s0, e0).rets) : { beta: NaN, corr: NaN } };
+    };
+    const cols = [{ title: split ? "Strategy · whole period" : "Strategy", ...part(bt, s, e) }];
+    if (split) {
+      try {
+        cols.push({ title: `Train · ${S.dates[s]} → ${S.dates[split]}`, ...part(backtest(o, [s, split]), s, split) });
+        cols.push({ title: `Test · ${S.dates[split]} → ${S.dates[e]}`, ...part(backtest(o, [split, e]), split, e) });
+      } catch (err) { /* a part too short: whole period only */ }
+    }
+    if (spy) cols.push({ title: "SPY", st: spy, trades: null, exposure: 1, bc: { beta: 1, corr: 1 } });
+    if (showEW) cols.push({ title: "All members, equal weight", st: ew, trades: null, exposure: 1, bc: spy ? betaCorr(ew.rets, spy.rets) : { beta: NaN, corr: NaN } });
+    const tradeStat = (c, f) => (c.trades ? f(c.trades) : "–");
+    const avg = (xs) => xs.reduce((a, x) => a + x, 0) / xs.length;
+    const ROWS = [
+      ["Final value", (c) => money(c.st.final)],
+      ["Total return", (c) => signed(c.st.total)],
+      ["CAGR", (c) => signed(c.st.cagr)],
+      ["Volatility (annual)", (c) => pct(c.st.vol).replace("+", "")],
+      ["Sharpe (rf 0)", (c) => num(c.st.sharpe)],
+      ["Sortino", (c) => num(c.st.sortino)],
+      ["Max drawdown", (c) => `<span class="neg">${pct(c.st.mdd)}</span>`],
+      ["Calmar (CAGR / max DD)", (c) => num(c.st.calmar)],
+      ["Trades", (c) => tradeStat(c, (t) => t.length)],
+      ["Win rate", (c) => tradeStat(c, (t) => (t.length ? (t.filter((x) => x.ret > 0).length / t.length * 100).toFixed(0) + "%" : "–"))],
+      ["Average trade", (c) => tradeStat(c, (t) => (t.length ? signed(avg(t.map((x) => x.ret))) : "–"))],
+      ["Average win / loss", (c) => tradeStat(c, (t) => { const w = t.filter((x) => x.ret > 0), l = t.filter((x) => x.ret <= 0);
+        return `${w.length ? pct(avg(w.map((x) => x.ret))) : "–"} / ${l.length ? pct(avg(l.map((x) => x.ret))) : "–"}`; })],
+      ["Best / worst trade", (c) => tradeStat(c, (t) => (t.length ? `${pct(Math.max(...t.map((x) => x.ret)))} / ${pct(Math.min(...t.map((x) => x.ret)))}` : "–"))],
+      ["Profit factor", (c) => tradeStat(c, (t) => { const gw = t.filter((x) => x.pnl > 0).reduce((a, x) => a + x.pnl, 0), gl = -t.filter((x) => x.pnl <= 0).reduce((a, x) => a + x.pnl, 0);
+        return gl > 0 ? num(gw / gl) : gw > 0 ? "∞" : "–"; })],
+      ["Average holding (days)", (c) => tradeStat(c, (t) => (t.length ? num(avg(t.map((x) => x.t1 - x.t0)), 0) : "–"))],
+      ["Time in the market", (c) => (c.exposure * 100).toFixed(0) + "%"],
+      ["Beta / correlation to SPY", (c) => `${num(c.bc.beta)} / ${num(c.bc.corr)}`],
+    ];
+    $("stats").innerHTML = `<thead><tr><th>Measure</th>${cols.map((c) => `<th class="num">${esc(c.title)}</th>`).join("")}</tr></thead><tbody>` +
+      ROWS.map(([label, f]) => `<tr><td>${label}</td>${cols.map((c) => `<td class="num">${f(c)}</td>`).join("")}</tr>`).join("") + `</tbody>`;
+    $("split-note").innerHTML = split
+      ? `<b>Train</b> and <b>test</b> are separate backtests, each starting flat with ${money(o.capital)}, exactly as the optimizer ran them (they match its table). ` +
+        `The whole-period column is one continuous run: the money compounds through both parts and trades carry across ${S.dates[split]}, so it is not train plus test. ` +
+        `<a href="#" id="split-clear">Hide train / test</a>`
+      : "";
+    if (split) $("split-clear").onclick = (ev) => { ev.preventDefault(); splitDate = null; render(readSettings()); };
 
     // trades table
     $("trades-note").textContent = trades.length
@@ -495,6 +527,8 @@
   }
   const allowShortNote = (o) => o.dirs !== "long" && o.mode !== "longnum";
   let lastTrades = [];
+  let splitDate = P.get("split") || null;   // train / test boundary of the last optimizer run, shown after Apply
+  let lastSummary = null;                    // key results of the last render (saved with an analysis)
 
 
   // ---------------------------------------------------------------- rule optimizer ("Find best rules")
@@ -651,11 +685,13 @@
       `${name.toLowerCase()} in train${segs > 1 ? ` (the weakest of ${segs} train segments)` : ""}.` +
       (finished && optTop.length ? ` <b>Apply</b> loads a rule set into the form (with the rolling band and next-close fills) and backtests it over the whole period.` : "") +
       (finished && !optTop.length ? ` <span class="neg">No rule set reached the minimum number of trades: lower it or lengthen the period.</span>` : ""));
+    // train: the score the ranking uses, then the whole train period; test: the same objective, then the rest
     const cell = (r, part) => {
       const st = r[part], n = part === "train" ? r.nTr : r.nTe;
-      if (!st) return `<td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td>`;
+      if (!st) return `<td class="num">–</td>`.repeat(5);
       const sc = part === "train" ? r.score : r.testScore;
-      return `<td class="num"><b>${fmtObj(sc, kind)}</b></td><td class="num">${signed(st.cagr)}</td><td class="num"><span class="neg">${pct(st.mdd)}</span></td><td class="num">${n}</td>`;
+      return `<td class="num"><b>${fmtObj(sc, kind)}</b></td><td class="num">${signed(st.total)}</td><td class="num">${signed(st.cagr)}</td>` +
+        `<td class="num"><span class="neg">${pct(st.mdd)}</span></td><td class="num">${n}</td>`;
     };
     const rows = optTop.map((r, i) => `<tr class="${i === 0 ? "best" : ""}"><td class="faint">${i + 1}</td><td>${LABEL[r.strategy]}</td>` +
       `<td class="cfg">${esc(describe(r.strategy, r.params))}</td>${cell(r, "train")}${cell(r, "test")}` +
@@ -663,13 +699,18 @@
     if (reference) rows.push(`<tr><td class="faint">·</td><td class="muted">your rules</td><td class="cfg">${esc(describe(reference.strategy, reference.params))} <span class="faint">(rolling band, next close)</span></td>` +
       `${cell(reference, "train")}${cell(reference, "test")}<td></td></tr>`);
     const objName = { sharpe: "Sharpe", cagr: "CAGR", calmar: "Calmar", total: "Return" }[kind];
-    $("opt_table").innerHTML = `<thead><tr><th></th><th></th><th></th><th class="grp" colspan="4">Train (tuned on${segs > 1 ? `, score = weakest of ${segs} segments` : ""})</th><th class="grp" colspan="4">Test (never seen by the search)</th><th></th></tr>` +
+    const scoreTip = segs > 1
+      ? `The ranking score: the ${objName.toLowerCase()} of the <b>weakest of ${segs} consecutive train segments</b>, each backtested on its own. The columns after it are for the whole train period.`
+      : `The ranking score: the ${objName.toLowerCase()} over the whole train period.`;
+    const scoreHead = `Score <button type="button" class="info" data-tip-html="${esc(scoreTip)}" aria-label="About the score">i</button>`;
+    $("opt_table").innerHTML = `<thead><tr><th></th><th></th><th></th><th class="grp" colspan="5">Train (tuned on)</th><th class="grp" colspan="5">Test (never seen by the search)</th><th></th></tr>` +
       `<tr><th>#</th><th data-list="subtitle">Strategy</th><th data-list="title">Rules</th>` +
-      `<th class="num" data-list="value" data-list-prefix="train">${objName}</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th>` +
-      `<th class="num" data-list="note" data-list-prefix="test">${objName}</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th><th></th></tr></thead>` +
+      `<th class="num" data-list="value" data-list-prefix="train score">${scoreHead}</th><th class="num">Return</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th>` +
+      `<th class="num" data-list="note" data-list-prefix="test">${objName}</th><th class="num">Return</th><th class="num">CAGR</th><th class="num">Max DD</th><th class="num">Trades</th><th></th></tr></thead>` +
       `<tbody>${rows.join("")}</tbody>`;
     $("opt_table").querySelectorAll("[data-apply]").forEach((b) => (b.onclick = () => {
       const r = optTop[+b.dataset.apply];
+      splitDate = S.dates[split];
       applySettings(Object.assign({ strategy: r.strategy, band_src: "rolling", lag: "1" }, r.params));
       render(readSettings());
       document.querySelector(".chart-panel").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -677,6 +718,75 @@
   }
   $("opt_run").onclick = optimize;
   $("opt_jump").onclick = () => { document.getElementById("optimizer").scrollIntoView({ behavior: "smooth", block: "start" }); if (!optState || !optState.running) optimize(); };
+
+
+  // ---------------------------------------------------------------- saved analyses
+  const STRATEGY_NAME = { band: "Band mean reversion", zscore: "Z-score mean reversion", ma: "Moving-average crossover", hold: "Buy & hold" };
+  const MODE_NAME = { pair: "pair (long/short)", rotation: "rotation", longnum: "numerator only" };
+  function rulesText(o) {
+    if (o.strategy === "hold") return `buy & hold the ratio · ${MODE_NAME[o.mode]}`;
+    let t = describe(o.strategy, o);
+    if (o.strategy === "band" && o.band_src === "fixed") t = t.replace(/^\d+d band/, "scan-window band");
+    return `${t} · ${MODE_NAME[o.mode]}${o.bps ? ` · ${o.bps} bps` : ""}${o.lag === "0" ? " · same-close fills" : ""}`;
+  }
+  // everything needed to reopen this exact analysis: the ratio, its scan context and every setting
+  function currentQuery() {
+    const q = {};
+    for (const k of ["num", "den", "shape", "fit_from", "fit_end", "lists", "run", "rank"]) if (P.get(k)) q[k] = P.get(k);
+    Object.assign(q, readSettings());
+    if ($("show_ew").checked) q.show_ew = "1";
+    if (splitDate) q.split = splitDate;
+    for (const k in q) q[k] = String(q[k]);
+    return q;
+  }
+  let analysis = null;            // the saved analysis this page was opened from (or last saved)
+
+  function showSavedInfo() {
+    if (!analysis) { $("saved_info").hidden = true; return; }
+    const a = analysis.summary || {}, now = lastSummary || {};
+    const M = [["Final value", (x) => money(x.final)], ["CAGR", (x) => signed(x.cagr)], ["Sharpe", (x) => num(x.sharpe)],
+      ["Max drawdown", (x) => (x.mdd == null ? "–" : `<span class="neg">${pct(x.mdd)}</span>`)], ["Trades", (x) => (x.trades ?? "–")],
+      ["SPY CAGR", (x) => (x.spy_cagr == null ? "–" : pct(x.spy_cagr))]];
+    const r = (label, x) => `<tr><td>${label}</td>${M.map(([, f]) => `<td class="num">${f(x)}</td>`).join("")}</tr>`;
+    $("saved_info").hidden = false;
+    $("saved_info").innerHTML = `<div class="eyebrow">Saved analysis · saved ${esc((analysis.saved || "").replace("T", " "))}</div>` +
+      `<h3>${esc(analysis.name)}</h3>${analysis.notes ? `<div class="notes">${esc(analysis.notes)}</div>` : ""}` +
+      `<div class="muted small">${esc(a.rules || "")} · ${esc(a.from || "")} → ${esc(a.to || "")}. Prices are refreshed, so today's backtest can differ slightly from the saved one.</div>` +
+      `<div class="table-wrap"><table class="data"><thead><tr><th></th>${M.map(([l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>` +
+      r("When saved", a) + r("Now", now) + `</tbody></table></div>`;
+  }
+
+  function openSave() {
+    $("save_panel").hidden = !$("save_panel").hidden;
+    if ($("save_panel").hidden) return;
+    $("save_name").value = analysis ? analysis.name
+      : `${S.num.join("+")} / ${S.den.join("+")} · ${STRATEGY_NAME[readSettings().strategy]}`;
+    $("save_notes").value = analysis ? analysis.notes || "" : "";
+    $("save_new").hidden = !analysis;
+    $("save_go").textContent = analysis ? "Save changes" : "Save";
+    $("save_name").focus();
+  }
+  async function doSave(asNew) {
+    render(readSettings());                                       // make sure the snapshot matches the form
+    const body = { name: $("save_name").value, notes: $("save_notes").value, query: currentQuery(), summary: lastSummary };
+    if (analysis && !asNew) body.id = analysis.id;
+    $("save_status").textContent = "Saving…";
+    try {
+      const r = await fetch("/api/analyses", { method: "POST", body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.error || r.statusText);
+      analysis = Object.assign({}, body, { id: j.id, saved: j.saved });
+      // the address now reopens this analysis, with every setting
+      history.replaceState(null, "", "/trade.html?" + new URLSearchParams(Object.assign({}, body.query, { analysis: j.id })));
+      $("save_status").innerHTML = `Saved as <b>${esc(analysis.name)}</b>. It is listed on the dashboard under <b>Saved analyses</b>; this page's address reopens it.`;
+      $("save_new").hidden = false; $("save_go").textContent = "Save changes";
+      showSavedInfo();
+    } catch (err) { $("save_status").innerHTML = `<span class="neg">Could not save: ${esc(err.message)}</span>`; }
+  }
+  $("save_open").onclick = openSave;
+  $("save_go").onclick = () => doSave(false);
+  $("save_new").onclick = () => doSave(true);
+  $("save_cancel").onclick = () => { $("save_panel").hidden = true; };
 
   // ---------------------------------------------------------------- page
   function header() {
@@ -719,6 +829,12 @@
     $("show_ew").addEventListener("change", () => render(readSettings()));
     if (window.Nexus && Nexus.onThemeChange) Nexus.onThemeChange(() => render(readSettings()));
     render(readSettings());
+    if (P.get("analysis")) {                         // opened from Saved analyses
+      try {
+        const r = await fetch("/api/analyses/" + encodeURIComponent(P.get("analysis")));
+        if (r.ok) { analysis = await r.json(); $("eyebrow").textContent += ` · ${analysis.name}`; showSavedInfo(); }
+      } catch (err) { /* the analysis was deleted: the settings in the URL still load */ }
+    }
     if (P.get("optimize") === "1") {                // &optimize=1: start the search on load (&opt_all=1 for every strategy)
       if (P.get("opt_all") === "1") $("opt_all").checked = true;
       if (P.has("opt_budget")) $("opt_budget").value = P.get("opt_budget");

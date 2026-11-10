@@ -147,6 +147,20 @@ table.data td.cfg { font-family: var(--mono); font-size: 12px; color: var(--mute
 table.data tr.best td { background: var(--accent-soft); }
 table.data th.grp { text-align: center; border-bottom: 1px solid var(--border); }
 
+/* ---------- saved analyses ---------- */
+.save-panel, .saved-info { margin-top: 16px; }
+.save-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 14px; }
+.field-stack { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.field-stack .input { width: 100%; font-size: 14px; }
+.field-stack textarea.input { resize: vertical; font-family: var(--font); }
+.save-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+.saved-info h3 { margin: 0 0 4px; font-size: 16px; }
+.saved-info .notes { white-space: pre-wrap; color: var(--muted); margin: 6px 0 10px; font-size: 13.5px; }
+.saved-info table.data { margin-top: 6px; }
+table.data td.actions { white-space: nowrap; text-align: right; }
+table.data td.actions .btn + .btn { margin-left: 6px; }
+@media (max-width: 640px) { .save-grid { grid-template-columns: 1fr; } }
+
 pre.code {
   margin: 0; padding: 14px 16px; overflow: auto; max-height: 420px;
   font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--muted);

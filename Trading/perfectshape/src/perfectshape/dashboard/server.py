@@ -11,6 +11,9 @@ API (JSON):
   POST /api/pause | /api/resume | /api/stop
   GET  /api/status?v=N               state + progress; includes the ranking payload when version > N
   POST /api/save     {config}        write configs/<name>.yaml
+  GET  /api/analyses                 saved Trade Lab analyses (newest first); GET /api/analyses/<id> one of them
+  POST /api/analyses {id?, name, notes, query, summary}   save (update when id is given) -> {id}
+  POST /api/analyses/delete {id}
   GET  /runs/<dir>/<file>            finished run outputs (report.html, results.csv, ...)
   GET  /assets/<file>                page assets from perfectshape/web/, read fresh on every request
 """
@@ -48,6 +51,7 @@ ASSETS = {"shapes.css": "text/css; charset=utf-8", "report.js": "text/javascript
           "dashboard.js": "text/javascript; charset=utf-8", "trade.js": "text/javascript; charset=utf-8"}
 PAGES = {"/": "dashboard.html", "/index.html": "dashboard.html", "/trade.html": "trade.html"}
 BENCHMARK = "SPY"
+ANALYSES = PROJECT_ROOT / "analyses"          # saved Trade Lab analyses, one JSON file each (git-ignored)
 # seconds per (ratio x bar x shape), measured on XLU top 16 at 3 vs 3 (80,080 ratios, 11 windows, 2 shapes:
 # 24 s); machine and data dependent (pruning skips more on noisier universes), for estimates only
 SECONDS_PER_RATIO_BAR = 1.5e-8
@@ -257,6 +261,10 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             if url.path in PAGES:
                 return self._send(200, (WEB / PAGES[url.path]).read_bytes(), "text/html; charset=utf-8")
+            if url.path == "/api/analyses":
+                return self._json(list_analyses())
+            if url.path.startswith("/api/analyses/"):
+                return self._json(load_analysis(url.path.rsplit("/", 1)[1]))
             if url.path == "/api/series":
                 return self._json(self._series(q))
             if url.path.startswith("/assets/"):
@@ -292,6 +300,11 @@ class _Handler(BaseHTTPRequestHandler):
             if path in ("/api/pause", "/api/resume", "/api/stop"):
                 getattr(m, path.rsplit("/", 1)[1])()
                 return self._json({"ok": True, "state": m.state})
+            if path == "/api/analyses":
+                return self._json(save_analysis(self._body()))
+            if path == "/api/analyses/delete":
+                delete_analysis(str(self._body().get("id", "")))
+                return self._json({"ok": True})
             if path == "/api/save":
                 chk = check_config(self._body().get("config", {}))
                 if "yaml" not in chk:
@@ -321,6 +334,69 @@ class _Handler(BaseHTTPRequestHandler):
         ctype = {".html": "text/html; charset=utf-8", ".csv": "text/csv", ".json": "application/json",
                  ".md": "text/markdown; charset=utf-8"}.get(target.suffix, "application/octet-stream")
         self._send(200, target.read_bytes(), ctype)
+
+
+# ---------------------------------------------------------------- saved Trade Lab analyses
+_ID_OK = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_")
+
+
+def _analysis_path(aid: str) -> Path:
+    if not aid or not set(aid) <= _ID_OK or len(aid) > 120:
+        raise ValueError(f"bad analysis id {aid!r}")
+    return ANALYSES / f"{aid}.json"
+
+
+def save_analysis(body: dict) -> dict:
+    """Create (no id) or update (id) a saved analysis: {name, notes, query, summary}."""
+    import re
+    from datetime import datetime
+
+    name = str(body.get("name") or "").strip()[:200] or "Untitled analysis"
+    query = body.get("query")
+    if not isinstance(query, dict) or not query.get("num") or not query.get("den"):
+        raise ValueError("query with num and den is required")
+    now = datetime.now().isoformat(timespec="seconds")
+    aid = str(body.get("id") or "")
+    if aid:
+        path = _analysis_path(aid)
+        created = json.loads(path.read_text(encoding="utf-8")).get("created", now) if path.exists() else now
+    else:
+        slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:50] or "analysis"
+        base_id = aid = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{slug}"
+        n = 2
+        while _analysis_path(aid).exists():                     # two saves in the same second
+            aid, n = f"{base_id}-{n}", n + 1
+        path, created = _analysis_path(aid), now
+    doc = {"id": aid, "name": name, "notes": str(body.get("notes") or "")[:5000], "created": created, "saved": now,
+           "query": {str(k): str(v) for k, v in query.items()}, "summary": body.get("summary") or {}}
+    ANALYSES.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    return {"ok": True, "id": aid, "saved": now}
+
+
+def load_analysis(aid: str) -> dict:
+    path = _analysis_path(aid)
+    if not path.exists():
+        raise FileNotFoundError(f"no saved analysis {aid}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def list_analyses() -> list[dict]:
+    if not ANALYSES.exists():
+        return []
+    docs = []
+    for p in ANALYSES.glob("*.json"):
+        try:
+            docs.append(json.loads(p.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            continue
+    return sorted(docs, key=lambda d: d.get("saved", ""), reverse=True)
+
+
+def delete_analysis(aid: str) -> None:
+    path = _analysis_path(aid)
+    if path.exists():
+        path.unlink()
 
 
 def series_payload(num: list[str], den: list[str], bench: str, data_cfg, lists: list[str] = ()) -> dict:

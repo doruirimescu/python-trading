@@ -482,3 +482,30 @@ def test_trade_lab_series_payload_aligns_members_and_benchmark():
     assert all(len(v) == n for v in out["close"].values())
     with pytest.raises(ValueError, match="required"):
         series_payload(["S01"], [], "SPY", data)
+
+
+def test_saved_analyses_roundtrip(tmp_path, monkeypatch):
+    from perfectshape.dashboard import server
+    monkeypatch.setattr(server, "ANALYSES", tmp_path / "analyses")
+    q = {"num": "A,B,C", "den": "D,E,F", "strategy": "band", "band_lb": 170}
+    a = server.save_analysis({"name": "Utilities: power vs regulated", "notes": "watch CEG", "query": q,
+                              "summary": {"cagr": 0.12}})
+    assert a["ok"] and a["id"].endswith("utilities-power-vs-regulated")
+    doc = server.load_analysis(a["id"])
+    assert doc["query"]["band_lb"] == "170" and doc["summary"]["cagr"] == 0.12 and doc["notes"] == "watch CEG"
+    # update keeps the id and creation time
+    u = server.save_analysis({"id": a["id"], "name": "renamed", "query": q})
+    assert u["id"] == a["id"] and server.load_analysis(a["id"])["name"] == "renamed"
+    assert server.load_analysis(a["id"])["created"] == doc["created"]
+    b = server.save_analysis({"name": "second", "query": q})
+    c = server.save_analysis({"name": "second", "query": q})              # same name, same second: no overwrite
+    assert c["id"] != b["id"]
+    server.delete_analysis(c["id"])
+    assert [d["id"] for d in server.list_analyses()][0] == b["id"]          # newest first
+    server.delete_analysis(a["id"])
+    assert [d["id"] for d in server.list_analyses()] == [b["id"]]
+    for bad in ("../etc/passwd", "a/b", ""):
+        with pytest.raises(ValueError):
+            server.load_analysis(bad)
+    with pytest.raises(ValueError, match="num and den"):
+        server.save_analysis({"name": "x", "query": {"num": "A"}})

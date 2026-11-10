@@ -6,4 +6,4 @@ shared with saved reports, shapes.css), Nexus design
 system (live nexus.css / nexus.js, see the nexus-style skill): layout-only CSS, colours from tokens only. The server
 reads web/ files on every request, so front-end edits need only a browser refresh; Python edits need a restart, which
 ends a running scan. Scan hooks: pipeline.ScanControl.
-Standalone package: no imports from Trading.*, mrscore or tradelab. Do not commit runs/ or data_cache/.
+Standalone package: no imports from Trading.*, mrscore or tradelab. Do not commit runs/, data_cache/ or analyses/.

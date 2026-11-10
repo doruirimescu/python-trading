@@ -95,6 +95,11 @@
         <h2 class="section">Results</h2>
         <div id="report"><div class="panel empty-state">The best ratios found so far appear here within seconds of pressing Play and keep improving as the scan proceeds.</div></div>
 
+        <h2 class="section">Saved analyses</h2>
+        <div class="toolbar"><span class="muted small">Trade Lab analyses you saved (💾 in the Trade Lab). Open reloads the ratio with every setting; prices are refreshed.</span>
+          <button class="btn sm" id="an_refresh">Refresh</button></div>
+        <div class="table-wrap"><table class="data" data-list data-list-tap="native" id="analyses"></table></div>
+
         <h2 class="section">Config</h2>
         <div class="toolbar">
           <span class="muted small">The exact config the scan runs; save it to run the same scan from the command line.</span>

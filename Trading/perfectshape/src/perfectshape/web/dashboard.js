@@ -268,6 +268,46 @@
     if (!once) { clearTimeout(pollTimer); pollTimer = setTimeout(() => poll(false), state === "running" ? 1000 : 2500); }
   }
 
+  // ---------------------------------------------------------------- saved analyses
+  const pctS = (v) => (v == null || !isFinite(v) ? "–" : `<span class="${v >= 0 ? "pos" : "neg"}">${(v >= 0 ? "+" : "−") + Math.abs(v * 100).toFixed(1)}%</span>`);
+  const armed = new Set();
+  async function loadAnalyses() {
+    let list = [];
+    try { list = await (await fetch("/api/analyses")).json(); } catch (e) { list = []; }
+    if (!Array.isArray(list) || !list.length) {
+      $("analyses").innerHTML = '<tbody><tr><td class="muted">No saved analyses yet: open a result in the Trade Lab and press 💾 Save analysis.</td></tr></tbody>';
+      return;
+    }
+    $("analyses").innerHTML = `<thead><tr><th data-list="title">Name</th><th data-list="subtitle">Ratio</th><th>Rules</th><th>Period</th>` +
+      `<th class="num" data-list="value">CAGR</th><th class="num">SPY CAGR</th><th class="num">Sharpe</th><th class="num">Max DD</th><th class="num">Trades</th>` +
+      `<th data-list="note">Saved</th><th></th></tr></thead><tbody>` +
+      list.map((a) => {
+        const q = a.query || {}, m = a.summary || {};
+        return `<tr><td><b>${esc(a.name)}</b>${a.notes ? `<div class="muted small">${esc(a.notes.slice(0, 140))}${a.notes.length > 140 ? "…" : ""}</div>` : ""}</td>` +
+          `<td class="cfg">${esc((q.num || "").replaceAll(",", " "))} / ${esc((q.den || "").replaceAll(",", " "))}</td>` +
+          `<td class="cfg">${esc(m.rules || q.strategy || "")}</td><td class="muted small">${esc(m.from || "")} → ${esc(m.to || "")}</td>` +
+          `<td class="num">${pctS(m.cagr)}</td><td class="num">${pctS(m.spy_cagr)}</td><td class="num">${m.sharpe == null ? "–" : (+m.sharpe).toFixed(2)}</td>` +
+          `<td class="num">${m.mdd == null ? "–" : `<span class="neg">−${Math.abs(m.mdd * 100).toFixed(1)}%</span>`}</td><td class="num">${m.trades ?? "–"}</td>` +
+          `<td class="muted small">${esc((a.saved || "").replace("T", " "))}</td>` +
+          `<td class="actions"><button class="btn sm primary" data-open="${esc(a.id)}">Open</button>` +
+          `<button class="btn sm" data-del="${esc(a.id)}">${armed.has(a.id) ? "Confirm delete" : "Delete"}</button></td></tr>`;
+      }).join("") + `</tbody>`;
+    const byId = Object.fromEntries(list.map((a) => [a.id, a]));
+    $("analyses").querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => {
+      const a = byId[b.dataset.open];
+      window.open("/trade.html?" + new URLSearchParams(Object.assign({}, a.query, { analysis: a.id })), "_blank");
+    }));
+    $("analyses").querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => {
+      const id = b.dataset.del;
+      if (!armed.has(id)) { armed.add(id); b.textContent = "Confirm delete"; setTimeout(() => { armed.delete(id); loadAnalyses(); }, 4000); return; }
+      armed.delete(id);
+      await fetch("/api/analyses/delete", { method: "POST", body: JSON.stringify({ id }) });
+      loadAnalyses();
+    }));
+  }
+  $("an_refresh").onclick = loadAnalyses;
+  window.addEventListener("focus", loadAnalyses);        // coming back from a Trade Lab window that saved one
+
   // ---------------------------------------------------------------- start
   (async function init() {
     const meta = await (await fetch("/api/meta")).json();
@@ -288,6 +328,7 @@
     $("overlap").onchange = changed;
     installTips();
     await loadHoldings();
+    loadAnalyses();
     poll(false);
   })();
 })();
