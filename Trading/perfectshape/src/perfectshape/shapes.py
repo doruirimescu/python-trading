@@ -10,6 +10,7 @@ Add a shape by subclassing :class:`Shape` and decorating it with :func:`register
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import ClassVar
 
 import numpy as np
@@ -45,17 +46,31 @@ def _tau(T: int) -> np.ndarray:
     return np.linspace(0.0, 1.0, T)
 
 
-def linear_fit(Y: np.ndarray):
-    """OLS of each column on [1, tau]. Returns intercept a, total move b (over the window), residuals, r2."""
-    T = Y.shape[0]
+@lru_cache(maxsize=64)
+def _centered_tau(T: int):
     tau = _tau(T)
     tc = tau - tau.mean()
+    return tau, tc, float(tc @ tc)
+
+
+def linear_fit(Y: np.ndarray, with_resid: bool = True):
+    """OLS of each column on [1, tau]. Returns intercept a, total move b (over the window), residuals, r2.
+
+    Without ``with_resid`` the residual matrix is never built (resid is None): r2 comes from the sums of
+    squares (ss_res = ss_tot - b^2 * sum(tc^2)), two passes over Y instead of five.
+    """
+    T = Y.shape[0]
+    tau, tc, tcc = _centered_tau(T)
     ym = Y.mean(axis=0)
-    b = (tc @ (Y - ym)) / (tc @ tc)
+    b = (tc @ Y) / tcc                                   # sum(tc) = 0, so tc @ (Y - ym) == tc @ Y
     a = ym - b * tau.mean()
-    resid = Y - (a[None, :] + tau[:, None] * b[None, :])
-    ss_res = (resid ** 2).sum(axis=0)
-    ss_tot = ((Y - ym) ** 2).sum(axis=0)
+    ss_tot = np.maximum(np.einsum("ij,ij->j", Y, Y) - T * ym * ym, 0.0)
+    resid = None
+    if with_resid:
+        resid = Y - (a[None, :] + tau[:, None] * b[None, :])
+        ss_res = np.einsum("ij,ij->j", resid, resid)
+    else:
+        ss_res = np.maximum(ss_tot - b * b * tcc, 0.0)
     r2 = np.where(ss_tot > 0, 1.0 - ss_res / np.maximum(ss_tot, 1e-300), 0.0)
     return a, b, resid, r2
 
@@ -66,6 +81,24 @@ def poly_fit(Y: np.ndarray, degree: int = 2) -> np.ndarray:
     P = np.vander(_tau(T) * 2 - 1, degree + 1, increasing=True)
     Q, _ = np.linalg.qr(P)
     return Q @ (Q.T @ Y)
+
+
+@lru_cache(maxsize=64)
+def _quad_pinv(T: int) -> np.ndarray:
+    return np.linalg.pinv(np.vander(_tau(T) * 2 - 1, 3, increasing=True))     # (3, T)
+
+
+def quad_drift(Y: np.ndarray) -> np.ndarray:
+    """max - min of each column's least-squares quadratic (in x = 2 tau - 1, over [-1, 1]).
+
+    The same drift as ``poly_fit(Y, 2)``'s range, from 3 coefficients per column (one (3, T) @ (T, m)
+    product) instead of a fitted (T, m) matrix: the quadratic's extremes are at the ends or at its vertex.
+    """
+    c0, c1, c2 = _quad_pinv(Y.shape[0]) @ Y
+    with np.errstate(divide="ignore", invalid="ignore"):
+        xv = np.clip(np.where(c2 != 0, -c1 / (2 * c2), -1.0), -1.0, 1.0)
+    vals = np.stack([c0 - c1 + c2, c0 + c1 + c2, c0 + c1 * xv + c2 * xv * xv])
+    return vals.max(axis=0) - vals.min(axis=0)
 
 
 def max_drawdown(Y: np.ndarray) -> np.ndarray:
@@ -148,7 +181,17 @@ class Shape:
     objective: ClassVar[str]          # "trend_tstat" or "range_ratio" (see solver.py)
     direction: ClassVar[int] = 0      # +1 up, -1 down, 0 none
 
-    def score(self, curves: np.ndarray, cfg: ScoringConfig) -> ScoreResult:
+    def score(self, curves: np.ndarray, cfg: ScoringConfig, full: bool = True) -> ScoreResult:
+        """Score value curves (T, m), each starting at 1.0."""
+        return self.score_y(to_space(curves, cfg.space), cfg, full)
+
+    def score_y(self, Y: np.ndarray, cfg: ScoringConfig, full: bool = True, floor: float = 0.0) -> ScoreResult:
+        """Score curves already in scoring space (log values when cfg.space == "log").
+
+        ``full=False`` is the search path: only ``score`` is filled in (no report metrics), and columns whose
+        cheap upper bound on the score cannot exceed ``floor`` (or that fail a gate) get 0 without the
+        expensive steps. Columns that are computed get exactly the same score as with ``full=True``.
+        """
         raise NotImplementedError
 
     def channel(self, fit_curve: np.ndarray, cfg: ScoringConfig):
@@ -159,25 +202,34 @@ class Shape:
 class _Trend(Shape):
     objective = "trend_tstat"
 
-    def score(self, curves, cfg):
-        Y = to_space(curves, cfg.space)
+    def score_y(self, Y, cfg, full=True, floor=0.0):
         T = Y.shape[0]
-        a, b, resid, r2 = linear_fit(Y)
+        a, b, resid, r2 = linear_fit(Y, with_resid=full)
         if cfg.space == "log":
             annual = np.expm1(b * cfg.periods_per_year / max(T - 1, 1))
         else:
             annual = (b / np.where(np.abs(a) > 1e-12, a, 1e-12)) * cfg.periods_per_year / max(T - 1, 1)
+        if not full:
+            # score = sqrt(r2 * (1 - adverse/move)) <= sqrt(r2): the drawdown pass only for columns that can win
+            gate = (np.sign(b) == self.direction) & (np.abs(annual) >= cfg.min_annual_return)
+            live = np.flatnonzero(gate & (np.sqrt(np.clip(r2, 0, 1)) > floor))
+            score = np.zeros(Y.shape[1])
+            if len(live):
+                Yl = Y[:, live]
+                adv = max_drawdown(Yl) if self.direction > 0 else max_rally(Yl)
+                ratio = adv / np.maximum(np.abs(b[live]), 1e-12)
+                score[live] = np.sqrt(np.clip(r2[live], 0, 1) * np.clip(1.0 - ratio, 0, 1))
+            return ScoreResult(score=score, soft=score, metrics={})
         adverse = max_drawdown(Y) if self.direction > 0 else max_rally(Y)
         adverse_ratio = adverse / np.maximum(np.abs(b), 1e-12)
         r2c = np.clip(r2, 0, 1)
         soft = np.sqrt(r2c * np.clip(1.0 - adverse_ratio, 0, 1))
         gate = (np.sign(b) == self.direction) & (np.abs(annual) >= cfg.min_annual_return)
-        return ScoreResult(
-            score=np.where(gate, soft, 0.0),
-            soft=np.where(np.sign(b) == self.direction, soft, 0.0),
-            metrics={"r2": r2, "annual_return": annual, "total_move": b, "adverse_ratio": adverse_ratio,
-                     "max_dev": np.abs(resid).max(axis=0)},
-        )
+        metrics = {"r2": r2, "annual_return": annual, "total_move": b, "adverse_ratio": adverse_ratio}
+        if full:
+            metrics["max_dev"] = np.abs(resid).max(axis=0)
+        return ScoreResult(score=np.where(gate, soft, 0.0), soft=np.where(np.sign(b) == self.direction, soft, 0.0),
+                           metrics=metrics)
 
     def channel(self, fit_curve, cfg):
         Y = to_space(fit_curve[:, None], cfg.space)
@@ -225,21 +277,31 @@ class Range(Shape):
     name = "range"
     objective = "range_ratio"
 
-    def score(self, curves, cfg):
-        Y = to_space(curves, cfg.space)
+    def score_y(self, Y, cfg, full=True, floor=0.0):
         q = cfg.range_band_pct
         lo, mid, hi = range_band(Y, q)
         band = hi - lo
         scale = 1.0 if cfg.space == "log" else np.maximum(np.abs(mid), 1e-12)   # -> relative moves
         height = band / scale
+        if not full:
+            # score = sqrt(flat * repeat * harvest * pain) <= sqrt(flat): trade simulation only where it can win
+            drift_ratio = quad_drift(Y) / np.maximum(band, 1e-12)
+            flat = np.clip(1.0 - drift_ratio, 0, 1)
+            gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
+            live = np.flatnonzero(gate & (np.sqrt(flat) > floor))
+            score = np.zeros(Y.shape[1])
+            if len(live):
+                sl = slice(None) if np.ndim(scale) == 0 else live
+                score[live] = self._trade_score(Y[:, live], lo[live], mid[live], hi[live], flat[live],
+                                                scale if np.ndim(scale) == 0 else scale[sl], cfg)
+            return ScoreResult(score=score, soft=score, metrics={})
         # band size as tradable moves: buy at the bottom edge and sell at the top edge, or the reverse
         if cfg.space == "log":
             swing_up, swing_down = np.expm1(band), -np.expm1(-band)
         else:
             swing_up = band / np.maximum(np.abs(lo), 1e-12)
             swing_down = band / np.maximum(np.abs(hi), 1e-12)
-        drift_curve = poly_fit(Y, 2)
-        drift = drift_curve.max(axis=0) - drift_curve.min(axis=0)
+        drift = quad_drift(Y)
         drift_ratio = drift / np.maximum(band, 1e-12)
         n_trades, capture, coverage, adverse = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
         pain = adverse / np.maximum((hi - lo) / 2, 1e-12)     # worst move against a trade, in half-bands
@@ -253,15 +315,24 @@ class Range(Shape):
         soft = np.sqrt(flat * coverage * harvest_score * pain_score)
         gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
         rel = np.expm1 if cfg.space == "log" else (lambda x: x)
-        return ScoreResult(
-            score=np.where(gate, soft, 0.0),
-            soft=soft * np.clip(height / max(cfg.min_range_height, 1e-9), 0, 1),
-            metrics={"harvest": rel(harvest), "trades_per_year": n_trades / years, "per_trade": rel(per_trade),
-                     "coverage": coverage, "pain": pain, "worst_against": -np.expm1(-adverse / scale)
-                     if cfg.space == "log" else adverse / scale,
-                     "swing_up": swing_up, "swing_down": swing_down, "height": height,
-                     "drift_ratio": drift_ratio, "swings": zone_swings(Y, q, 100 - q).astype(float)},
-        )
+        metrics = {"harvest": rel(harvest), "trades_per_year": n_trades / years, "per_trade": rel(per_trade),
+                   "coverage": coverage, "pain": pain, "worst_against": -np.expm1(-adverse / scale)
+                   if cfg.space == "log" else adverse / scale,
+                   "swing_up": swing_up, "swing_down": swing_down, "height": height, "drift_ratio": drift_ratio}
+        if full:
+            metrics["swings"] = zone_swings(Y, q, 100 - q).astype(float)
+        return ScoreResult(score=np.where(gate, soft, 0.0),
+                           soft=soft * np.clip(height / max(cfg.min_range_height, 1e-9), 0, 1), metrics=metrics)
+
+    @staticmethod
+    def _trade_score(Y, lo, mid, hi, flat, scale, cfg):
+        """The range score of columns that passed the gates (same formula as the full path)."""
+        n_trades, capture, coverage, adverse = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
+        pain = adverse / np.maximum((hi - lo) / 2, 1e-12)
+        harvest = (capture / scale) / (max(Y.shape[0] - 1, 1) / cfg.periods_per_year)
+        harvest_score = 1.0 - np.exp(-harvest / cfg.range_harvest_scale)
+        pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
+        return np.sqrt(flat * coverage * harvest_score * pain_score)
 
     def channel(self, fit_curve, cfg):
         Y = to_space(fit_curve, cfg.space)

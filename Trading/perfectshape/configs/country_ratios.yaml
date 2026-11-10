@@ -17,8 +17,7 @@ search:
   windows: [63, 126, 252, 378, 504, 756, 1008, 1260, 1512, 2016, 2520]
   holdout_bars: 21
 ratio:
-  k_num: 2
-  k_den: 2
+  k: 2                         # instruments per basket (2 vs 2)
   allow_overlap: false
   keep_per_window: 300
 scoring:

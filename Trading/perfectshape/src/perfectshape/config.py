@@ -93,13 +93,26 @@ class ScoringConfig(_Strict):
 
 class RatioConfig(_Strict):
     """Basket-ratio search (search.mode: ratio), after Trading/basket (mrscore) RatioUniverse:
-    ratio = mean(normalised prices of the numerator basket) / mean(... of the denominator basket)."""
+    ratio = mean(normalised prices of the numerator basket) / mean(... of the denominator basket).
+    Baskets are symmetric: k instruments on each side (k vs k)."""
 
-    k_num: int = Field(2, ge=1, le=6, description="instruments in the numerator basket")
-    k_den: int = Field(2, ge=1, le=6, description="instruments in the denominator basket")
+    k: int = Field(2, ge=1, le=8, description="instruments in each basket (k vs k)")
     allow_overlap: bool = Field(False, description="allow an instrument in both legs")
-    max_ratios: int = Field(3_000_000, ge=1, description="refuse to scan more ratios than this per window")
+    max_ratios: int = Field(25_000_000, ge=1, description="refuse to scan more ratios than this per window")
     keep_per_window: int = Field(300, ge=1, description="best ratios per window passed on to evaluation")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_k(cls, data):
+        """Older configs say k_num / k_den; they are accepted when equal."""
+        if isinstance(data, dict) and ("k_num" in data or "k_den" in data):
+            data = dict(data)
+            kn, kd = data.pop("k_num", None), data.pop("k_den", None)
+            ks = {x for x in (kn, kd, data.get("k")) if x is not None}
+            if len(ks) > 1:
+                raise ValueError(f"baskets are symmetric (k vs k); got k_num={kn}, k_den={kd}: use ratio.k")
+            data["k"] = ks.pop()
+        return data
 
 
 class RankingConfig(_Strict):

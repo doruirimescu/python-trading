@@ -77,16 +77,12 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
         n_ratios = count_ratios(len(panel.symbols), cfg.ratio)
         if n_ratios > cfg.ratio.max_ratios:
             raise ValueError(
-                f"ratio mode: {len(panel.symbols)} instruments with k_num={cfg.ratio.k_num}, "
-                f"k_den={cfg.ratio.k_den} give {n_ratios:,} ratios > ratio.max_ratios={cfg.ratio.max_ratios:,}; "
+                f"ratio mode: {len(panel.symbols)} instruments at {cfg.ratio.k} vs {cfg.ratio.k} "
+                f"give {n_ratios:,} ratios > ratio.max_ratios={cfg.ratio.max_ratios:,}; "
                 "use a smaller universe or smaller baskets")
         log.info("ratio mode: %s ratios of %d vs %d instruments per window", f"{n_ratios:,}",
-                 cfg.ratio.k_num, cfg.ratio.k_den)
+                 cfg.ratio.k, cfg.ratio.k)
 
-    # work is proportional to bars x candidates, so each (shape, window) step weighs its window length
-    steps = [(name, L) for name in cfg.search.shapes for L in windows]
-    total = float(sum(L for _, L in steps))
-    done = 0.0
     rk = cfg.ranking
     ranked: dict[str, list[Result]] = {}
     n_cand: dict[str, int] = {}
@@ -95,30 +91,77 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
         return ScanOutput(cfg=cfg, universe=u, panel=panel, fit_end=fit_end, ranked=dict(ranked),
                           n_candidates=dict(n_cand), seconds=time.perf_counter() - t0, done=finished)
 
-    for name in cfg.search.shapes:
-        shape = get_shape(name)
-        ctl.stage(f"searching {name}")
-        by_score = shape.direction == 0 and rk.range_sort == "score"
-        # the same members fitted on different windows get different weights: keep every variant, the
-        # ranking keeps the best one (overlap filter drops the rest)
-        results: list[Result] = []
-        n_cand[name] = 0
-        for L in windows:
-            detail = f"{name} · window {L} bars"
+    def by_score(shape) -> bool:
+        return shape.direction == 0 and rk.range_sort == "score"
+
+    def rank_shape(shape, results: list[Result]) -> list[Result]:
+        return rank(results, rk, by="score" if by_score(shape) else "duration",
+                    min_held=rk.range_min_held if by_score(shape) else 0)
+
+    shapes = [get_shape(name) for name in cfg.search.shapes]
+    # evaluation of a basket depends only on the basket (members, shares, fit window), so it is cached:
+    # live snapshots re-offer the same candidates many times
+    cache: dict[tuple, Result] = {}
+
+    def evaluated(shape, found: list) -> list[Result]:
+        key = lambda b: (shape.name, tuple(b.members), tuple(b.den_members), b.fit_window)
+        new = [b for b in found if key(b) not in cache]
+        if new:
+            for b, r in zip(new, evaluate(panel, shape, new, windows, fit_end, cfg.scoring,
+                                          ref_window="best" if by_score(shape) else "longest",
+                                          min_ref=rk.range_min_score_window)):
+                cache[key(b)] = r
+        return [cache[key(b)] for b in found]
+
+    if ratio_mode:
+        # window by window, longest first (long-lived shapes rank first, so the best results show up early),
+        # all shapes scored from the same chunks; live snapshots of the window in progress every ~10 s
+        order = sorted(windows, reverse=True)
+        total = float(sum(order)) * len(shapes)
+        done = 0.0
+        finished: dict[str, list[Result]] = {s.name: [] for s in shapes}
+        n_cand.update({s.name: 0 for s in shapes})
+        ctl.stage("searching " + " + ".join(s.name for s in shapes))
+        for L in order:
+            detail = f"window {L} bars"
             ctl.checkpoint(done / total, detail)
-            if ratio_mode:
-                def on_chunk(frac, _base=done, _L=L, _d=detail):
-                    ctl.checkpoint((_base + frac * _L) / total, _d)
-                found = search_ratio_window(panel, shape, L, fit_end, cfg.ratio, cfg.scoring, on_chunk=on_chunk)
-            else:
-                found = search_window(panel, shape, L, fit_end, cfg.search, cfg.scoring)
-            results += evaluate(panel, shape, found, windows, fit_end, cfg.scoring,
-                                ref_window="best" if by_score else "longest", min_ref=rk.range_min_score_window)
-            n_cand[name] += len(found)
-            ranked[name] = rank(results, rk, by="score" if by_score else "duration",
-                                min_held=rk.range_min_held if by_score else 0)
-            done += L
-            log.info("%s: window %d -> %d candidates, %d ranked", name, L, n_cand[name], len(ranked[name]))
+
+            def on_chunk(frac, _base=done, _L=L, _d=detail):
+                ctl.checkpoint((_base + frac * _L * len(shapes)) / total, _d)
+
+            def on_snapshot(found: dict, _L=L):
+                for s in shapes:
+                    ranked[s.name] = rank_shape(s, finished[s.name] + evaluated(s, found[s.name]))
+                ctl.partial(output(False))
+
+            found = search_ratio_window(panel, shapes, L, fit_end, cfg.ratio, cfg.scoring,
+                                        on_chunk=on_chunk, on_snapshot=on_snapshot)
+            for s in shapes:
+                finished[s.name] += evaluated(s, found[s.name])
+                n_cand[s.name] += len(found[s.name])
+                ranked[s.name] = rank_shape(s, finished[s.name])
+                log.info("%s: window %d -> %d candidates, %d ranked", s.name, L, n_cand[s.name],
+                         len(ranked[s.name]))
+            done += L * len(shapes)
             ctl.partial(output(False))
+    else:
+        total = float(sum(windows)) * len(shapes)
+        done = 0.0
+        for shape in shapes:
+            ctl.stage(f"searching {shape.name}")
+            # the same members fitted on different windows get different weights: keep every variant, the
+            # ranking keeps the best one (overlap filter drops the rest)
+            results: list[Result] = []
+            n_cand[shape.name] = 0
+            for L in windows:
+                ctl.checkpoint(done / total, f"{shape.name} · window {L} bars")
+                found = search_window(panel, shape, L, fit_end, cfg.search, cfg.scoring)
+                results += evaluated(shape, found)
+                n_cand[shape.name] += len(found)
+                ranked[shape.name] = rank_shape(shape, results)
+                done += L
+                log.info("%s: window %d -> %d candidates, %d ranked", shape.name, L, n_cand[shape.name],
+                         len(ranked[shape.name]))
+                ctl.partial(output(False))
     ctl.checkpoint(1.0, "done")
     return output(True)

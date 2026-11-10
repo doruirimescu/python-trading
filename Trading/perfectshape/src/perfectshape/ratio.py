@@ -2,17 +2,21 @@
 
 Same object as Trading/basket (mrscore ``RatioUniverse``): every price is normalised to 1.0 at the window
 start, a basket is the equal-weight mean of its members, and a ratio is ``basket(num) / basket(den)``.
-Every ratio of ``k_num`` vs ``k_den`` instruments is enumerated (pairs of baskets, without materialising
-all ratios at once) and scored with the shape in vectorised chunks; the best ``keep_per_window`` go on to
-evaluation (duration ladder + holdout, see evaluate.py), exactly like the weighted baskets.
+Baskets are symmetric (k vs k). Every unordered pair of disjoint k-baskets is enumerated in chunks (never
+all at once) and scored with the shape; the best ``keep_per_window`` go on to evaluation (duration ladder +
+holdout, see evaluate.py), exactly like the weighted baskets.
 
-Orientation: a falling A/B is a rising B/A. Trend shapes score both orientations of every pair and keep
-the better one, so every trend is reported as "numerator outperforms denominator". A range has no
-direction, so only one orientation is scored.
+Speed (log scoring space, the default): each basket's log curve is computed once per window, so a ratio is
+one subtraction, log(A / B) = log A - log B, and the shape scores it directly (``Shape.score_y``).
+
+Orientation: a falling A/B is a rising B/A. For trends the ratio is flipped when its fitted slope is
+negative (log(B / A) = -log(A / B)) and scored once, so every trend is reported as "numerator outperforms
+denominator"; the other orientation would score 0 anyway (wrong direction). A range has no direction.
 """
 
 from __future__ import annotations
 
+import time
 from itertools import combinations
 from math import comb
 from typing import Callable, Optional
@@ -22,111 +26,164 @@ import numpy as np
 from perfectshape.config import RatioConfig, ScoringConfig
 from perfectshape.data.panel import Panel
 from perfectshape.search import Basket, penalised
-from perfectshape.shapes import Shape
+from perfectshape.shapes import Shape, _centered_tau
 
 CHUNK_ELEMENTS = 4_000_000          # bars x ratios scored per vectorised call
+FLOAT32_ABOVE_BYTES = 2_000_000_000  # basket curves are kept in float32 when float64 would exceed this
 
 
 def count_ratios(n: int, cfg: RatioConfig) -> int:
-    """Number of baskets pairs scanned for n instruments (one orientation)."""
-    kn, kd = cfg.k_num, cfg.k_den
-    if kn > n or kd > n:
+    """Number of unordered basket pairs (ratios) scanned for n instruments at k vs k."""
+    k = cfg.k
+    if k > n:
         return 0
     if cfg.allow_overlap:
-        bn, bd = comb(n, kn), comb(n, kd)
-        return comb(bn, 2) if kn == kd else bn * bd
-    if kn + kd > n:
+        return comb(comb(n, k), 2)
+    if 2 * k > n:
         return 0
-    total = comb(n, kn) * comb(n - kn, kd)
-    return total // 2 if kn == kd else total
+    return comb(n, k) * comb(n - k, k) // 2
 
 
 def _library(n: int, k: int) -> np.ndarray:
     return np.array(list(combinations(range(n), k)), dtype=np.int32).reshape(-1, k)
 
 
-def _pair_chunks(bn: int, bd: int, same: bool, chunk: int):
-    """Yield (I, J) index arrays over basket pairs: i < j when both legs share a library, else all (i, j)."""
+def _pair_chunks(b: int, chunk: int):
+    """Yield (I, J) index arrays over basket pairs i < j, about ``chunk`` pairs at a time."""
     i = 0
-    while i < bn:
+    while i < b - 1:
         Is, Js, size = [], [], 0
-        while i < bn and size < chunk:
-            j0 = i + 1 if same else 0
-            if bd > j0:
-                Is.append(np.full(bd - j0, i, dtype=np.int64))
-                Js.append(np.arange(j0, bd, dtype=np.int64))
-                size += bd - j0
+        while i < b - 1 and size < chunk:
+            Is.append(np.full(b - i - 1, i, dtype=np.int64))
+            Js.append(np.arange(i + 1, b, dtype=np.int64))
+            size += b - i - 1
             i += 1
-        if Is:
-            yield np.concatenate(Is), np.concatenate(Js)
+        yield np.concatenate(Is), np.concatenate(Js)
 
 
-def search_ratio_window(panel: Panel, shape: Shape, window: int, fit_end: int, rcfg: RatioConfig,
-                        scoring: ScoringConfig, on_chunk: Optional[Callable[[float], None]] = None) -> list[Basket]:
-    """``on_chunk(fraction_done)`` is called after every scored chunk (progress, pause / stop hook)."""
+def _overlap_fn(lib: np.ndarray, n: int):
+    """Vectorised 'do baskets I and J share an instrument?': 64-bit masks when n <= 64, else boolean rows."""
+    if n <= 64:
+        masks = (np.uint64(1) << lib.astype(np.uint64)).sum(axis=1, dtype=np.uint64)  # distinct bits: sum == or
+        return lambda I, J: (masks[I] & masks[J]) != 0
+    mem = np.zeros((len(lib), n), dtype=bool)
+    mem[np.arange(len(lib))[:, None], lib] = True
+    return lambda I, J: (mem[I] & mem[J]).any(axis=1)
+
+
+class _Top:
+    """The best ``keep`` (score, numerator id, denominator id) of one shape, kept as flat arrays."""
+
+    def __init__(self, keep: int):
+        self.keep = keep
+        self.s = np.empty(0)
+        self.n = np.empty(0, dtype=np.int64)
+        self.d = np.empty(0, dtype=np.int64)
+
+    def floor(self) -> float:
+        """Score a ratio must beat to enter the current top ``keep`` (0 until it is full)."""
+        if len(self.s) < self.keep:
+            return 0.0
+        return float(np.partition(self.s, len(self.s) - self.keep)[len(self.s) - self.keep])
+
+    def add(self, sc: np.ndarray, I: np.ndarray, J: np.ndarray) -> None:
+        good = sc > 0
+        self.s, self.n, self.d = np.r_[self.s, sc[good]], np.r_[self.n, I[good]], np.r_[self.d, J[good]]
+        if len(self.s) > 4 * self.keep:
+            top = np.argpartition(-self.s, self.keep)[:self.keep]
+            self.s, self.n, self.d = self.s[top], self.n[top], self.d[top]
+
+    def best(self, limit: int):
+        order = np.argsort(-self.s)[:limit]
+        return [(float(self.s[o]), int(self.n[o]), int(self.d[o])) for o in order]
+
+
+def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int, fit_end: int, rcfg: RatioConfig,
+                        scoring: ScoringConfig, on_chunk: Optional[Callable[[float], None]] = None,
+                        on_snapshot: Optional[Callable[[dict], None]] = None, snapshot_every: float = 10.0,
+                        snapshot_size: int = 100, snapshot_first: float = 3.0):
+    """Search one window for one shape (returns its baskets) or for several (a list -> {name: baskets}).
+
+    All shapes are scored from the same chunk of ratios (built once). ``on_chunk(fraction_done)`` is called
+    before every chunk (progress, pause / stop hook); ``on_snapshot({name: baskets})`` every
+    ``snapshot_every`` seconds (the first after ``snapshot_first``) with each shape's ``snapshot_size`` best
+    so far (live results).
+    """
+    single = not isinstance(shape, (list, tuple))
+    shapes = [shape] if single else list(shape)
+    # ranges first: trends orient (negate) the shared chunk in place
+    shapes.sort(key=lambda s: s.direction != 0)
+    empty = [] if single else {s.name: [] for s in shapes}
     start = fit_end - window
     if start < 0:
-        return []
+        return empty
     cols = panel.complete_columns(start, panel.n_bars)   # also complete through the holdout
     n = len(cols)
     if count_ratios(n, rcfg) == 0:
-        return []
+        return empty
     P = panel.close[start:fit_end, cols]
     X = P / P[0]
     T = X.shape[0]
-    same = rcfg.k_num == rcfg.k_den
-    lib_n = _library(n, rcfg.k_num)
-    lib_d = lib_n if same else _library(n, rcfg.k_den)
-    VN = X[:, lib_n].mean(axis=2)                          # (T, Bn) equal-weight basket values
-    VD = VN if same else X[:, lib_d].mean(axis=2)
-    mem_n = np.zeros((len(lib_n), n), dtype=bool)
-    mem_n[np.arange(len(lib_n))[:, None], lib_n] = True
-    mem_d = mem_n if same else np.zeros((len(lib_d), n), dtype=bool)
-    if not same:
-        mem_d[np.arange(len(lib_d))[:, None], lib_d] = True
+    k = rcfg.k
+    lib = _library(n, k)
+    dtype = np.float32 if len(lib) * T * 8 > FLOAT32_ABOVE_BYTES else np.float64
+    V = X[:, lib].mean(axis=2).astype(dtype, copy=False)          # (T, B) equal-weight basket values
+    log_space = scoring.space == "log"
+    if log_space:
+        V = np.log(V)                                              # basket log curves, computed once
+    overlaps = None if rcfg.allow_overlap else _overlap_fn(lib, n)
+    _, tc, _ = _centered_tau(T)
+    tc = tc.astype(dtype)
 
-    k = rcfg.k_num + rcfg.k_den
-    keep = rcfg.keep_per_window
-    best_s = np.empty(0)
-    best_n = np.empty(0, dtype=np.int64)    # numerator basket id
-    best_d = np.empty(0, dtype=np.int64)    # denominator basket id
-    best_flip = np.empty(0, dtype=bool)     # True: numerator comes from lib_d, denominator from lib_n
+    penalty = float(penalised(np.ones(1), 2 * k, scoring)[0])
+    tops = {s.name: _Top(rcfg.keep_per_window) for s in shapes}
+
+    def baskets(name: str, limit: int) -> list[Basket]:
+        return [_basket(panel, name, cols, lib[i], lib[j], window, start, sc)
+                for sc, i, j in tops[name].best(limit)]
+
     chunk = max(1, CHUNK_ELEMENTS // T)
-    raw_total = len(lib_n) * (len(lib_n) - 1) // 2 if same else len(lib_n) * len(lib_d)
+    raw_total = len(lib) * (len(lib) - 1) // 2
     raw_done = 0
-    for I, J in _pair_chunks(len(lib_n), len(lib_d), same, chunk):
-        raw_done += len(I)
+    next_snap = time.monotonic() + min(snapshot_first, snapshot_every)
+    for I, J in _pair_chunks(len(lib), chunk):
         if on_chunk is not None:
             on_chunk(raw_done / max(raw_total, 1))
-        if not rcfg.allow_overlap:
-            ok = ~(mem_n[I] & mem_d[J]).any(axis=1)
+        if on_snapshot is not None and time.monotonic() >= next_snap:
+            on_snapshot({s.name: baskets(s.name, snapshot_size) for s in shapes})
+            next_snap = time.monotonic() + snapshot_every
+        raw_done += len(I)
+        if overlaps is not None:
+            ok = ~overlaps(I, J)
             I, J = I[ok], J[ok]
             if len(I) == 0:
                 continue
-        R = VN[:, I] / VD[:, J]
-        sc = penalised(shape.score(R, scoring).score, k, scoring)
-        flip = np.zeros(len(I), dtype=bool)
-        if shape.direction != 0:
-            sc_f = penalised(shape.score(1.0 / R, scoring).score, k, scoring)
-            flip = sc_f > sc
-            sc = np.where(flip, sc_f, sc)
-        good = sc > 0
-        best_s = np.r_[best_s, sc[good]]
-        best_n = np.r_[best_n, I[good]]
-        best_d = np.r_[best_d, J[good]]
-        best_flip = np.r_[best_flip, flip[good]]
-        if len(best_s) > 4 * keep:
-            top = np.argpartition(-best_s, keep)[:keep]
-            best_s, best_n, best_d, best_flip = best_s[top], best_n[top], best_d[top], best_flip[top]
+        if log_space:
+            Y = V[:, I] - V[:, J]                                  # log(A / B), shared by the shapes
+            for s in shapes:
+                Is, Js = I, J
+                if s.direction != 0:
+                    # orient every ratio along its trend: flip (B / A) where the fitted slope is negative
+                    flip = (tc @ Y) * s.direction < 0
+                    Y[:, flip] *= -1
+                    Is, Js = np.where(flip, J, I), np.where(flip, I, J)
+                # exact pruning: once the top is full, a ratio must beat its weakest member to matter
+                floor = tops[s.name].floor() / penalty if penalty > 0 else 0.0
+                tops[s.name].add(s.score_y(Y, scoring, full=False, floor=floor).score * penalty, Is, Js)
+        else:
+            R = V[:, I] / V[:, J]
+            for s in shapes:
+                sc = s.score(R, scoring, full=False).score * penalty
+                Is, Js = I, J
+                if s.direction != 0:
+                    sc_f = s.score(1.0 / R, scoring, full=False).score * penalty
+                    flip = sc_f > sc
+                    sc = np.where(flip, sc_f, sc)
+                    Is, Js = np.where(flip, J, I), np.where(flip, I, J)
+                tops[s.name].add(sc, Is, Js)
 
-    order = np.argsort(-best_s)[:keep]
-    out = []
-    for o in order:
-        num, den = lib_n[best_n[o]], lib_d[best_d[o]]
-        if best_flip[o]:
-            num, den = den, num
-        out.append(_basket(panel, shape.name, cols, num, den, window, start, float(best_s[o])))
-    return out
+    out = {s.name: baskets(s.name, rcfg.keep_per_window) for s in shapes}
+    return out[shapes[0].name] if single else out
 
 
 def _basket(panel: Panel, shape: str, cols: np.ndarray, num: np.ndarray, den: np.ndarray, window: int,

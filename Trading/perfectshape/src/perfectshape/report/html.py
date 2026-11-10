@@ -20,7 +20,7 @@ def render_html(payload: dict) -> str:
     p = payload.get("panel", {})
     if ratio:
         r = payload.get("ratio", {})
-        lead = (f"Every <mark>{r.get('k_num')} vs {r.get('k_den')} ratio</mark> of {p.get('symbols')} instruments, "
+        lead = (f"Every <mark>{r.get('k')} vs {r.get('k')} ratio</mark> of {p.get('symbols')} instruments, "
                 "ranked by <span class=\"hl-accent\">straight-line trend</span> and by "
                 "<span class=\"hl-accent\">tradable range</span>.")
     else:

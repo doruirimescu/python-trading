@@ -227,7 +227,7 @@ def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
 def _basket_desc(cfg) -> str:
     if cfg.search.mode == "ratio":
         r = cfg.ratio
-        return (f"- basket ratios: {r.k_num} vs {r.k_den} instruments, equal weight per leg, "
+        return (f"- basket ratios: {r.k} vs {r.k} instruments, equal weight per leg, "
                 f"{'overlap allowed' if r.allow_overlap else 'disjoint legs'}")
     s = cfg.search
     return (f"- basket: max {s.max_assets} assets, {'long-only' if s.long_only else 'long/short'}, "

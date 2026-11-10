@@ -26,9 +26,9 @@
       <div>
         <div class="eyebrow">Sector basket ratios · research</div>
         <h1>Perfect Shapes <span class="gradient-text">Lab</span></h1>
-        <p class="lead">Pick a sector ETF and the scan builds every <mark>3 vs 3 ratio of its holdings</mark>, (A + B + C) / (D + E + F),
+        <p class="lead">Pick a sector ETF and the scan builds every <mark>k vs k ratio of its holdings</mark>, e.g. (A + B + C) / (D + E + F),
           then ranks them by <span class="hl-accent">straight-line trend</span> and by <span class="hl-accent">tradable range</span>.
-          Results update after every lookback window; pause and resume at any time. Refreshing this page never stops a scan.</p>
+          The best results so far show up within seconds and keep improving; pause and resume at any time. Refreshing this page never stops a scan.</p>
       </div>
     </div>
     <div class="notice" id="error" hidden></div>
@@ -44,8 +44,9 @@
         </div>
         <div class="group">
           <h4><span data-tip-for="baskets">Baskets</span></h4>
-          <label class="field"><span>Numerator stocks</span><select class="input" id="kn"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
-          <label class="field"><span>Denominator stocks</span><select class="input" id="kd"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          <label class="field"><span>Stocks per leg</span><select class="input" id="k">
+            <option value="1">1 vs 1</option><option value="2">2 vs 2</option><option value="3">3 vs 3</option><option value="4">4 vs 4</option>
+            <option value="5">5 vs 5</option><option value="6">6 vs 6</option><option value="7">7 vs 7</option><option value="8">8 vs 8</option></select></label>
           <label class="check"><input type="checkbox" id="overlap"> <span>Allow a stock in both legs</span></label>
           <label class="field"><span>Max ratios per window</span><input class="input" type="number" id="maxratios" min="1000" step="100000"></label>
         </div>
@@ -92,7 +93,7 @@
         <div class="kpis tight" id="kpis"></div>
 
         <h2 class="section">Results</h2>
-        <div id="report"><div class="panel empty-state">Results appear after the first lookback window and update as the scan proceeds.</div></div>
+        <div id="report"><div class="panel empty-state">The best ratios found so far appear here within seconds of pressing Play and keep improving as the scan proceeds.</div></div>
 
         <h2 class="section">Config</h2>
         <div class="toolbar">

@@ -148,7 +148,7 @@
     if (!current) { try { current = localStorage.getItem("ps-shape") || ""; } catch (e) { current = ""; } }
     if (!DATA.shapes[current]) current = shapes[0];
     const P = DATA.panel, ratio = DATA.search.mode === "ratio";
-    const desc = ratio ? `${DATA.ratio.k_num} vs ${DATA.ratio.k_den} equal-weight ratios` :
+    const desc = ratio ? `${DATA.ratio.k} vs ${DATA.ratio.k} equal-weight ratios` :
       `max ${DATA.search.max_assets} assets, ${DATA.search.long_only ? "long-only" : "long/short"}`;
     root.innerHTML =
       `<div class="results-head"><div class="segmented" role="group" aria-label="Shape">` +

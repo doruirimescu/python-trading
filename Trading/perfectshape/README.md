@@ -36,12 +36,14 @@ http://127.0.0.1:8765 (opens a browser tab; `python -m perfectshape dashboard --
 Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, theme panel bottom right) and Plotly.
 
 * **Configure** on the left: a Select Sector SPDR (XLK, XLE, XLU, ...), how many of its top holdings by
-  weight to use (uncheck a stock to exclude it; the next one takes its place), basket sizes (3 vs 3 by default),
+  weight to use (uncheck a stock to exclude it; the next one takes its place), stocks per leg (3 vs 3 by default),
   shapes, lookback windows, the scoring / ranking knobs and the max ratios per window (the size cap) and the holdout length. Every
   setting has an ⓘ bubble explaining it (hover, focus or tap); the texts live in `TIPS` in `web/dashboard.js`. The box under the form shows the number of
   ratios and an estimated runtime; the YAML preview can be saved to `configs/` and run from the CLI later.
-* **▶ Play** starts the scan; the progress bar, current step, elapsed time and ETA update every second, and the
-  ranking (same tables and charts as `report.html`) is redrawn after every finished lookback window.
+* **▶ Play** starts the scan (and clears the previous run's results); the progress bar, current step, elapsed
+  time and ETA update every second. The ranking (same tables and charts as `report.html`) shows up after about
+  3 seconds and is refreshed every 10 seconds and after every lookback window: windows run longest first and
+  both shapes are scored together, so the long-lived shapes that rank highest appear first, in both tabs.
 * **❚❚ Pause** holds the scan between chunks of work (within a second) without losing anything; **▶ Resume**
   continues it. **■ Stop** abandons it (partial results stay on the page, nothing is written).
 * When it finishes the run is written to `runs/` like a CLI run, with links to its report, CSV and summary.
@@ -52,10 +54,9 @@ Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, them
   running. Only edits to Python code need a server restart (Ctrl+C, `mise run dashboard`), and that does end a
   running scan.
 
-Size: all ratios are enumerated, so 3 vs 3 grows fast with the holdings used: top 12 = 9,240 ratios (seconds),
-top 16 = 80,080 (~2.5 min), top 20 = 387,600 (~12 min), top 25 = 1.77 M (~55 min); `ratio.max_ratios` (3 M)
-caps a run.
-Pick the holdings that matter rather than the whole fund.
+Size: all ratios are enumerated, so the count grows fast with the holdings used and the basket size (table in
+"Ratio mode" below: 20 stocks = 388 k ratios at 3 vs 3, 4.4 M at 4 vs 4, 23 M at 5 vs 5); `ratio.max_ratios`
+(25 M) caps a run. Pick the holdings that matter rather than the whole fund.
 
 **Holdings** (`holdings.py`): `universe.lists: ["etf:XLK"]` with `universe.limit: 20` works in any config.
 They come from State Street's daily holdings file of the fund (every constituent with its weight), cached per
@@ -96,24 +97,41 @@ directly; elsewhere, prefix with `mise exec --`.
 The object of `Trading/basket` (mrscore `RatioUniverse`), searched for shapes instead of mean-reversion events:
 
 * in each window, prices are normalised to 1.0 at the window start; a basket is the equal-weight mean of its
-  members and a ratio is `basket(num) / basket(den)`, with `ratio.k_num` and `ratio.k_den` members;
+  members and a ratio is `basket(num) / basket(den)`, with `ratio.k` members on each side (symmetric: 3 vs 3,
+  4 vs 4, ...; older configs with equal `k_num` / `k_den` still load);
 * **every** ratio is enumerated (disjoint legs unless `allow_overlap`) and scored in vectorised chunks, without
   materialising all ratios at once; the best `keep_per_window` per window go on to the duration ladder and the
   holdout check, held as fixed shares in both legs;
-* a falling A/B is a rising B/A, so trends are **oriented**: both orientations are scored and every trend is
-  reported as "numerator outperforms denominator". Ratio mode therefore offers `uptrend` and `range` (the
+* a falling A/B is a rising B/A, so trends are **oriented** (flipped when their fitted slope is negative) and
+  every trend is reported as "numerator outperforms denominator". Ratio mode therefore offers `uptrend` and `range` (the
   default); `downtrend` is rejected. A ratio range is a basket-rotation (mean-reversion) candidate.
-* Size: `C(n, k_num) * C(n - k_num, k_den)` ratios (halved when `k_num == k_den`). 19 country ETFs: 11,628 at
-  2 vs 2, 271,320 at 3 vs 3. The 39-ETF mix (`universes/etf_mix.txt`): 741 at 1 vs 1 (`etf_pairs.yaml`),
-  246,753 at 2 vs 2 (`etf_ratios.yaml`, ~6 min on 8 cores). A run larger than `ratio.max_ratios` stops with an error before scanning, so use
-  ETF/sector-sized universes, not the S&P 500.
+* Size: `C(n, k) * C(n - k, k) / 2` ratios per window. 19 country ETFs: 11,628 at 2 vs 2, 271,320 at 3 vs 3.
+  The 39-ETF mix (`universes/etf_mix.txt`): 741 at 1 vs 1 (`etf_pairs.yaml`), 246,753 at 2 vs 2
+  (`etf_ratios.yaml`). Sector stocks, with rough run times for 2 shapes on all 11 windows:
+
+  | stocks | 3 vs 3 | 4 vs 4 | 5 vs 5 |
+  |---|---|---|---|
+  | 16 | 80,080 (~30 s) | 450,450 (~2.5 min) | 1.0 M (~5 min) |
+  | 20 | 387,600 (~2 min) | 4.4 M (~25 min) | 23 M (~2 h) |
+  | 25 | 1.8 M (~10 min) | 38 M (~3.5 h) | 412 M |
+  | 30 | 5.9 M (~30 min) | 205 M | 3.8 B |
+
+  A run larger than `ratio.max_ratios` (25 M) stops with an error before scanning.
+* **Speed** (`ratio.py`, `Shape.score_y(full=False)`): in log space each basket's log curve is computed once
+  per window, so a ratio is one subtraction (log A − log B); trends are scored in one orientation; the trend
+  fit uses sums of squares instead of a residual matrix and the range drift is a closed-form quadratic; and
+  scoring is **pruned exactly**: the cheap parts give an upper bound on the score (sqrt(R²) for trends,
+  sqrt(flatness) for ranges), and the drawdown / trade simulation only runs for ratios that pass the gates
+  and can still beat the weakest of the best `keep_per_window` so far. All shapes are scored from the same
+  chunk of ratios, and windows run longest first (strong candidates early raise the bar for the rest). Same
+  rankings, about 6× faster than scoring every ratio in full (XLU top 16, 3 vs 3: 143 s → 24 s).
 * `complexity_penalty` counts all members of both legs. Every ratio in a run has the same size, so it only
   shifts the threshold; `configs/country_ratios.yaml` sets it to 0 and lowers `min_annual_return` to 5%
   because relative moves are smaller than outright ones.
 
 ```yaml
 search: {mode: ratio, shapes: [uptrend, range]}
-ratio: {k_num: 2, k_den: 2, allow_overlap: false, keep_per_window: 300, max_ratios: 3000000}
+ratio: {k: 3, allow_overlap: false, keep_per_window: 300, max_ratios: 25000000}
 ```
 
 ## Scores (all in [0, 1], `shapes.py`)

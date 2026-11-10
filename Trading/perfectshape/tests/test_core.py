@@ -128,16 +128,56 @@ def test_scan_finds_planted_pair(planted, shape):
 
 def test_count_ratios_matches_enumeration():
     from perfectshape.config import RatioConfig
-    from perfectshape.ratio import _library, _pair_chunks, count_ratios
-    for kn, kd, overlap in [(2, 2, False), (1, 3, False), (2, 2, True), (3, 1, True)]:
-        cfg = RatioConfig(k_num=kn, k_den=kd, allow_overlap=overlap)
-        ln, ld = _library(8, kn), _library(8, kd)
+    from perfectshape.ratio import _library, _overlap_fn, _pair_chunks, count_ratios
+    for k, overlap in [(1, False), (2, False), (3, False), (2, True)]:
+        cfg = RatioConfig(k=k, allow_overlap=overlap)
+        lib = _library(9, k)
+        ov = _overlap_fn(lib, 9)
         n = 0
-        for I, J in _pair_chunks(len(ln), len(ld), kn == kd, chunk=17):
+        for I, J in _pair_chunks(len(lib), chunk=17):
             if not overlap:
-                I, J = zip(*[(i, j) for i, j in zip(I, J) if not set(ln[i]) & set(ld[j])]) or ([], [])
+                sh = ov(I, J)
+                assert (sh == [bool(set(lib[i]) & set(lib[j])) for i, j in zip(I, J)]).all()
+                I = I[~sh]
             n += len(I)
-        assert n == count_ratios(8, cfg), (kn, kd, overlap)
+        assert n == count_ratios(9, cfg), (k, overlap)
+
+
+def test_ratio_config_is_symmetric_and_reads_legacy_keys():
+    from perfectshape.config import RatioConfig
+    assert RatioConfig.model_validate({"k_num": 3, "k_den": 3}).k == 3
+    with pytest.raises(ValueError, match="symmetric"):
+        RatioConfig.model_validate({"k_num": 2, "k_den": 3})
+
+
+def test_fast_fits_match_the_reference():
+    from perfectshape.shapes import linear_fit, poly_fit, quad_drift
+    rng = np.random.default_rng(4)
+    Y = np.cumsum(rng.normal(0, 0.01, (500, 40)), axis=0) + np.linspace(0, 0.3, 500)[:, None]
+    a1, b1, _, r1 = linear_fit(Y, with_resid=True)
+    a2, b2, res, r2 = linear_fit(Y, with_resid=False)
+    assert res is None
+    np.testing.assert_allclose([a1, b1, r1], [a2, b2, r2], atol=1e-10)
+    F = poly_fit(Y, 2)
+    np.testing.assert_allclose(quad_drift(Y), F.max(axis=0) - F.min(axis=0), rtol=0.01, atol=1e-6)
+
+
+def test_log_difference_search_matches_ratio_scoring():
+    """The fast path (log A - log B, slope orientation) ranks exactly like scoring A/B and B/A directly."""
+    from perfectshape.ratio import search_ratio_window
+    cfg = _small_ratio_cfg()
+    out = scan(cfg)
+    for shape in ("uptrend", "range"):
+        fast = search_ratio_window(out.panel, get_shape(shape), 504, out.fit_end, cfg.ratio, cfg.scoring)
+        # reference: score every surviving basket pair both ways with the plain curve scorer
+        for b in fast[:20]:
+            idx = [out.panel.symbols.index(m) for m in b.members]
+            didx = [out.panel.symbols.index(m) for m in b.den_members]
+            X = out.panel.close[out.fit_end - 504:out.fit_end]
+            X = X / X[0]
+            R = X[:, idx].mean(axis=1) / X[:, didx].mean(axis=1)
+            ref = get_shape(shape).score(R[:, None], cfg.scoring).score[0] * (1 - 0.02 * (b.size - 1))
+            assert ref == pytest.approx(b.fit_score, rel=1e-9), (shape, b.members, b.den_members)
 
 
 def test_ratio_mode_rejects_downtrend_and_defaults_shapes():
@@ -370,8 +410,30 @@ def test_scan_control_partial_results_and_progress():
     rec = Rec()
     out = scan(_small_ratio_cfg(), control=rec)
     assert rec.prog == sorted(rec.prog) and rec.prog[-1] == 1.0          # monotone, ends at 100%
-    assert len(rec.partials) == 6                                         # 2 shapes x 3 windows
+    assert len(rec.partials) == 3                                         # one per window, both shapes in each
+    assert all(set(p) == {"uptrend", "range"} for p in rec.partials)
     assert out.done and {k: len(v) for k, v in out.ranked.items()} == rec.partials[-1]
+
+
+def test_ratio_search_snapshots_both_shapes_mid_window():
+    from perfectshape.ratio import search_ratio_window
+    cfg = _small_ratio_cfg()
+    out = scan(cfg)
+    snaps = []
+    shapes = [get_shape("uptrend"), get_shape("range")]
+    import perfectshape.ratio as R
+    old = R.CHUNK_ELEMENTS
+    R.CHUNK_ELEMENTS = 20_000                                             # many small chunks
+    try:
+        final = search_ratio_window(out.panel, shapes, 1008, out.fit_end, cfg.ratio, cfg.scoring,
+                                    on_snapshot=snaps.append, snapshot_every=0.0)
+    finally:
+        R.CHUNK_ELEMENTS = old
+    assert len(snaps) > 3 and set(snaps[-1]) == {"uptrend", "range"}
+    assert snaps[-1]["uptrend"] and snaps[-1]["range"]
+    # the snapshot is the best so far: by the end it agrees with the final best
+    best_final = final["uptrend"][0].fit_score
+    assert max(b.fit_score for b in snaps[-1]["uptrend"]) <= best_final + 1e-12
 
 
 def test_run_manager_pause_resume_stop(tmp_path, monkeypatch):

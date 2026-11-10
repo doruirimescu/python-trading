@@ -15,8 +15,7 @@
     etf: "Which sector ETF supplies the stocks. Ratios are built only from stocks inside this one sector.",
     top: "How many of the ETF's <b>largest holdings by weight</b> to use. The number of 3 vs 3 ratios explodes with it: 12 stocks ≈ 9k, 16 ≈ 80k, 20 ≈ 388k, 25 ≈ 1.8M per window. Excluded stocks are replaced by the next one by weight.",
     baskets: "A ratio is <b>mean(numerator prices) / mean(denominator prices)</b>, every price normalised to 1 at the window start (equal weight per leg). Every combination is scored.",
-    kn: "Stocks in the <b>numerator</b> basket (top of the ratio). The ratio rises when these outperform.",
-    kd: "Stocks in the <b>denominator</b> basket (bottom of the ratio).",
+    k: "Stocks in <b>each</b> basket: 3 means (A + B + C) / (D + E + F). Bigger baskets give smoother, more diversified ratios, but the count grows fast: at 20 stocks, 3 vs 3 ≈ 388k ratios, 4 vs 4 ≈ 4.4M, 5 vs 5 ≈ 23M per window. They also leave room for fewer distinct results, see Output.",
     overlap: "Let the same stock sit in both legs. Off by default: a shared stock partly cancels out and adds little.",
     maxratios: "Safety cap. A scan with <b>more ratios per window</b> than this is refused before it starts. Raise it to allow bigger scans; the estimate below shows the expected run time.",
     shapes: "<b>Uptrend</b>: the ratio rises along a straight line on a log scale, i.e. the numerator steadily outperforms (a falling ratio is listed flipped). <b>Range</b>: the ratio oscillates in a flat band, a mean-reversion trade candidate.",
@@ -32,7 +31,7 @@
     minheld: "A range must have held for at least this long to be listed. Its band, harvest and 'now' come from its best-scoring window of at least 1 year.",
     output: "How many results are kept and what the run is called.",
     topn: "Results kept per shape (uptrend, range).",
-    maxper: "A stock may appear in at most this many results per shape, so a few names cannot fill the whole list.",
+    maxper: "A stock may appear in at most this many results per shape, so a few names cannot fill the whole list. Follows the basket size (at least 3) until you change it: big baskets of a small universe share stocks, and a low cap would leave few results. A result is also dropped when more than half of its stocks are in a better one.",
     name: "Name of the run folder in <code>runs/</code> and of the config file saved to <code>configs/</code>.",
   };
   function addInfo(el, key) {
@@ -84,7 +83,17 @@
     window.addEventListener("resize", follow);
   }
   let DEF = null, HOLD = [], excluded = new Set(), nameTouched = false;
-  let state = "idle", lastV = -1, checkOk = false, est = {}, lastStatus = null;
+  let state = "idle", lastV = -1, checkOk = false, est = {}, lastStatus = null, runId = null;
+  const EMPTY_RESULTS = '<div class="panel empty-state">The best ratios found so far appear here within seconds of ' +
+    'pressing Play and keep improving as the scan proceeds (longest lookbacks first).</div>';
+
+  function clearResults(message) {
+    lastV = -1;
+    if (lastStatus) lastStatus.payload_meta = null;
+    $("report").dataset.shape = "";
+    $("report").innerHTML = message || EMPTY_RESULTS;
+    $("links").innerHTML = "";
+  }
 
   // ---------------------------------------------------------------- form
   function toggles(el, items, selected) {
@@ -97,7 +106,8 @@
     });
   }
   const picked = (el) => [...el.querySelectorAll(".chip:not(.off)")].map((c) => c.dataset.v);
-  const autoName = () => `${$("etf").value.toLowerCase()}_${$("kn").value}v${$("kd").value}`;
+  const autoName = () => `${$("etf").value.toLowerCase()}_${$("k").value}v${$("k").value}`;
+  let maxperTouched = false;
 
   function buildConfig() {
     const c = structuredClone(DEF), etf = $("etf").value;
@@ -105,7 +115,7 @@
     c.universe = { lists: [`etf:${etf}`], limit: +$("top").value, exclude: [...excluded] };
     c.search.shapes = picked($("shapes"));
     c.search.windows = picked($("windows")).map(Number);
-    Object.assign(c.ratio, { k_num: +$("kn").value, k_den: +$("kd").value, allow_overlap: $("overlap").checked,
+    Object.assign(c.ratio, { k: +$("k").value, allow_overlap: $("overlap").checked,
       max_ratios: Math.max(1, Math.round(+$("maxratios").value || DEF.ratio.max_ratios)) });
     Object.assign(c.scoring, {
       threshold: +$("threshold").value, min_annual_return: +$("minret").value / 100, range_band_pct: +$("bandpct").value,
@@ -122,7 +132,7 @@
     if (lst) $("etf").value = lst.slice(4).toUpperCase();
     excluded = new Set(c.universe.exclude || []);
     $("top").value = c.universe.limit || 20;
-    $("kn").value = c.ratio.k_num; $("kd").value = c.ratio.k_den; $("overlap").checked = c.ratio.allow_overlap;
+    $("k").value = c.ratio.k; $("overlap").checked = c.ratio.allow_overlap;
     $("maxratios").value = c.ratio.max_ratios;
     toggles($("shapes"), SHAPES.map((s) => [s, s]), c.search.shapes);
     toggles($("windows"), WINDOWS.map(([v, l]) => [String(v), l]), c.search.windows.map(String));
@@ -212,7 +222,11 @@
     const url = state === "running" ? "/api/pause" : state === "paused" ? "/api/resume" : "/api/run";
     const r = await fetch(url, { method: "POST", body: JSON.stringify({ config: buildConfig() }) });
     if (!r.ok) { const j = await r.json(); showError(j.error || "could not start"); }
-    else { showError(null); if (url === "/api/run") { lastV = -1; $("report").dataset.shape = ""; } }
+    else {
+      showError(null);
+      if (url === "/api/run") clearResults('<div class="panel empty-state">Scan started: the best ratios found so far ' +
+        "appear here within seconds and keep improving.</div>");
+    }
     poll(true);
   };
   $("stop").onclick = async () => { await fetch("/api/stop", { method: "POST" }); poll(true); };
@@ -236,7 +250,7 @@
     const running = s.state === "running" || s.state === "paused";
     $("kpis").innerHTML =
       kpi("Stocks", P.symbols ?? est.instruments ?? "–", P.requested ? `of ${P.requested} requested` : "in the universe") +
-      kpi("Ratios per window", (est.ratios ?? 0).toLocaleString(), `${$("kn").value} vs ${$("kd").value}`) +
+      kpi("Ratios per window", (est.ratios ?? 0).toLocaleString(), `${$("k").value} vs ${$("k").value}`) +
       kpi("Progress", `${(s.progress * 100).toFixed(1)}%`, `<div class="progress"><div style="width:${(s.progress * 100).toFixed(1)}%"></div></div>`) +
       kpi(running ? "Time left" : "Run time", running ? fmtDur(s.eta) : fmtDur(s.elapsed), running ? `elapsed ${fmtDur(s.elapsed)}` : s.state) +
       Object.entries(P.found || {}).map(([k, v]) => kpi(k === "range" ? "Ranges" : k[0].toUpperCase() + k.slice(1) + "s", v.n,
@@ -246,8 +260,12 @@
   let pollTimer = null;
   async function poll(once) {
     try {
-      const r = await fetch("/api/status?v=" + lastV);
-      const s = await r.json();
+      let s = await (await fetch("/api/status?v=" + lastV)).json();
+      if (runId !== null && s.run_id !== runId) {        // a new scan started (here or in another tab)
+        clearResults();
+        s = await (await fetch("/api/status?v=-1")).json();
+      }
+      runId = s.run_id;
       state = s.state;
       const [cls, label] = BADGE[s.state] || ["", s.state];
       $("badge").className = "badge " + cls;
@@ -293,6 +311,8 @@
     document.querySelectorAll(".lab-side input:not([type=checkbox]), .lab-side select").forEach((el) =>
       el.addEventListener("input", () => {
         if (el.id === "name") nameTouched = !!el.value;
+        if (el.id === "maxper") maxperTouched = true;
+        if (el.id === "k" && !maxperTouched) $("maxper").value = Math.max(3, +$("k").value);
         if (el.id === "etf") { excluded.clear(); loadHoldings(); return; }
         if (el.id === "top") renderHoldings();
         changed();

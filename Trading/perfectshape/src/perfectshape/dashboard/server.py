@@ -46,8 +46,9 @@ log = logging.getLogger(__name__)
 WEB = Path(__file__).resolve().parents[1] / "web"
 ASSETS = {"shapes.css": "text/css; charset=utf-8", "report.js": "text/javascript; charset=utf-8",
           "dashboard.js": "text/javascript; charset=utf-8"}
-# seconds per (ratio x bar x shape), measured on the 39-ETF 2 vs 2 run; machine dependent, for estimates only
-SECONDS_PER_RATIO_BAR = 9e-8
+# seconds per (ratio x bar x shape), measured on XLU top 16 at 3 vs 3 (80,080 ratios, 11 windows, 2 shapes:
+# 24 s); machine and data dependent (pruning skips more on noisier universes), for estimates only
+SECONDS_PER_RATIO_BAR = 1.5e-8
 
 DEFAULT_CONFIG = {
     "config_version": 1,
@@ -56,7 +57,7 @@ DEFAULT_CONFIG = {
     "data": {"source": "yfinance", "years": 11, "cache_dir": "data_cache", "max_age_days": 1},
     "search": {"mode": "ratio", "shapes": ["uptrend", "range"],
                "windows": [63, 126, 252, 378, 504, 756, 1008, 1260, 1512, 2016, 2520], "holdout_bars": 21},
-    "ratio": {"k_num": 3, "k_den": 3, "allow_overlap": False, "keep_per_window": 300, "max_ratios": 3_000_000},
+    "ratio": {"k": 3, "allow_overlap": False, "keep_per_window": 300, "max_ratios": 25_000_000},
     "scoring": {"space": "log", "threshold": 0.6, "min_annual_return": 0.05, "min_range_height": 0.10,
                 "max_range_drift": 0.5, "complexity_penalty": 0.0, "range_band_pct": 10, "range_exit": "mid",
                 "range_harvest_scale": 0.15, "range_pain_scale": 2.0, "range_segments": 4},
@@ -85,6 +86,7 @@ class RunManager(ScanControl):
         self.stop_requested = False
         self.thread: Optional[threading.Thread] = None
         self.logs = _LogBuffer()
+        self.run_id = 0                      # changes with every new scan, so pages can drop old results
         logging.getLogger("perfectshape").addHandler(self.logs)
         self._reset("idle")
 
@@ -108,6 +110,7 @@ class RunManager(ScanControl):
             if self.state in ("running", "paused"):
                 raise RuntimeError("a scan is already running; stop it first")
             self._reset("running", cfg)
+            self.run_id += 1
             self.stop_requested = False
             self.go.set()
             self.thread = threading.Thread(target=self._run, name="perfectshape-scan", daemon=True)
@@ -137,7 +140,7 @@ class RunManager(ScanControl):
         with self.lock:
             active = self.active_seconds + (time.monotonic() - self._resumed_at if self.state == "running" else 0)
             eta = active / self.progress * (1 - self.progress) if 0.02 < self.progress < 1 else None
-            out = {"state": self.state, "stage": self.stage_text, "detail": self.detail,
+            out = {"run_id": self.run_id, "state": self.state, "stage": self.stage_text, "detail": self.detail,
                    "progress": self.progress, "elapsed": active, "eta": eta, "version": self.version,
                    "run_dir": self.run_dir, "error": self.error, "log": list(self.logs.lines)[-12:],
                    "name": self.cfg.name if self.cfg else None,
