@@ -15,13 +15,27 @@ from perfectshape.data.panel import Panel, align
 log = logging.getLogger(__name__)
 
 
-def load_panel(tickers: list[str], cfg: DataConfig, *, today: Optional[date] = None) -> Panel:
-    if cfg.source == "synthetic":
-        return synthetic_panel(tickers, **cfg.synthetic)
-    series = load_yfinance(tickers, cfg, today=today or date.today())
-    panel = align(series, max_gap_bars=cfg.max_gap_bars)
+def analysis_end(cfg: DataConfig, today: Optional[date] = None) -> Optional[date]:
+    """Last bar of the analysis: data.end, else today - lag_years (None = latest available)."""
     if cfg.end is not None:
-        keep = panel.dates <= np.datetime64(cfg.end, "D")
+        return cfg.end
+    if cfg.lag_years > 0:
+        return (today or date.today()) - timedelta(days=round(cfg.lag_years * 365.25))
+    return None
+
+
+def load_panel(tickers: list[str], cfg: DataConfig, *, today: Optional[date] = None) -> Panel:
+    end = analysis_end(cfg, today)
+    if cfg.lag_years > 0 and cfg.end is None:
+        # a lagged analysis still downloads through today (cut below), so the cache keeps full, fresh series
+        cfg = cfg.model_copy(update={"years": cfg.years + cfg.lag_years, "lag_years": 0.0})
+    if cfg.source == "synthetic":
+        panel = synthetic_panel(tickers, **cfg.synthetic)
+    else:
+        series = load_yfinance(tickers, cfg, today=today or date.today())
+        panel = align(series, max_gap_bars=cfg.max_gap_bars)
+    if end is not None:
+        keep = panel.dates <= np.datetime64(end, "D")
         panel = Panel(panel.dates[keep], panel.symbols, panel.close[keep])
     return panel
 

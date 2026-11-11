@@ -67,6 +67,7 @@
   const rangeRule = (sc) =>
     `Band: median ± the smaller half of the p${sc.range_band_pct}–p${100 - sc.range_band_pct} band over the scored span, so a one-sided spike cannot widen it. ` +
     `A trade opens when the curve leaves the band and closes at the ${sc.range_exit === "mid" ? "median" : "opposite edge"}; <b>harvest/yr</b> = trades/yr × capture per trade (in-sample, before costs). ` +
+    `<b>To mean</b> = average trading days from leaving the band to the exit${sc.range_speed_days ? ` (scored against a target of ${sc.range_speed_days} days: slower ranges × √(target / days))` : ""}. ` +
     `<b>Repeat</b> = share of the span's ${sc.range_segments} parts with a closed trade. <b>Worst against</b> = largest move against an open trade past its entry edge. ` +
     `<b>Now</b>: 0% = bottom edge, 100% = top edge; outside = an entry signal today.`;
 
@@ -76,6 +77,7 @@
     adverse_ratio: ["Adverse/move", (v) => v.toFixed(2)],
     harvest: ["Harvest/yr", (v) => pct(v)],
     trades_per_year: ["Trades/yr", (v) => v.toFixed(1)],
+    to_mean: ["To mean", (v) => (Number.isFinite(v) ? v.toFixed(0) + "d" : "–")],
     coverage: ["Repeat", (v) => (v * 100).toFixed(0) + "%"],
     per_trade: ["Per trade", (v) => pct(v)],
     worst_against: ["Worst against", (v) => `<span class="neg">${pct(-v)}</span>`],
@@ -194,7 +196,8 @@
     const shown = state.all ? S.items.length : Math.min(CHARTS_SHOWN, S.items.length);
     html += `<div class="chart-grid">` + S.items.slice(0, shown).map((it, i) => {
       const sub = shape === "range"
-        ? `harvest ${pct(it.metrics.harvest)}/yr · ${it.metrics.trades_per_year.toFixed(1)} trades/yr · repeat ${(it.metrics.coverage * 100).toFixed(0)}% · band ${pct(it.metrics.swing_up)} · now ${bandPos(it.metrics.band_pos)}`
+        ? `harvest ${pct(it.metrics.harvest)}/yr · ${it.metrics.trades_per_year.toFixed(1)} trades/yr` +
+          `${Number.isFinite(it.metrics.to_mean) ? ` · ${it.metrics.to_mean.toFixed(0)}d to mean` : ""} · repeat ${(it.metrics.coverage * 100).toFixed(0)}% · band ${pct(it.metrics.swing_up)} · now ${bandPos(it.metrics.band_pos)}`
         : `${pct(it.metrics.annual_return)}/yr · R² ${it.metrics.r2.toFixed(2)}`;
       return `<div class="panel chart-panel" data-i="${i}"><div class="chart-head"><h3><span class="rank">#${it.rank}</span>${basketCompact(it)}</h3>` +
         `${it.alive ? '<span class="verdict under">Alive</span>' : '<span class="verdict over">Broken</span>'}</div>` +
@@ -258,6 +261,8 @@
       band_pct: P.scoring.range_band_pct, exit: P.scoring.range_exit,
       lists: (P.universe_lists || []).join(","), run: P.name, rank: it.rank,
     });
+    // a lagged scan: the years after its last bar are the Trade Lab's final test (kept out of training)
+    if (P.data && P.data.lag_years > 0) q.set("scan_end", P.panel.end);
     window.open("/trade.html?" + q.toString(), "_blank");
   }
   // a saved report.html opens the Trade Lab only when the dashboard server serves it (not from file://)

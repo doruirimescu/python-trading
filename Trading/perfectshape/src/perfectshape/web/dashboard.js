@@ -19,6 +19,7 @@
     overlap: "Let the same stock sit in both legs. Off by default: a shared stock partly cancels out and adds little.",
     maxratios: "Safety cap. A scan with <b>more ratios per window</b> than this is refused before it starts. Raise it to allow bigger scans; the estimate below shows the expected run time.",
     shapes: "<b>Uptrend</b>: the ratio rises along a straight line on a log scale, i.e. the numerator steadily outperforms (a falling ratio is listed flipped). <b>Range</b>: the ratio oscillates in a flat band, a mean-reversion trade candidate.",
+    lag: "End the scan this many years <b>before today</b>: the search uses the lookback windows that end then (10 years by default) and never sees the years after. In the Trade Lab those years come back only as the <b>final test</b>: the optimizer never trains on them, and you switch them on to judge the final rules. 0 = scan up to today.",
     windows: "Lookbacks over which every ratio is fitted and scored. <b>Held</b> = the longest window whose score clears the threshold. Run time grows with the total length of the windows picked.",
     scoring: "How a window's score (0 to 1) is computed and gated. Hover each field for details.",
     threshold: "Minimum score (0 to 1) for a window to count as holding the shape. Higher = fewer, cleaner results.",
@@ -28,6 +29,7 @@
     harvest: "Annual return from trading the band (log units) at which the harvest part of the score reaches 63%. <b>Raise it</b> to demand more profitable ranges.",
     pain: "Penalty for the <b>worst move against an open trade</b> past its entry edge, measured in half-band widths. Beyond 1, the score is multiplied by exp(−(pain − 1) / scale). Lower = stricter about squeezes and spikes.",
     holdout: "The last trading days of data, <b>kept out of the search</b>: no ratio is picked, fitted or scored on them. Afterwards each result is checked on them: a trend must stay on the right side of its channel, a range inside its band (padded 25%). Pass = <b>Alive</b>; the move over these days is the Holdout column and the shaded strip on the charts. 21 ≈ one month; 0 turns the check off.",
+    speed: "Optional: favour ranges whose swings <b>return to the mean quickly</b>. Each range gets its <b>average days to the mean</b> (how long a band trade takes from leaving the band to its exit), shown as <b>To mean</b> in the results. With a target of D days, ranges that return within D keep their full score and slower ones are scored down in proportion: D / days, inside the square root like the other factors, so twice as slow keeps 71% and four times as slow 50%. <b>0</b> = off: speed does not change the score.",
     minheld: "A range must have held for at least this long to be listed. Its band, harvest and 'now' come from its best-scoring window of at least 1 year.",
     output: "How many results are kept and what the run is called.",
     topn: "Results kept per shape (uptrend, range).",
@@ -88,8 +90,11 @@
     Object.assign(c.scoring, {
       threshold: +$("threshold").value, min_annual_return: +$("minret").value / 100, range_band_pct: +$("bandpct").value,
       range_exit: $("exit").value, range_harvest_scale: +$("harvest").value, range_pain_scale: +$("pain").value,
+      range_speed_days: Math.max(0, +$("speed").value || 0),
     });
     c.search.holdout_bars = Math.max(0, Math.round(+$("holdout").value || 0));
+    c.data.lag_years = Math.max(0, +$("lag").value || 0);
+    c.data.end = null;
     Object.assign(c.ranking, { top_n: +$("topn").value, max_per_member: +$("maxper").value,
       range_min_held: Math.round(+$("minheld").value * 252) });
     return c;
@@ -107,8 +112,10 @@
     $("threshold").value = c.scoring.threshold; $("minret").value = +(c.scoring.min_annual_return * 100).toFixed(2);
     $("bandpct").value = c.scoring.range_band_pct; $("exit").value = c.scoring.range_exit;
     $("harvest").value = c.scoring.range_harvest_scale; $("pain").value = c.scoring.range_pain_scale;
+    $("speed").value = c.scoring.range_speed_days || 0;
     $("minheld").value = +(c.ranking.range_min_held / 252).toFixed(2);
     $("holdout").value = c.search.holdout_bars;
+    $("lag").value = (c.data && c.data.lag_years) || 0;
     $("topn").value = c.ranking.top_n; $("maxper").value = c.ranking.max_per_member;
     $("name").value = c.name;
   }
@@ -144,8 +151,15 @@
     changed();
   }
 
+  function lagNote() {
+    const n = +$("lag").value || 0;
+    if (!n) { $("lag-note").textContent = "Scans up to today."; return; }
+    const d = new Date(); d.setDate(d.getDate() - Math.round(n * 365.25));
+    $("lag-note").innerHTML = `Scan ends <b>${d.toISOString().slice(0, 10)}</b>; the ${n} year${n === 1 ? "" : "s"} after it stay out of the search and come back as the Trade Lab's final test.`;
+  }
   let checkTimer = null;
   function changed() {
+    lagNote();
     if (!nameTouched) $("name").value = autoName();
     clearTimeout(checkTimer);
     checkTimer = setTimeout(check, 250);

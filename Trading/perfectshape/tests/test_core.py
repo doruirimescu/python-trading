@@ -46,12 +46,15 @@ def test_band_trades_counts_sine_cycles():
     from perfectshape.shapes import band_trades
     Y = np.log(1 + 0.1 * np.sin(2 * np.pi * tau * 4))[:, None]
     lo, mid, hi = np.percentile(Y, [10, 50, 90], axis=0)
-    n_mid, cap, cov, _ = band_trades(Y, lo, mid, hi, "mid", segments=4)
+    n_mid, cap, cov, _, days = band_trades(Y, lo, mid, hi, "mid", segments=4)
+    # a trade opens when the sine drops through its p10 edge (phase 1.4 pi, sin = -0.951) and closes back at the
+    # median (2 pi): 0.3 of a 75-bar cycle = 22.5 bars
+    assert days[0] == pytest.approx(0.3 * 75, abs=1)
     assert cov[0] == 1.0                                 # a trade closes in every quarter
     # 4 cycles = 4 shorts (peaks) + 4 longs (troughs); the last long is still open: the curve ends at the median
     assert n_mid[0] == 7
     np.testing.assert_allclose(cap, 3 * (mid - lo) + 4 * (hi - mid))
-    n_opp, _, _, _ = band_trades(Y, lo, mid, hi, "opposite")
+    n_opp, *_ = band_trades(Y, lo, mid, hi, "opposite")
     assert n_opp[0] == 7                                 # trough->peak / peak->trough legs after the first edge
 
 
@@ -509,3 +512,36 @@ def test_saved_analyses_roundtrip(tmp_path, monkeypatch):
             server.load_analysis(bad)
     with pytest.raises(ValueError, match="num and den"):
         server.save_analysis({"name": "x", "query": {"num": "A"}})
+
+
+def test_lag_years_ends_the_panel_before_today_and_keeps_the_years_after():
+    from datetime import date
+
+    from perfectshape.config import DataConfig
+    from perfectshape.data.sources import analysis_end, load_panel
+    today = date(2026, 10, 30)                               # the synthetic panel's last bar
+    full = load_panel(["A", "B"], DataConfig(source="synthetic", synthetic={"n_bars": 1300}), today=today)
+    lagged = load_panel(["A", "B"], DataConfig(source="synthetic", synthetic={"n_bars": 1300}, lag_years=2), today=today)
+    assert str(full.dates[-1]) == "2026-10-30"
+    assert str(lagged.dates[-1]) <= "2024-10-30" and str(lagged.dates[-1]) >= "2024-10-25"
+    assert analysis_end(DataConfig(lag_years=1.5), today) == date(2025, 4, 30)
+    assert analysis_end(DataConfig(end=date(2020, 1, 1), lag_years=3), today) == date(2020, 1, 1)   # end wins
+
+
+def test_dashboard_defaults_scan_the_10y_window():
+    from perfectshape.dashboard.server import DEFAULT_CONFIG
+    cfg = RunConfig.model_validate(DEFAULT_CONFIG)
+    assert cfg.search.windows == [2520] and cfg.data.lag_years == 0
+
+
+def test_speed_to_mean_favours_faster_reversion_only_when_on():
+    rng = get_shape("range")
+    fast, slow = (1 + 0.15 * np.sin(2 * np.pi * tau * c) for c in (16, 4))
+    off = rng.score(np.column_stack([fast, slow]), SC)
+    on = rng.score(np.column_stack([fast, slow]), ScoringConfig(range_speed_days=10))
+    assert on.metrics["to_mean"][0] < on.metrics["to_mean"][1]               # 16 cycles return sooner
+    np.testing.assert_allclose(off.metrics["to_mean"], on.metrics["to_mean"])
+    assert (on.score <= off.score + 1e-12).all()                            # a factor <= 1
+    assert on.score[1] / off.score[1] < on.score[0] / off.score[0]          # the slow one loses more
+    assert on.score[0] == pytest.approx(off.score[0])                       # within the target: untouched
+    assert on.score[1] == pytest.approx(off.score[1] * np.sqrt(10 / on.metrics["to_mean"][1]))

@@ -56,6 +56,9 @@
           <h4><span data-tip-for="period">Period</span></h4>
           <label class="field"><span>From</span><input class="input" type="date" id="from"></label>
           <label class="field"><span>To</span><input class="input" type="date" id="to"></label>
+          <label class="check" id="final_row" hidden><input type="checkbox" id="final_test"> <span>Include the final test
+            <button type="button" class="info" data-tip="final_test" aria-label="About the final test">i</button></span></label>
+          <div class="muted small" id="final_note" hidden></div>
         </div>
         <div class="group">
           <h4><span data-tip-for="strategy">Strategy</span></h4>
@@ -113,6 +116,8 @@
           <div class="chart-head"><h3>Ratio, rules and trades</h3>
             <div class="legend"><span><i class="ln sw-accent"></i>ratio</span><span><i class="band sw-neutral"></i>band / averages</span>
               <span><i class="sw-under"></i>enter: numerator up</span><span><i class="sw-series-2"></i>enter: denominator up</span><span><i class="sw-neutral"></i>exit</span></div></div>
+          <div class="meter" id="meter"><span class="meter-text" id="meter_text"></span>
+            <button type="button" class="btn sm" id="meter_clear" hidden>Clear</button></div>
           <div id="c-ratio" class="chart h-lg"></div>
         </div>
         <div class="two-col">

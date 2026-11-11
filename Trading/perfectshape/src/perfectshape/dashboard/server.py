@@ -60,13 +60,13 @@ DEFAULT_CONFIG = {
     "config_version": 1,
     "name": "xlk_3v3",
     "universe": {"lists": ["etf:XLK"], "limit": 20, "exclude": []},
-    "data": {"source": "yfinance", "years": 11, "cache_dir": "data_cache", "max_age_days": 1},
-    "search": {"mode": "ratio", "shapes": ["uptrend", "range"],
-               "windows": [63, 126, 252, 378, 504, 756, 1008, 1260, 1512, 2016, 2520], "holdout_bars": 21},
+    "data": {"source": "yfinance", "years": 11, "cache_dir": "data_cache", "max_age_days": 1, "lag_years": 0},
+    "search": {"mode": "ratio", "shapes": ["uptrend", "range"], "windows": [2520], "holdout_bars": 21},
     "ratio": {"k": 3, "allow_overlap": False, "keep_per_window": 300, "max_ratios": 25_000_000},
     "scoring": {"space": "log", "threshold": 0.6, "min_annual_return": 0.05, "min_range_height": 0.10,
                 "max_range_drift": 0.5, "complexity_penalty": 0.0, "range_band_pct": 10, "range_exit": "mid",
-                "range_harvest_scale": 0.15, "range_pain_scale": 2.0, "range_segments": 4},
+                "range_harvest_scale": 0.15, "range_pain_scale": 2.0, "range_segments": 4,
+                "range_speed_days": 0},
     "ranking": {"top_n": 30, "require_alive": True, "max_overlap": 0.5, "max_per_member": 3,
                 "range_sort": "score", "range_min_held": 504, "range_min_score_window": 252},
 }
@@ -324,6 +324,9 @@ class _Handler(BaseHTTPRequestHandler):
         split = lambda key: [t for t in (q.get(key, [""])[0]).split(",") if t]
         cfg = self.manager.cfg
         data_cfg = cfg.data if cfg is not None else RunConfig.model_validate(DEFAULT_CONFIG).data
+        # the Trade Lab always gets prices through today (a lagged scan's final-test years included)
+        data_cfg = data_cfg.model_copy(update={"end": None, "lag_years": 0.0,
+                                               "years": data_cfg.years + data_cfg.lag_years})
         return series_payload(split("num"), split("den"), q.get("bench", [BENCHMARK])[0], data_cfg, split("lists"))
 
     def _run_file(self, rel: str) -> None:

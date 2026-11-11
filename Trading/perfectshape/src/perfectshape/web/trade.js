@@ -48,6 +48,7 @@
     tp: "Close a trade that has made this much.",
     maxdays: "Close a trade after this many trading days.",
     opt_current: "<b>Ticked</b>: keep the band you picked in <b>Band from</b> (scan window, rolling or expanding) and only tune its settings. <b>Unticked</b>: band rules are searched with both past-only bands, rolling and expanding. With the <b>scan-window</b> band the search is <b>in-sample</b> (that band was drawn with the prices the trades are judged on), so its results, test included, are an upper bound, not a forecast.",
+    final_test: "The scan was run with a <b>lag</b>: it ended on the scan end date and never saw the years after it. Those years are the <b>final test</b>: the backtest stops before them and the optimizer never trains on them. Tick to bring them back and judge the rules on data nothing was tuned on: the charts extend to today and the statistics get a <b>Final test</b> column (a separate run from the scan end, with fresh capital).",
     show_ew: "Buy and hold every stock of the ratio (both baskets), equal weight at the start, no trading: did trading the ratio beat simply owning the same stocks?",
   });
   function addInfo(el, key) {
@@ -78,6 +79,8 @@
 
   // ---------------------------------------------------------------- data
   let S = null;            // series from the server + derived arrays
+  const SCAN_END = P.get("scan_end");   // a lagged scan's last bar: the years after it are the final test
+  let FINAL = null;                     // index of the first final-test bar
 
   async function load() {
     const q = new URLSearchParams({ num: P.get("num") || "", den: P.get("den") || "", lists: P.get("lists") || "" });
@@ -86,6 +89,10 @@
     if (!r.ok || j.error) throw new Error(j.error || r.statusText);
     S = j;
     S.idx = Object.fromEntries(S.dates.map((d, i) => [d, i]));
+    if (SCAN_END) {
+      const i = S.dates.findIndex((d) => d > SCAN_END);
+      FINAL = i > 20 && i < S.dates.length - 20 ? i : null;      // too little on either side: no final test
+    }
   }
 
   const firstIndexOnOrAfter = (date) => { const i = S.dates.findIndex((d) => d >= date); return i < 0 ? S.dates.length - 1 : i; };
@@ -109,7 +116,7 @@
   function defaults() {
     const range = (P.get("shape") || "range") === "range";
     return {
-      from: P.get("fit_from") || S.dates[0], to: S.dates[S.dates.length - 1],
+      from: P.get("fit_from") || S.dates[0], to: FINAL ? S.dates[FINAL - 1] : S.dates[S.dates.length - 1],
       strategy: range ? "band" : "hold", band_src: "fixed", band_lb: 252, band_pct: +(P.get("band_pct") || 10),
       entry_buf: 0, exit_frac: P.get("exit") === "opposite" ? 100 : 50,
       z_lb: 126, z_in: 2, z_out: 0, z_stop: 0, ma_fast: 20, ma_slow: 100, ma_buf: 0,
@@ -385,6 +392,8 @@
 
   function render(o) {
     syncVisibility(o);
+    const withFinal = !!FINAL && $("final_test").checked;
+    if (FINAL && !withFinal && o.to > S.dates[FINAL - 1]) { o.to = S.dates[FINAL - 1]; $("to").value = o.to; }   // final years stay out
     let bt;
     try { bt = backtest(o); $("error").hidden = true; } catch (err) { $("error").hidden = false; $("error").textContent = err.message; return; }
     const { s, e, eq, trades } = bt, C = window.Nexus ? Nexus.colors : {};
@@ -414,6 +423,17 @@
       kpi("Sharpe", num(st.sharpe), `SPY ${spy ? num(spy.sharpe) : "–"} · Sortino ${num(st.sortino)}`) +
       kpi("Trades", trades.length, trades.length ? `${(wins.length / trades.length * 100).toFixed(0)}% winners · ${num(avgDays, 0)} days avg` : "no trade triggered") +
       kpi("In the market", (bt.exposure * 100).toFixed(0) + "%", `beta to SPY ${num(bc.beta)} · corr ${num(bc.corr)}`);
+    // final test: the same rules on the years after the scan, as their own run with fresh capital
+    let fin = null;
+    if (withFinal && e - FINAL >= 20) {
+      try {
+        const fb = backtest(o, [FINAL, e]), fs = stats(fb.eq, FINAL, e);
+        const fspy = B ? stats(spyEq, FINAL, e) : null;
+        fin = { bt: fb, st: fs, spy: fspy, bc: fspy ? betaCorr(fs.rets, fspy.rets) : { beta: NaN, corr: NaN } };
+        $("kpis").insertAdjacentHTML("beforeend", kpi("Final test", `${signed(fin.st.cagr)} <span class="faint small">CAGR</span>`,
+          `${S.dates[FINAL]} → ${S.dates[e]} · return ${pct(fin.st.total)} · SPY ${fspy ? pct(fspy.total) : "–"} · ${fb.trades.length} trades`));
+      } catch (err) { fin = null; }
+    }
     // snapshot of the results, saved with an analysis
     lastSummary = { from: S.dates[s], to: S.dates[e], strategy: o.strategy, mode: o.mode, rules: rulesText(o), capital: o.capital,
       final: st.final, total: st.total, cagr: st.cagr, sharpe: st.sharpe, mdd: st.mdd, trades: trades.length,
@@ -443,11 +463,26 @@
     data.push(mark(trades.map((t) => ({ t: t.t1, text: `exit (${t.reason}): ${pct(t.ret)}` })), "exit", "x", C.text));
     const eras = [];
     if (bt.ind.calib) eras.push({ x0: S.dates[Math.max(bt.ind.calib[0], s)], x1: S.dates[Math.min(bt.ind.calib[1], e)], label: "band fitted", tone: "accent" });
+    if (withFinal) eras.push({ x0: S.dates[FINAL], x1: S.dates[e], label: "final test", tone: "positive" });
     const fe = P.get("fit_end");
     if (fe && fe < S.dates[e]) eras.push({ x0: fe, x1: S.dates[e], label: "after the scan (holdout)", tone: "neutral" });
     const bands = Nexus.bands(eras);
+    // swing meter: the points clicked on this chart and the line between them
+    lastBt = bt;
+    if (meter.a != null && (meter.a < s || meter.a > e || (meter.b != null && (meter.b < s || meter.b > e)))) meter = { a: null, b: null };
+    if (meter.a != null) {
+      const pts = meter.b == null ? [meter.a] : [meter.a, meter.b];
+      const ch = meter.b == null ? "" : pct(Math.exp(bt.Y[meter.b] - bt.Y[meter.a]) - 1);
+      data.push({ x: pts.map((t) => S.dates[t]), y: pts.map((t) => Math.exp(bt.Y[t])), mode: "lines+markers+text", name: "swing",
+        line: { color: C.highlight, width: 2, dash: "dot" }, marker: { size: 11, color: C.highlight, line: { width: 2, color: C.surface } },
+        text: pts.map((_, i) => (i === pts.length - 1 ? ch : "")), textposition: "top center", textfont: { color: C.highlight, size: 14 },
+        hoverinfo: "skip" });
+    }
+    meterText(meter.a, meter.b, false);
     Plotly.react("c-ratio", data, Nexus.plotlyLayout({ hovermode: "closest", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
       yaxis: { type: "log", tickformat: ".3f" }, shapes: [...bands.shapes, ...boundary.shapes], annotations: [...bands.annotations, ...boundary.annotations] }), cfg);
+    bindMeter();
+    const finalBand = withFinal ? Nexus.bands([{ x0: S.dates[FINAL], x1: S.dates[e], label: "final test", tone: "positive" }]) : { shapes: [], annotations: [] };
     // equity
     const eqLine = (arr, name, color, w) => ({ x: dates, y: Array.from(arr.slice(s, e + 1)), mode: "lines", name, line: { color, width: w },
       hovertemplate: `%{x}<br>${name} %{y:$,.0f}<extra></extra>` });
@@ -456,13 +491,13 @@
     if (showEW) eqData.push(eqLine(ewEq, "all members", C.series2, 1.2));
     if (spy) eqData.splice(1, 0, eqLine(spyEq, "SPY", C.neutral, 1.4));
     Plotly.react("c-equity", eqData, Nexus.plotlyLayout({ hovermode: "x unified", showlegend: false, margin: { l: 64, r: 14, t: 10, b: 36 },
-      yaxis: { tickprefix: "$", tickformat: ",.0f" }, shapes: boundary.shapes, annotations: boundary.annotations }), cfg);
+      yaxis: { tickprefix: "$", tickformat: ",.0f" }, shapes: [...finalBand.shapes, ...boundary.shapes], annotations: [...finalBand.annotations, ...boundary.annotations] }), cfg);
     // drawdown
     const ddData = [{ x: dates, y: st.dd, mode: "lines", name: "strategy", fill: "tozeroy", line: { color: C.negative, width: 1 },
       hovertemplate: "%{x}<br>strategy %{y:.1%}<extra></extra>" }];
     if (spy) ddData.push({ x: dates, y: spy.dd, mode: "lines", name: "SPY", line: { color: C.neutral, width: 1.2 }, hovertemplate: "%{x}<br>SPY %{y:.1%}<extra></extra>" });
     Plotly.react("c-dd", ddData, Nexus.plotlyLayout({ hovermode: "x unified", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
-      yaxis: { tickformat: ".0%" }, shapes: boundary.shapes }), cfg);
+      yaxis: { tickformat: ".0%" }, shapes: [...finalBand.shapes, ...boundary.shapes] }), cfg);
 
     // statistics table: whole period, then (after Apply from the optimizer) the train and test parts run on
     // their own, exactly as the optimizer ran them, then the benchmarks
@@ -477,6 +512,8 @@
         cols.push({ title: `Test · ${S.dates[split]} → ${S.dates[e]}`, ...part(backtest(o, [split, e]), split, e) });
       } catch (err) { /* a part too short: whole period only */ }
     }
+    if (fin) cols.push({ title: `Final test · ${S.dates[FINAL]} → ${S.dates[e]}`, st: fin.st, trades: fin.bt.trades, exposure: fin.bt.exposure, bc: fin.bc });
+    if (fin && fin.spy) cols.push({ title: "SPY · final test", st: fin.spy, trades: null, exposure: 1, bc: { beta: 1, corr: 1 } });
     if (spy) cols.push({ title: "SPY", st: spy, trades: null, exposure: 1, bc: { beta: 1, corr: 1 } });
     if (showEW) cols.push({ title: "All members, equal weight", st: ew, trades: null, exposure: 1, bc: spy ? betaCorr(ew.rets, spy.rets) : { beta: NaN, corr: NaN } });
     const tradeStat = (c, f) => (c.trades ? f(c.trades) : "–");
@@ -608,7 +645,8 @@
     const kind = $("opt_obj").value, minTrades = Math.max(0, +$("opt_min").value || 0);
     const budget = Math.max(50, Math.min(20000, +$("opt_budget").value || 2000));
     const segs = Math.max(1, +$("opt_robust").value || 1);
-    const s = firstIndexOnOrAfter(user.from), e = lastIndexOnOrBefore(user.to);
+    const s = firstIndexOnOrAfter(user.from);
+    const e = FINAL ? Math.min(lastIndexOnOrBefore(user.to), FINAL - 1) : lastIndexOnOrBefore(user.to);   // never the final test
     const split = s + Math.round((e - s) * Math.min(90, Math.max(30, +$("opt_split").value || 70)) / 100);
     if (split - s < 60 || e - split < 40) { setOptStatus("The period is too short to split into train and test; pick a longer one."); return; }
     const strategies = $("opt_all").checked ? ["band", "zscore", "ma"] : [user.strategy === "hold" ? "band" : user.strategy];
@@ -718,6 +756,7 @@
     setOptStatus(`${finished ? (optState && optState.stop ? "Stopped" : "Done") : "Searching"}: ${done} backtests in ${(ms / 1000).toFixed(1)} s · ` +
       `${ok.length} met the minimum of trades · train ${S.dates[s]} → ${S.dates[split]}, test ${S.dates[split]} → ${S.dates[e]} · ranked by ` +
       `${name.toLowerCase()} in train${segs > 1 ? ` (the weakest of ${segs} train segments)` : ""}.` +
+      (FINAL ? ` The final test (${S.dates[FINAL]} → ${S.dates[S.dates.length - 1]}) is never used here.` : "") +
       (finished && optTop.length ? ` <b>Apply</b> loads a rule set into the form (with its band and next-close fills) and backtests it over the whole period.` : "") +
       (scanUsed ? ` <span class="neg">“band (scan window)” rows are in-sample: that band was fitted on the scan's window (${esc(P.get("fit_from") || "?")} → ${esc(P.get("fit_end") || "?")}), ` +
         `so it already knew the prices the trades are judged on, in train and in test alike.</span>` : "") +
@@ -771,9 +810,10 @@
   // everything needed to reopen this exact analysis: the ratio, its scan context and every setting
   function currentQuery() {
     const q = {};
-    for (const k of ["num", "den", "shape", "fit_from", "fit_end", "lists", "run", "rank"]) if (P.get(k)) q[k] = P.get(k);
+    for (const k of ["num", "den", "shape", "fit_from", "fit_end", "scan_end", "lists", "run", "rank"]) if (P.get(k)) q[k] = P.get(k);
     Object.assign(q, readSettings());
     if ($("show_ew").checked) q.show_ew = "1";
+    if ($("final_test").checked) q.final = "1";
     if (splitDate) q.split = splitDate;
     for (const k in q) q[k] = String(q[k]);
     return q;
@@ -827,6 +867,63 @@
   $("save_new").onclick = () => doSave(true);
   $("save_cancel").onclick = () => { $("save_panel").hidden = true; };
 
+
+  // ---------------------------------------------------------------- final test (years after a lagged scan)
+  function setupFinal() {
+    if (!FINAL) return;
+    $("final_row").hidden = false; $("final_note").hidden = false;
+    const years = ((S.dates.length - FINAL) / PPY).toFixed(1);
+    $("final_note").innerHTML = `The scan ended <b>${esc(SCAN_END)}</b>. The ${years} years after it (to ${S.dates[S.dates.length - 1]}) are the final test: ` +
+      `out of the backtest and the optimizer until you include them.`;
+    $("final_test").checked = P.get("final") === "1";
+    if ($("final_test").checked) $("to").value = S.dates[S.dates.length - 1];
+    $("final_test").addEventListener("change", () => {
+      $("to").value = $("final_test").checked ? S.dates[S.dates.length - 1] : S.dates[FINAL - 1];
+      render(readSettings());
+    });
+  }
+
+  // ---------------------------------------------------------------- swing meter (ratio chart)
+  // click a point, then another: the % move of the ratio between them, and of each basket and the pair
+  let meter = { a: null, b: null }, lastBt = null;
+  const meterIndex = (ev) => {
+    const p = ev && ev.points && ev.points[0];
+    if (!p || p.x == null) return null;
+    const t = S.idx[String(p.x).slice(0, 10)];
+    return t == null || !lastBt || t < lastBt.s || t > lastBt.e ? null : t;
+  };
+  function meterText(a, b, preview) {
+    const el = $("meter_text");
+    $("meter_clear").hidden = a == null;
+    if (a == null || !lastBt) { el.innerHTML = "📏 <b>Swing meter</b>: click a point on the chart, then a second one, to measure the move between them."; return; }
+    const { Y, N, D } = lastBt, r = (t) => Math.exp(Y[t]).toFixed(4);
+    if (b == null) { el.innerHTML = `📏 From <b>${S.dates[a]}</b> (ratio ${r(a)}): click a second point${preview ? "" : " · hover to preview"}.`; return; }
+    const [t0, t1] = a <= b ? [a, b] : [b, a];
+    const move = Math.exp(Y[t1] - Y[t0]) - 1, n = N[t1] / N[t0] - 1, d = D[t1] / D[t0] - 1;
+    el.innerHTML = `📏 ${preview ? "<span class=\"faint\">preview</span> · " : ""}<b>${S.dates[t0]}</b> (${r(t0)}) → <b>${S.dates[t1]}</b> (${r(t1)}): ` +
+      `<span class="big ${move >= 0 ? "pos" : "neg"}">${pct(move)}</span> ratio · ${t1 - t0} trading days · ` +
+      `numerator ${signed(n)}, denominator ${signed(d)} · pair long numerator / short denominator ${signed(n - d)}` +
+      (a > b ? ' <span class="faint">(second point is earlier: measured forward in time)</span>' : "");
+  }
+  function bindMeter() {
+    const el = $("c-ratio");
+    if (el._meterBound || !el.on) return;
+    el._meterBound = true;
+    el.on("plotly_click", (ev) => {
+      const t = meterIndex(ev);
+      if (t == null) return;
+      meter = meter.a == null || meter.b != null ? { a: t, b: null } : { a: meter.a, b: t };
+      render(readSettings());
+    });
+    el.on("plotly_hover", (ev) => {
+      if (meter.a == null || meter.b != null) return;
+      const t = meterIndex(ev);
+      if (t != null && t !== meter.a) meterText(meter.a, t, true);
+    });
+    el.on("plotly_unhover", () => { if (meter.a != null && meter.b == null) meterText(meter.a, null, false); });
+  }
+  $("meter_clear").onclick = () => { meter = { a: null, b: null }; render(readSettings()); };
+
   // ---------------------------------------------------------------- page
   function header() {
     const names = S.names || {};
@@ -865,6 +962,7 @@
     document.querySelectorAll("[data-tip-for]").forEach((el) => addInfo(el, el.dataset.tipFor));
     document.querySelectorAll(".lab-side input, .lab-side select").forEach((el) => el.addEventListener("input", changed));
     $("show_ew").checked = P.get("show_ew") === "1";
+    setupFinal();
     $("show_ew").addEventListener("change", () => render(readSettings()));
     if (window.Nexus && Nexus.onThemeChange) Nexus.onThemeChange(() => render(readSettings()));
     render(readSettings());

@@ -123,9 +123,11 @@ def band_trades(Y: np.ndarray, lo: np.ndarray, mid: np.ndarray, hi: np.ndarray, 
 
     A trade opens when the curve leaves the band (<= lo: long, >= hi: short) and closes when it next reaches
     the median (exit="mid") or the opposite edge (exit="opposite"). Returns (n_trades, capture, coverage,
-    adverse): capture is the summed edge-to-exit distance (overshoot beyond the edge is not counted);
+    adverse, days): capture is the summed edge-to-exit distance (overshoot beyond the edge is not counted);
     coverage is the share of ``segments`` equal parts of the window in which at least one trade closed;
-    adverse is the worst move against an open trade, measured from the edge where it opened.
+    adverse is the worst move against an open trade, measured from the edge where it opened; days is the
+    average number of bars a completed trade stayed open (how fast the curve returns to the mean; NaN when no
+    trade closed).
     """
     T = Y.shape[0]
     cols = np.arange(Y.shape[1])[None, :]
@@ -159,7 +161,28 @@ def band_trades(Y: np.ndarray, lo: np.ndarray, mid: np.ndarray, hi: np.ndarray, 
     bounds = np.linspace(0, closed.shape[0], segments + 1).astype(int)
     per_seg = np.add.reduceat(closed, bounds[:-1], axis=0) if closed.shape[0] else np.zeros((segments, Y.shape[1]))
     coverage = (per_seg > 0).sum(axis=0) / segments
-    return n_lo + n_hi, n_lo * gain_lo + n_hi * gain_hi, coverage, adverse
+    # average holding: trades alternate open / close, so the summed durations of the completed ones are
+    # sum(close bars) - sum(open bars), leaving out the open bar of a trade still running at the end
+    in_trade = (f == 1) | (f == -1)
+    opened = in_trade.copy()
+    opened[1:] &= f[1:] != f[:-1]
+    t_open = np.where(opened, rows, 0)
+    last_open = np.where(opened, rows, -1).max(axis=0)
+    still_open = in_trade[-1]
+    dur = (closed * rows[1:]).sum(axis=0) - (t_open.sum(axis=0) - np.where(still_open, last_open, 0))
+    n = n_lo + n_hi
+    days = np.where(n > 0, dur / np.maximum(n, 1), np.nan)
+    return n, n_lo * gain_lo + n_hi * gain_hi, coverage, adverse, days
+
+
+def speed_factor(days: np.ndarray, cfg: ScoringConfig) -> np.ndarray:
+    """Optional preference for ranges that return to the mean quickly: min(1, target / average days to the mean).
+    Ranges within the target keep their score; twice as slow keeps sqrt(1/2) = 71% (the factor sits inside the
+    score's square root). 1 when ``range_speed_days`` is 0 (off) or no trade closed (the score is 0 then anyway)."""
+    if not cfg.range_speed_days:
+        return np.ones_like(np.asarray(days, dtype=float))
+    d = np.nan_to_num(np.asarray(days, dtype=float), nan=0.0)
+    return np.where(d > 0, np.minimum(1.0, cfg.range_speed_days / np.maximum(d, 1e-9)), 1.0)
 
 
 def zone_swings(Y: np.ndarray, lo_q: float = 20, hi_q: float = 80) -> np.ndarray:
@@ -303,7 +326,7 @@ class Range(Shape):
             swing_down = band / np.maximum(np.abs(hi), 1e-12)
         drift = quad_drift(Y)
         drift_ratio = drift / np.maximum(band, 1e-12)
-        n_trades, capture, coverage, adverse = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
+        n_trades, capture, coverage, adverse, days = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
         pain = adverse / np.maximum((hi - lo) / 2, 1e-12)     # worst move against a trade, in half-bands
         capture = capture / scale
         years = max(Y.shape[0] - 1, 1) / cfg.periods_per_year
@@ -312,11 +335,11 @@ class Range(Shape):
         harvest_score = 1.0 - np.exp(-harvest / cfg.range_harvest_scale)
         flat = np.clip(1.0 - drift_ratio, 0, 1)
         pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
-        soft = np.sqrt(flat * coverage * harvest_score * pain_score)
+        soft = np.sqrt(flat * coverage * harvest_score * pain_score * speed_factor(days, cfg))
         gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
         rel = np.expm1 if cfg.space == "log" else (lambda x: x)
         metrics = {"harvest": rel(harvest), "trades_per_year": n_trades / years, "per_trade": rel(per_trade),
-                   "coverage": coverage, "pain": pain, "worst_against": -np.expm1(-adverse / scale)
+                   "coverage": coverage, "pain": pain, "to_mean": days, "worst_against": -np.expm1(-adverse / scale)
                    if cfg.space == "log" else adverse / scale,
                    "swing_up": swing_up, "swing_down": swing_down, "height": height, "drift_ratio": drift_ratio}
         if full:
@@ -327,12 +350,12 @@ class Range(Shape):
     @staticmethod
     def _trade_score(Y, lo, mid, hi, flat, scale, cfg):
         """The range score of columns that passed the gates (same formula as the full path)."""
-        n_trades, capture, coverage, adverse = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
+        n_trades, capture, coverage, adverse, days = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
         pain = adverse / np.maximum((hi - lo) / 2, 1e-12)
         harvest = (capture / scale) / (max(Y.shape[0] - 1, 1) / cfg.periods_per_year)
         harvest_score = 1.0 - np.exp(-harvest / cfg.range_harvest_scale)
         pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
-        return np.sqrt(flat * coverage * harvest_score * pain_score)
+        return np.sqrt(flat * coverage * harvest_score * pain_score * speed_factor(days, cfg))
 
     def channel(self, fit_curve, cfg):
         Y = to_space(fit_curve, cfg.space)

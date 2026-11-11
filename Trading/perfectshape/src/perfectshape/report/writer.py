@@ -19,14 +19,14 @@ MAX_CHART_POINTS = 400
 METRIC_ORDER = {
     "uptrend": ["annual_return", "r2", "adverse_ratio"],
     "downtrend": ["annual_return", "r2", "adverse_ratio"],
-    "range": ["harvest", "trades_per_year", "coverage", "per_trade", "worst_against", "swing_up", "swing_down",
+    "range": ["harvest", "trades_per_year", "to_mean", "coverage", "per_trade", "worst_against", "swing_up", "swing_down",
               "band_pos", "drift_ratio"],
 }
 
 
 METRIC_LABEL = {"swing_up": "bottom→top", "swing_down": "top→bottom", "harvest": "harvest/yr",
                 "trades_per_year": "trades/yr", "per_trade": "per trade", "band_pos": "now in band",
-                "coverage": "repeat", "worst_against": "worst against"}
+                "coverage": "repeat", "worst_against": "worst against", "to_mean": "to mean"}
 
 
 def _fmt_leg(members: list[str], weights: list[float]) -> str:
@@ -172,6 +172,7 @@ def _payload(out: ScanOutput, rows: list[dict]) -> dict:
                   "start": str(out.panel.dates[0]), "end": str(out.panel.dates[-1]),
                   "fit_end": str(out.panel.dates[out.fit_end - 1])},
         "search": cfg.search.model_dump(), "scoring": cfg.scoring.model_dump(), "ratio": cfg.ratio.model_dump(),
+        "data": cfg.data.model_dump(mode="json"),
         "universe_lists": cfg.universe.lists, "seconds": round(out.seconds, 1),
         "shapes": shapes,
     }
@@ -239,6 +240,8 @@ def _fmt_metric(k: str, v: float) -> str:
         return f"{v:+.1%}"
     if k in ("band_pos", "coverage"):
         return f"{v:.0%}"
+    if k == "to_mean":
+        return f"{v:.0f}d" if v == v else "–"
     if k == "trades_per_year":
         return f"{v:.1f}"
     if k in ("swing_down", "worst_against"):

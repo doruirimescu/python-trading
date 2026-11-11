@@ -32,6 +32,8 @@ class UniverseConfig(_Strict):
 class DataConfig(_Strict):
     source: Literal["yfinance", "synthetic"] = "yfinance"
     end: Optional[date] = Field(None, description="last bar of the analysis; null = latest available")
+    lag_years: float = Field(0.0, ge=0, le=20, description="end the analysis this many years before today (data.end, if "
+                                                           "set, wins); the years after it are the Trade Lab's final test")
     years: float = Field(6.0, gt=0, description="history to load (must cover the longest window + holdout)")
     cache_dir: str = "data_cache"
     max_age_days: int = Field(1, ge=0, description="re-download a cached ticker older than this (0 = always)")
@@ -80,6 +82,9 @@ class ScoringConfig(_Strict):
     range_pain_scale: float = Field(
         2.0, gt=0, description="range: penalise the worst move against an open band trade beyond 1 half-band: "
                                "score factor exp(-max(0, pain - 1) / this), pain in half-bands")
+    range_speed_days: float = Field(
+        0.0, ge=0, description="optional target for the average days a band trade takes to reach its exit: ranges "
+                               "within it keep their score, slower ones get min(1, target / days); 0 = off")
     range_segments: int = Field(
         4, ge=1, le=20, description="repeatability: the window is split into this many parts; the share of parts "
                                     "with a completed band trade multiplies into the range score")

@@ -40,6 +40,9 @@ Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, them
   shapes, lookback windows, the scoring / ranking knobs and the max ratios per window (the size cap) and the holdout length. Every
   setting has an ⓘ bubble explaining it (hover, focus or tap); the texts live in `TIPS` in `web/dashboard.js`. The box under the form shows the number of
   ratios and an estimated runtime; the YAML preview can be saved to `configs/` and run from the CLI later.
+* **Lookback windows** default to **10y** only. **Lag (years before today)** (`data.lag_years`, default 0) ends
+  the scan that many years ago: the search uses the windows ending then and never sees the years after. In the
+  Trade Lab those years are the **final test** (below).
 * **▶ Play** starts the scan (and clears the previous run's results); the progress bar, current step, elapsed
   time and ETA update every second. The ranking (same tables and charts as `report.html`) shows up after about
   3 seconds and is refreshed every 10 seconds and after every lookback window: windows run longest first and
@@ -80,6 +83,14 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
   all members equal weight; drawdown; statistics (final value, total return, CAGR, volatility, Sharpe,
   Sortino, max drawdown, Calmar, trades, win rate, average / best / worst trade, profit factor, holding days,
   time in the market, beta and correlation to SPY); the trade list (copy as CSV); calendar-year returns.
+* **Final test** (results of a lagged scan): the years after the scan's last bar are kept out of the backtest
+  (To stops at the scan end) and out of the optimizer (train and test both stay before it), so nothing is tuned
+  on them. Tick **Include the final test** to bring them back: the charts extend to today with the final period
+  shaded, and the statistics get **Final test** and **SPY · final test** columns (the same rules as their own
+  run from the scan end, fresh capital) plus a KPI tile. Saved analyses keep the scan end and the tick.
+* **Swing meter** on the ratio chart: click a point, then a second one, for the % move of the ratio between
+  them, the trading days, each basket's own move and what a long-numerator / short-denominator pair made over
+  that stretch (a dotted line on the chart; hover previews after the first click; a third click starts again).
 * Baskets are equal weight at the start date, held as fixed shares (as the scan values them). Shorts assume
   free borrow; no interest on cash. With the scan's band the backtest is in-sample inside the band's window.
 * Every setting can also be put in the URL (`&strategy=zscore&z_in=2.5&mode=rotation`), so a backtest can
@@ -219,7 +230,12 @@ Two guards keep one-off excursions from passing as ranges:
   `exp(-(pain - 1) / range_pain_scale)` (2.0): a squeeze that runs far through the band before reverting
   (e.g. 6 half-bands: x0.27) drops out, because nobody could have held the trade through it.
 
-Range report columns: harvest/yr, trades/yr, repeat, per trade, worst against (largest move against an open
+**Speed to the mean** (optional, `range_speed_days`, dashboard "Target days to mean", 0 = off): every range gets
+**to mean**, the average trading days a band trade takes from leaving the band to its exit. With a target of D
+days, ranges within it keep their score and slower ones get `min(1, D / days)` inside the square root (twice as
+slow keeps 71%), so faster-reverting ranges rank higher without the others being wiped out.
+
+Range report columns: harvest/yr, trades/yr, to mean, repeat, per trade, worst against (largest move against an open
 trade, from its entry edge), bottom->top and top->bottom (band size as a move
 from one edge to the other), **now in band** (last bar: 0% = bottom edge, 100% = top edge; outside 0-100% is
 an entry signal today) and drift/band. The chart shades the band, dots the median and extends both through
