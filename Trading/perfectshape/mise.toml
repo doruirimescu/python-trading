@@ -1,0 +1,50 @@
+[tools]
+python = "3.13"
+uv = "latest"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.install]
+description = "Install perfectshape (editable) + dev dependencies into .venv"
+run = "uv pip install -e '.[dev]'"
+
+[tasks.scan]
+description = "Scan with a config: mise run scan configs/sp500.yaml"
+run = "python -m perfectshape scan"
+
+[tasks.smoke]
+description = "Offline synthetic scan (~2 s)"
+run = "python -m perfectshape scan configs/smoke.yaml"
+
+[tasks.sp500]
+description = "Scan the S&P 500 (downloads/caches 11y of closes)"
+run = "python -m perfectshape scan configs/sp500.yaml"
+
+[tasks.country-ratios]
+description = "Basket-ratio scan of country ETFs: (A + B) / (C + D) trends and ranges"
+run = "python -m perfectshape scan configs/country_ratios.yaml"
+
+[tasks.etf-pairs]
+description = "Ratio scan of single ETFs (A / B) over 39 ETFs: sectors, factors, regions, bonds, gold (seconds)"
+run = "python -m perfectshape scan configs/etf_pairs.yaml"
+
+[tasks.etf-ratios]
+description = "Basket-ratio scan (A + B) / (C + D) over the same 39 ETFs (minutes)"
+run = "python -m perfectshape scan configs/etf_ratios.yaml"
+
+[tasks.dashboard]
+description = "Web dashboard on http://127.0.0.1:8765: pick a sector ETF, configure, play / pause, live results"
+run = "python -m perfectshape dashboard --open"
+
+[tasks.universe]
+description = "Universe commands: mise run universe list | refresh sp500"
+run = "python -m perfectshape universe"
+
+[tasks.test]
+description = "Run the offline test suite"
+run = "pytest -q"
+
+[tasks.lint]
+description = "Lint"
+run = "ruff check src tests"

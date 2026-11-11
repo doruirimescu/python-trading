@@ -7,24 +7,40 @@ import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
 from perfectshape.evaluate import Result
 from perfectshape.pipeline import ScanOutput
-from perfectshape.shapes import get_shape, linear_fit, to_space
+from perfectshape.ratio import count_ratios
+from perfectshape.shapes import get_shape, linear_fit, range_band, to_space
 
 MAX_CHART_POINTS = 400
 
 METRIC_ORDER = {
-    "uptrend": ["annual_return", "r2", "adverse_ratio"],
-    "downtrend": ["annual_return", "r2", "adverse_ratio"],
-    "range": ["height", "drift_ratio", "swings"],
+    "uptrend": ["annual_return", "r2", "adverse_ratio", "top_share"],
+    "downtrend": ["annual_return", "r2", "adverse_ratio", "top_share"],
+    "range": ["harvest", "trades_per_year", "band_vol", "recent_vol", "to_mean", "coverage", "per_trade",
+              "worst_against", "swing_up", "swing_down", "top_share", "band_pos", "drift_ratio"],
 }
 
 
+METRIC_LABEL = {"swing_up": "bottom→top", "swing_down": "top→bottom", "harvest": "harvest/yr",
+                "trades_per_year": "trades/yr", "per_trade": "per trade", "band_pos": "now in band",
+                "coverage": "repeat", "worst_against": "worst against", "to_mean": "to mean",
+                "band_vol": "band/vol", "recent_vol": "recent vol", "top_share": "top stock"}
+
+
+def _fmt_leg(members: list[str], weights: list[float]) -> str:
+    return " + ".join(f"{w:.0%} {m}" for m, w in sorted(zip(members, weights), key=lambda x: -x[1]))
+
+
 def _fmt_members(r: Result) -> str:
-    return " + ".join(f"{w:.0%} {m}" for m, w in sorted(zip(r.basket.members, r.basket.weights), key=lambda x: -x[1]))
+    b = r.basket
+    if b.is_ratio:
+        return f"({' + '.join(b.members)}) / ({' + '.join(b.den_members)})"
+    return _fmt_leg(b.members, b.weights)
 
 
 def _years(bars: int, ppy: int) -> float:
@@ -33,7 +49,7 @@ def _years(bars: int, ppy: int) -> float:
 
 def write_run(out: ScanOutput, root: str | Path | None = None) -> Path:
     cfg = out.cfg
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    stamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     digest = hashlib.sha256(cfg.model_dump_json().encode()).hexdigest()[:8]
     run_dir = Path(root or cfg.output.dir) / f"{stamp}_{cfg.name}_{digest}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -63,9 +79,13 @@ def _rows(out: ScanOutput) -> list[dict]:
                 "weights": " ".join(f"{w:.4f}" for w in r.basket.weights),
                 "weights_now": " ".join(f"{w:.4f}" for w in r.weights_now),
                 "names": " | ".join(out.universe.name(m) for m in r.basket.members),
+                "den_members": " ".join(r.basket.den_members),
+                "den_weights": " ".join(f"{w:.4f}" for w in r.basket.den_weights),
+                "den_weights_now": " ".join(f"{w:.4f}" for w in r.den_weights_now),
+                "den_names": " | ".join(out.universe.name(m) for m in r.basket.den_members),
                 "duration_bars": r.duration, "duration_years": round(_years(r.duration, ppy), 2),
-                "score": round(r.score, 4), "fit_window": r.basket.fit_window, "alive": r.alive,
-                "holdout_return": round(r.holdout_return, 4),
+                "score": round(r.score, 4), "score_window": r.ref_window, "fit_window": r.basket.fit_window, "alive": r.alive,
+                "holdout_return": round(r.holdout_return, 4), "top_member": r.top_member,
             }
             row.update({k: round(v, 4) for k, v in r.metrics.items()})
             row.update({f"score_{L}": round(v, 3) for L, v in r.window_scores.items()})
@@ -91,15 +111,16 @@ def _chart(out: ScanOutput, r: Result, shape_name: str) -> dict:
     space = out.cfg.scoring.space
     dates = out.panel.dates[r.chart_start:]
     curve = r.curve
-    ref = r.duration or r.basket.fit_window
+    ref = r.ref_window or r.duration or r.basket.fit_window
     off = r.fit_end - ref - r.chart_start
     seg = curve[off:off + ref]
     overlay: dict = {"from": int(off), "to": int(off + ref)}
     if shape_name == "range":
         Y = to_space(seg, space)
-        p5, p95 = np.percentile(Y, [5, 95])
+        q = out.cfg.scoring.range_band_pct
+        lo, mid, hi = range_band(Y, q)
         inv = np.exp if space == "log" else (lambda x: x)
-        overlay.update(kind="band", lo=float(inv(p5)), hi=float(inv(p95)))
+        overlay.update(kind="band", lo=float(inv(lo)), mid=float(inv(mid)), hi=float(inv(hi)), pct=q)
     else:
         a, b, _, _ = linear_fit(to_space(seg, space)[:, None])
         n = len(seg)
@@ -123,6 +144,26 @@ def _chart(out: ScanOutput, r: Result, shape_name: str) -> dict:
     }
 
 
+def _coverage(out: ScanOutput) -> tuple[list[str], list[str]]:
+    """Universe tickers with no prices at all, and those whose prices do not cover the longest window (from its
+    start through the holdout): neither can be in any basket of that window."""
+    p = out.panel
+    have = set(p.symbols)
+    missing = [t for t in out.universe.tickers if t not in have]
+    start = max(0, out.fit_end - max(out.cfg.search.windows))
+    full = set(p.complete_columns(start, p.n_bars).tolist())
+    short = [s for j, s in enumerate(p.symbols) if j not in full]
+    return missing, short
+
+
+def _usable(out: ScanOutput) -> tuple[int, Optional[int]]:
+    """Stocks that can be in a basket of the longest window, and (ratio mode) how many ratios that window scans."""
+    p = out.panel
+    start = max(0, out.fit_end - max(out.cfg.search.windows))
+    n = len(p.complete_columns(start, p.n_bars))
+    return n, (count_ratios(n, out.cfg.ratio) if out.cfg.search.mode == "ratio" else None)
+
+
 def _payload(out: ScanOutput, rows: list[dict]) -> dict:
     cfg = out.cfg
     shapes = {}
@@ -134,24 +175,45 @@ def _payload(out: ScanOutput, rows: list[dict]) -> dict:
                 "members": [{"ticker": m, "name": out.universe.name(m), "sector": out.universe.sector(m),
                              "weight": w, "weight_now": wn}
                             for m, w, wn in zip(r.basket.members, r.basket.weights, r.weights_now)],
-                "duration": r.duration, "score": r.score, "fit_window": r.basket.fit_window,
+                "den_members": [{"ticker": m, "name": out.universe.name(m), "sector": out.universe.sector(m),
+                                 "weight": w, "weight_now": wn}
+                                for m, w, wn in zip(r.basket.den_members, r.basket.den_weights,
+                                                    r.den_weights_now)],
+                "duration": r.duration, "score": r.score, "ref_window": r.ref_window,
+                "fit_window": r.basket.fit_window,
                 "alive": r.alive, "holdout_return": r.holdout_return, "metrics": r.metrics,
+                "top_member": r.top_member,
                 "window_scores": {str(k): v for k, v in r.window_scores.items()},
                 "chart": _chart(out, r, shape),
             })
         shapes[shape] = {"candidates": out.n_candidates[shape], "items": items,
                          "metric_order": METRIC_ORDER.get(shape, [])}
+    missing, short = _coverage(out)
+    used, n_ratios = _usable(out)
     return {
         "name": cfg.name,
         "generated": datetime.now().isoformat(timespec="seconds"),
         "panel": {"bars": out.panel.n_bars, "symbols": len(out.panel.symbols),
-                  "requested": len(out.universe.tickers),
-                  "start": str(out.panel.dates[0]), "end": str(out.panel.dates[-1]),
+                  "requested": len(out.universe.tickers), "missing": missing, "short": short,
+                  "used": used, "ratios": n_ratios,
+                  "window": max(cfg.search.windows), "start": str(out.panel.dates[0]), "end": str(out.panel.dates[-1]),
                   "fit_end": str(out.panel.dates[out.fit_end - 1])},
-        "search": cfg.search.model_dump(), "scoring": cfg.scoring.model_dump(),
+        "search": cfg.search.model_dump(), "scoring": cfg.scoring.model_dump(), "ratio": cfg.ratio.model_dump(),
+        "data": cfg.data.model_dump(mode="json"),
         "universe_lists": cfg.universe.lists, "seconds": round(out.seconds, 1),
         "shapes": shapes,
     }
+
+
+def _coverage_md(out: ScanOutput) -> list[str]:
+    missing, short = _coverage(out)
+    lines = []
+    if missing:
+        lines.append(f"- **no price data** (left out; a failed download is retried by the next scan): {', '.join(missing)}")
+    if short:
+        lines.append(f"- **history shorter than the {max(out.cfg.search.windows)}-bar window** (in no basket): "
+                     f"{', '.join(short)}")
+    return lines
 
 
 def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
@@ -162,11 +224,11 @@ def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
         "## Meta",
         f"- universe: {', '.join(cfg.universe.lists) or 'inline'} ({len(out.universe.tickers)} requested, "
         f"{len(p.symbols)} with data)",
+        *_coverage_md(out),
         f"- bars: {p.n_bars} ({p.dates[0]} .. {p.dates[-1]})",
         f"- fit end: {p.dates[out.fit_end - 1]} (holdout {cfg.search.holdout_bars} bars after it)",
         f"- windows: {cfg.search.windows}",
-        f"- basket: max {cfg.search.max_assets} assets, {'long-only' if cfg.search.long_only else 'long/short'}, "
-        f"max weight {cfg.search.max_weight:.0%}",
+        _basket_desc(cfg),
         f"- threshold: {cfg.scoring.threshold}, space: {cfg.scoring.space}, runtime: {out.seconds:.1f}s", "",
     ]
     for shape, results in out.ranked.items():
@@ -175,11 +237,14 @@ def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
             lines += ["- none held the shape over any window", ""]
             continue
         mk = METRIC_ORDER.get(shape, [])
-        lines.append("| # | basket | held | score | " + " | ".join(mk) + " | holdout | alive |")
+        lines.append("| # | basket | held | score | " + " | ".join(METRIC_LABEL.get(k, k) for k in mk)
+                     + " | holdout | alive |")
         lines.append("|---|---|---|---|" + "---|" * len(mk) + "---|---|")
         for i, r in enumerate(results, 1):
             ms = " | ".join(_fmt_metric(k, r.metrics.get(k, float('nan'))) for k in mk)
-            lines.append(f"| {i} | {_fmt_members(r)} | {r.duration} bars ({_years(r.duration, ppy):.1f}y) | "
+            scored = (f", scored on {_years(r.ref_window, ppy):.1f}y" if r.ref_window and r.ref_window != r.duration
+                      else "")
+            lines.append(f"| {i} | {_fmt_members(r)} | {r.duration} bars ({_years(r.duration, ppy):.1f}y{scored}) | "
                          f"{r.score:.3f} | {ms} | {r.holdout_return:+.1%} | {'yes' if r.alive else 'NO'} |")
         lines.append("")
     lines += [
@@ -189,6 +254,9 @@ def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
         "- Universe is today's constituents (survivorship bias).",
         "- Weights are capital weights at the fit-window start, held as fixed shares (no rebalancing); "
         "`weights_now` in results.csv is the drifted allocation at the last bar.",
+        *(["- Ratio mode: each leg is equal-weight at the fit-window start; value = numerator / denominator. "
+            "Trends are oriented so the numerator outperforms (a falling A/B is listed as a rising B/A)."]
+          if cfg.search.mode == "ratio" else []),
         "",
         "## Files",
         "- results.csv, results.json, report.html, config.resolved.json",
@@ -196,9 +264,31 @@ def _summary_md(out: ScanOutput, rows: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _basket_desc(cfg) -> str:
+    if cfg.search.mode == "ratio":
+        r = cfg.ratio
+        return (f"- basket ratios: {r.k} vs {r.k} instruments, equal weight per leg, "
+                f"{'overlap allowed' if r.allow_overlap else 'disjoint legs'}")
+    s = cfg.search
+    return (f"- basket: max {s.max_assets} assets, {'long-only' if s.long_only else 'long/short'}, "
+            f"max weight {s.max_weight:.0%}")
+
+
 def _fmt_metric(k: str, v: float) -> str:
-    if k in ("annual_return", "height"):
-        return f"{v:+.1%}" if k == "annual_return" else f"{v:.1%}"
+    if v != v:
+        return "–"
+    if k in ("annual_return", "swing_up", "harvest", "per_trade"):
+        return f"{v:+.1%}"
+    if k in ("band_pos", "coverage", "top_share"):
+        return f"{v:.0%}"
+    if k == "to_mean":
+        return f"{v:.0f}d" if v == v else "–"
+    if k == "trades_per_year":
+        return f"{v:.1f}"
+    if k in ("swing_down", "worst_against"):
+        return f"{-v:+.1%}"
+    if k == "height":
+        return f"{v:.1%}"
     if k == "swings":
         return f"{v:.0f}"
     return f"{v:.2f}"

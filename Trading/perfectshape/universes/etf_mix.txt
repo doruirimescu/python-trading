@@ -1,0 +1,47 @@
+# Broad liquid ETF mix for basket-ratio scans: US sectors, styles/factors, regions, industries, cross-asset.
+# Excludes roll-decaying commodity futures ETFs (USO, UNG) and leveraged/inverse funds: their structural decay
+# would dominate every "X outperforms Y" trend.
+# US sectors
+XLB   # Materials
+XLE   # Energy
+XLF   # Financials
+XLI   # Industrials
+XLK   # Technology
+XLP   # Consumer Staples
+XLU   # Utilities
+XLV   # Health Care
+XLY   # Consumer Discretionary
+# US size / style / factor
+SPY   # S&P 500
+QQQ   # Nasdaq-100
+IWM   # Russell 2000
+MTUM  # Momentum factor
+VLUE  # Value factor
+QUAL  # Quality factor
+USMV  # Minimum volatility
+# Industries / themes
+SMH   # Semiconductors
+XBI   # Biotech
+ITA   # Aerospace & defense
+KRE   # Regional banks
+XHB   # Homebuilders
+# Regions / countries
+EFA   # Developed ex-US
+EEM   # Emerging markets
+EWJ   # Japan
+EWG   # Germany
+EWU   # United Kingdom
+EWC   # Canada
+EWA   # Australia
+INDA  # India
+MCHI  # China
+EWZ   # Brazil
+# Cross-asset
+TLT   # 20+y Treasuries
+IEF   # 7-10y Treasuries
+LQD   # IG corporate bonds
+HYG   # High-yield bonds
+GLD   # Gold
+SLV   # Silver
+VNQ   # US REITs
+UUP   # US dollar index

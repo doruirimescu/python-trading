@@ -104,7 +104,7 @@ def build_universe(lists: Iterable[str], tickers: Iterable[str] = (), exclude: I
                    limit: int | None = None) -> Universe:
     out = Universe([], {})
     for name in lists:
-        u = read_list(resolve_list_path(name))
+        u = etf_universe(name[4:]) if name.lower().startswith("etf:") else read_list(resolve_list_path(name))
         for t in u.tickers:
             if t not in out.meta:
                 out.tickers.append(t)
@@ -120,6 +120,17 @@ def build_universe(lists: Iterable[str], tickers: Iterable[str] = (), exclude: I
         out.tickers = out.tickers[:limit]
     out.meta = {t: out.meta[t] for t in out.tickers}
     return out
+
+
+def etf_universe(etf: str) -> Universe:
+    """Holdings of a sector ETF (``etf:XLK`` in universe.lists), largest weight first, see holdings.py."""
+    from perfectshape.holdings import SECTOR_ETFS, holdings
+
+    etf = etf.upper()
+    hs = holdings(etf)
+    return Universe([h.ticker for h in hs],
+                    {h.ticker: {"name": h.name, "sector": SECTOR_ETFS.get(etf, etf), "weight": f"{h.weight:.2f}"}
+                     for h in hs})
 
 
 # ---------------------------------------------------------------- fetchers (network)

@@ -31,9 +31,25 @@ class Basket:
     fit_start: int                # panel row of the fit-window start
     fit_score: float
     shares: dict[str, float] = field(default_factory=dict)   # units per 1.0 of capital (fixed-share holding)
+    # ratio mode: the basket's value is (members @ shares) / (den_members @ den_shares); both legs start at 1.0
+    den_members: list[str] = field(default_factory=list)
+    den_weights: list[float] = field(default_factory=list)
+    den_shares: dict[str, float] = field(default_factory=dict)
 
-    def key(self) -> frozenset:
-        return frozenset(self.members)
+    @property
+    def is_ratio(self) -> bool:
+        return bool(self.den_members)
+
+    @property
+    def all_members(self) -> list[str]:
+        return self.members + self.den_members
+
+    @property
+    def size(self) -> int:
+        return len(self.members) + len(self.den_members)
+
+    def key(self) -> tuple:
+        return frozenset(self.members), frozenset(self.den_members)
 
 
 def penalised(score: np.ndarray, k: int, cfg: ScoringConfig) -> np.ndarray:

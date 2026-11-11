@@ -1,6 +1,7 @@
 """Duration and holdout evaluation of found baskets, and the final ranking.
 
-A basket is held as fixed shares (bought with its fit-window weights). Its value curve is re-scored on every
+A basket is held as fixed shares (bought with its fit-window weights); a basket ratio (ratio mode) holds
+both legs as fixed shares and its value is numerator / denominator. Its value curve is re-scored on every
 window of the ladder ending at the fit end; **duration** is the longest window whose score clears
 ``scoring.threshold``: how long the basket has been tracing the shape.
 
@@ -18,7 +19,7 @@ import numpy as np
 from perfectshape.config import RankingConfig, ScoringConfig
 from perfectshape.data.panel import Panel
 from perfectshape.search import Basket, penalised
-from perfectshape.shapes import Shape, to_space
+from perfectshape.shapes import Shape, range_band, to_space
 
 
 @dataclass
@@ -30,19 +31,63 @@ class Result:
     window_scores: dict[int, float]
     alive: bool
     holdout_return: float
-    weights_now: list[float]
+    weights_now: list[float]                       # drifted weights at the last bar (numerator leg in ratio mode)
     chart_start: int                               # panel row where the chart curve starts
     curve: np.ndarray = field(repr=False, default=None)  # value from chart_start to the last bar, starts at 1.0
     fit_end: int = 0
+    den_weights_now: list[float] = field(default_factory=list)
+    ref_window: int = 0                            # window that score / metrics / channel / chart describe
+    top_member: str = ""                           # ratio mode: the stock behind the largest share of its swings
+
+
+class _Legs:
+    """Fixed-share legs of a basket: value = close[:, mi] @ sh, divided by the denominator leg if any."""
+
+    def __init__(self, b: Basket, sym_idx: dict[str, int]):
+        self.mi = np.array([sym_idx[m] for m in b.members])
+        self.sh = np.array([b.shares[m] for m in b.members])
+        self.di = np.array([sym_idx[m] for m in b.den_members], dtype=np.int64)
+        self.dsh = np.array([b.den_shares[m] for m in b.den_members])
+
+    def value(self, block: np.ndarray) -> np.ndarray:
+        v = block[:, self.mi] @ self.sh
+        if self.di.size:
+            v = v / (block[:, self.di] @ self.dsh)
+        return v
+
+    def top_share(self, block: np.ndarray) -> tuple[int, float]:
+        """Ratio mode: (member index, share) of the member behind the largest share of the ratio's daily variance.
+
+        With both legs at equal weight, the ratio's daily log change is mean(r_i) - mean(r_j); a member's share
+        is cov(its signed term, the ratio's change) / var(the ratio's change). Shares sum to 1; similar members
+        of k vs k would each have 1 / (2k). A high share means one stock's own volatility drives the ratio (a
+        bet on that stock): on 5-year windows the top fifth of it had about 3x the losses beyond 60% in the
+        forward test (README, "Robust ranges"). Equal weight is the definition that was tested; the same share
+        under the drifted fixed-share weights showed no such link, nor did either one on 10-year windows.
+        """
+        if not self.di.size or len(block) < 3:
+            return -1, float("nan")
+        with np.errstate(invalid="ignore", divide="ignore"):
+            rn = np.diff(np.log(block[:, self.mi]), axis=0) / len(self.mi)
+            rd = np.diff(np.log(block[:, self.di]), axis=0) / len(self.di)
+            C = np.column_stack([rn, -rd])
+            r = C.sum(1)
+            share = ((C - C.mean(0)) * (r - r.mean())[:, None]).mean(0) / max(r.var(), 1e-18)
+        if not np.isfinite(share).all():
+            return -1, float("nan")
+        j = int(np.argmax(share))
+        return j, float(share[j])
 
 
 def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[int], fit_end: int,
-             scoring: ScoringConfig) -> list[Result]:
+             scoring: ScoringConfig, ref_window: str = "longest", min_ref: int = 0) -> list[Result]:
+    """ref_window: which window describes a basket (score, metrics, channel, chart): the longest one that
+    holds the shape ("longest"), or the best-scoring one that holds it and is at least ``min_ref`` bars
+    long ("best")."""
     if not baskets:
         return []
     sym_idx = {s: i for i, s in enumerate(panel.symbols)}
-    members = [np.array([sym_idx[m] for m in b.members]) for b in baskets]
-    shares = [np.array([b.shares[m] for m in b.members]) for b in baskets]
+    legs = [_Legs(b, sym_idx) for b in baskets]
 
     per_window: dict[int, tuple[np.ndarray, dict]] = {}
     for L in windows:
@@ -50,11 +95,12 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
         if s < 0:
             continue
         block = panel.close[s:fit_end]
-        V = np.column_stack([block[:, mi] @ sh for mi, sh in zip(members, shares)])
+        with np.errstate(invalid="ignore", divide="ignore"):
+            V = np.column_stack([lg.value(block) for lg in legs])
         valid = np.isfinite(V).all(axis=0) & (V > 0).all(axis=0)
         V = np.where(valid, V, 1.0)
         res = shape.score(V / V[0], scoring)
-        k = np.array([len(b.members) for b in baskets])
+        k = np.array([b.size for b in baskets])
         sc = res.score * np.clip(1.0 - scoring.complexity_penalty * (k - 1), 0, 1)
         sc = np.where(valid, sc, 0.0)
         per_window[L] = (sc, res.metrics)
@@ -65,10 +111,14 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
         ws = {L: float(per_window[L][0][i]) for L in used}
         held = [L for L in used if ws[L] >= scoring.threshold]
         duration = max(held) if held else 0
-        ref = duration or max(ws, key=ws.get)
+        if held and ref_window == "best":
+            eligible = [L for L in held if L >= min_ref] or [duration]
+            ref = max(eligible, key=lambda L: (ws[L], L))
+        else:
+            ref = duration or max(ws, key=ws.get)
         metrics = {k: float(v[i]) for k, v in per_window[ref][1].items()}
         chart_start = fit_end - max(ref, b.fit_window)
-        full = panel.close[chart_start:, members[i]] @ shares[i]
+        full = legs[i].value(panel.close[chart_start:])
         curve = full / full[0]
         off = fit_end - ref - chart_start
         seg = curve[off:] / curve[off]
@@ -88,12 +138,27 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
             alive = bool(side_ok and _adverse(Yh0, shape.direction) <= alive_limit(Yin, len(Yh0), shape.direction))
         else:
             alive = bool(np.all((Yh >= lo) & (Yh <= hi)))
+        if shape.direction == 0:
+            # where the last bar sits in the held span's band: 0 = bottom edge, 1 = top edge, outside = signal
+            q = scoring.range_band_pct
+            Yin = to_space(seg[:ref], scoring.space)
+            blo, _, bhi = range_band(Yin, q)
+            ylast = float(to_space(seg[-1:], scoring.space)[0])
+            metrics["band_pos"] = (ylast - blo) / max(bhi - blo, 1e-12)
+        top_member = ""
+        if b.is_ratio:
+            j, metrics["top_share"] = legs[i].top_share(panel.close[fit_end - ref:fit_end])
+            if j >= 0:
+                top_member = b.all_members[j]
         hold_ret = float(curve[-1] / curve[fit_end - chart_start - 1] - 1.0) if len(Yh) else 0.0
-        last = panel.close[-1, members[i]] * shares[i]
+        last = panel.close[-1, legs[i].mi] * legs[i].sh
+        dlast = panel.close[-1, legs[i].di] * legs[i].dsh
         out.append(Result(
             basket=b, duration=duration, score=ws[ref], metrics=metrics, window_scores=ws, alive=alive,
             holdout_return=hold_ret, weights_now=[float(x) for x in last / last.sum()],
             chart_start=chart_start, curve=curve, fit_end=fit_end,
+            den_weights_now=[float(x) for x in dlast / dlast.sum()] if dlast.size else [], ref_window=ref,
+            top_member=top_member,
         ))
     return out
 
@@ -117,16 +182,20 @@ def alive_limit(Y: np.ndarray, span: int, direction: int, q: float = 95.0) -> fl
     return float(np.percentile(adv, q))
 
 
-def rank(results: list[Result], cfg: RankingConfig) -> list[Result]:
-    pool = [r for r in results if r.duration > 0 and (r.alive or not cfg.require_alive)]
-    pool.sort(key=lambda r: (-r.duration, -r.score, len(r.basket.members), -r.basket.fit_window))
+def rank(results: list[Result], cfg: RankingConfig, by: str = "duration", min_held: int = 0) -> list[Result]:
+    pool = [r for r in results
+            if r.duration > 0 and r.duration >= min_held and (r.alive or not cfg.require_alive)]
+    if by == "score":
+        pool.sort(key=lambda r: (-r.score, -r.duration, r.basket.size, -r.basket.fit_window))
+    else:
+        pool.sort(key=lambda r: (-r.duration, -r.score, r.basket.size, -r.basket.fit_window))
     kept: list[Result] = []
     uses: dict[str, int] = {}
     for r in pool:
-        mem = set(r.basket.members)
+        mem = set(r.basket.all_members)
         if any(uses.get(m, 0) >= cfg.max_per_member for m in mem):
             continue
-        if any(len(mem & set(k.basket.members)) / min(len(mem), len(k.basket.members)) > cfg.max_overlap
+        if any(len(mem & set(k.basket.all_members)) / min(len(mem), k.basket.size) > cfg.max_overlap
                for k in kept):
             continue
         kept.append(r)

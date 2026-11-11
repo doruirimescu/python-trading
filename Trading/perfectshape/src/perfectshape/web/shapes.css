@@ -1,0 +1,190 @@
+/* Perfect Shapes: page layout only, on top of the Nexus design system
+ * (https://doruirimescu.github.io/nexus-design/nexus.css). Colours, tokens and the shared components come
+ * from nexus.css and its themes; nothing here sets a colour value.
+ * The dashboard server reads this file on every request: edit it and refresh the page. */
+
+:root {
+  /* basket legs (identity, not polarity): accent and the theme's second series colour */
+  --leg-num: var(--accent);
+  --leg-den: var(--series-2);
+  --leg-num-soft: var(--accent-soft);
+  --leg-den-soft: var(--series-2-soft);
+}
+
+/* ---------- ratio anatomy: (num chips) / (den chips) ---------- */
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.chip.num { background: var(--leg-num-soft); border-color: color-mix(in srgb, var(--leg-num) 40%, transparent); }
+.chip.num::before { background: var(--leg-num); }
+.chip.den { background: var(--leg-den-soft); border-color: color-mix(in srgb, var(--leg-den) 45%, transparent); }
+.chip.den::before { background: var(--leg-den); }
+.chip.long::before { background: var(--accent); }
+.ratio { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+.ratio .chips { flex-wrap: nowrap; }
+.ratio .over-sign { color: var(--faint); font-weight: 700; font-size: 15px; }
+
+/* ---------- compact ratio label: (i) + tickers cut with an ellipsis (members + names in the bubble) ---------- */
+.ratio-compact { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; vertical-align: middle; }
+.ratio-compact .info { margin-left: 0; }
+.ratio-compact .tk { font-family: var(--mono); font-size: 12.5px; color: var(--text); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+table.data.ps .ratio-compact .tk { max-width: 300px; }
+.tip .tip-h { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin: 6px 0 4px; }
+.tip .tip-h:first-child { margin-top: 0; }
+.tip .tip-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; color: var(--muted); }
+.tip .tip-row .chip { flex: none; }
+.tip .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none; }
+
+/* ---------- Trade Lab: ratio anatomy (numerator ÷ denominator) ---------- */
+.anatomy { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 22px; padding: 18px 22px; }
+.anatomy .side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.anatomy .side.den { align-items: flex-end; text-align: right; }
+.anatomy .chips { gap: 6px; flex-wrap: wrap; }
+.anatomy .side.den .chips { justify-content: flex-end; }
+.anatomy .div { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 700;
+  color: var(--muted); background: var(--surface-3); border: 1px solid var(--border-strong); }
+.anatomy .hint { font-size: 12.5px; color: var(--muted); }
+.leg-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.leg-label.num { color: var(--leg-num); }
+.leg-label.den { color: var(--series-2-ink); }
+@media (max-width: 640px) {
+  .anatomy { grid-template-columns: 1fr; }
+  .anatomy .side.den { align-items: flex-start; text-align: left; }
+  .anatomy .side.den .chips { justify-content: flex-start; }
+}
+
+/* ---------- results ---------- */
+.results-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 18px; }
+table.data.ps td { vertical-align: middle; }
+table.data.ps td.rank { font-family: var(--mono); color: var(--faint); width: 32px; }
+.shape-note { margin: 10px 0 0; max-width: 980px; }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; margin-top: 16px; }
+.chart-grid .chart-panel { margin-top: 0; min-width: 0; }
+.chart-grid .chart-head { gap: 10px; }
+.chart-grid .chart-head h3 { font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; min-width: 0; flex: 1; }
+.chart-grid .chart-head .verdict { flex: none; }
+/* results that open the Trade Lab */
+.openable { cursor: pointer; }
+.chart-panel.openable { transition: border-color 0.15s; }
+.chart-panel.openable:hover { border-color: var(--accent); }
+table.data.ps tr.openable:hover td { background: var(--accent-soft); }
+.chart-grid .chart-head h3 .rank { font-family: var(--mono); color: var(--faint); font-weight: 600; }
+.chart-grid .chart-sub { padding: 0 14px; font-size: 12.5px; color: var(--muted); }
+.chart-grid .chart { height: 230px; }
+.more-row { display: flex; justify-content: center; margin-top: 14px; }
+.empty-state { padding: 48px 16px; text-align: center; color: var(--muted); }
+
+/* ---------- page width: the lab needs more room than the 1200px Nexus default ---------- */
+body.wide .container, body.wide .topbar-inner { max-width: 1680px; }
+
+/* ---------- lab: config sidebar + run ---------- */
+.lab { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 22px; }
+.lab-side { position: sticky; top: 76px; max-height: calc(100vh - 96px); overflow-y: auto; padding: 0; }
+.lab-side .group { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.lab-side .group h4 {
+  margin: 0 0 10px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint); display: flex; justify-content: space-between; align-items: center;
+}
+.lab-side .group h4 .muted { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.lab .field { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 10px; align-items: center; margin: 7px 0; font-size: 13.5px; font-weight: 400; }
+/* label text and its (i) stay on one line: the text may wrap, the bubble stays next to it */
+.lab .field > span, .lab .check > span { color: var(--muted); min-width: 0; display: inline-flex; align-items: center; }
+.lab .field > span .info, .lab .check > span .info { margin-left: 6px; }
+.lab .field .input { width: 100%; padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
+.lab .field.wide { grid-template-columns: 1fr; }
+.lab .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); margin: 8px 0; }
+.toggle-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.toggle-row .chip { cursor: pointer; user-select: none; }
+.toggle-row .chip.off { opacity: 0.35; }
+.toggle-row .chip::before { content: none; }
+
+.hold-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: calc(var(--radius) * 0.6); margin-top: 8px; }
+.hold-row { display: grid; grid-template-columns: 20px 58px minmax(0, 1fr) auto; gap: 8px; align-items: center;
+  padding: 5px 10px; border-bottom: 1px solid var(--border); font-size: 12.5px; cursor: pointer; }
+.hold-row:last-child { border-bottom: 0; }
+.hold-row .sym { font-family: var(--mono); font-weight: 600; color: var(--text); }
+.hold-row .nm { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hold-row .w { font-family: var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.hold-row.out { opacity: 0.4; }
+.hold-row.excluded .sym { text-decoration: line-through; }
+
+.estimate { margin-top: 10px; font-size: 13px; }
+.run-panel { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; }
+.run-panel .run-buttons { display: flex; gap: 8px; flex: none; }
+.run-panel .run-buttons .btn { min-width: 104px; justify-content: center; }
+.run-panel .run-status { flex: 1 1 320px; min-width: 0; }
+.run-panel .run-line { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px; }
+.run-panel .progress { height: 8px; border-radius: 4px; }
+.run-panel .progress.paused > div { background: var(--neutral); }
+.run-links { font-size: 13px; margin-top: 8px; }
+
+/* ---------- info bubbles: an (i) button next to a parameter; one tooltip pinned to the viewport ---------- */
+.info {
+  display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 6px; padding: 0;
+  border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--muted);
+  font: 600 10px/1 var(--mono); cursor: help; vertical-align: 1px; flex: none;
+  text-transform: none; letter-spacing: 0;
+}
+.info:hover, .info:focus-visible, .info[aria-expanded="true"] { color: var(--accent-ink); border-color: var(--accent); outline: none; }
+.tip {
+  position: fixed; z-index: 1000; max-width: 320px; padding: 10px 12px;
+  background: var(--surface-3); color: var(--text); border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius) * 0.7); box-shadow: var(--shadow-hover);
+  font-size: 12.5px; line-height: 1.5; font-weight: 400; text-transform: none; letter-spacing: 0; pointer-events: none;
+}
+.tip b { color: var(--accent-ink); }
+
+/* ---------- Trade Lab: equity toggle and optimizer ---------- */
+.legend-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.legend-toggle input { margin: 0; }
+.opt-jump { width: 100%; justify-content: center; margin: 0 0 10px; }
+.opt-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 4px 22px; align-items: center; }
+.opt-controls .field { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 10px; align-items: center; margin: 4px 0; font-size: 13.5px; }
+.opt-controls .field > span { color: var(--muted); }
+.opt-controls .input { width: 100%; padding: 5px 8px; font-size: 13px; font-family: var(--mono); }
+.opt-controls .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.opt-controls .btn { justify-self: start; }
+table.data td.cfg { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: normal; min-width: 260px; }
+table.data tr.best td { background: var(--accent-soft); }
+table.data th.grp { text-align: center; border-bottom: 1px solid var(--border); }
+
+/* ---------- Trade Lab: swing meter ---------- */
+.meter { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 2px 14px 6px; font-size: 13px; color: var(--muted); min-height: 30px; }
+.meter-text b { color: var(--text); }
+.meter-text .big { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+#c-ratio { cursor: crosshair; }
+
+/* ---------- Trade Lab: full-screen ratio chart (browser full screen, or the whole window as a fallback) ---------- */
+#ratio_panel.maximized { position: fixed; inset: 0; z-index: 1000; margin: 0; border-radius: 0; display: flex; flex-direction: column;
+  background: var(--surface); padding-bottom: 10px; }
+#ratio_panel.maximized #c-ratio { flex: 1 1 auto; height: auto; min-height: 0; }
+body.chart-maximized { overflow: hidden; }
+
+/* ---------- saved analyses ---------- */
+.save-panel, .saved-info { margin-top: 16px; }
+.save-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 14px; }
+.field-stack { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.field-stack .input { width: 100%; font-size: 14px; }
+.field-stack textarea.input { resize: vertical; font-family: var(--font); }
+.save-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+.saved-info h3 { margin: 0 0 4px; font-size: 16px; }
+.saved-info .notes { white-space: pre-wrap; color: var(--muted); margin: 6px 0 10px; font-size: 13.5px; }
+.saved-info table.data { margin-top: 6px; }
+table.data td.actions { white-space: nowrap; text-align: right; }
+table.data td.actions .btn + .btn { margin-left: 6px; }
+@media (max-width: 640px) { .save-grid { grid-template-columns: 1fr; } }
+
+pre.code {
+  margin: 0; padding: 14px 16px; overflow: auto; max-height: 420px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+details.log summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 900px) {
+  .lab { grid-template-columns: 1fr; }
+  .lab-side { position: static; max-height: none; }
+}
+@media (max-width: 640px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .lab .field { grid-template-columns: 1fr 120px; }
+}

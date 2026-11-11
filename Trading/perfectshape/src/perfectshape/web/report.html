@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>__NAME__ · Perfect Shapes</title>
+  <meta name="description" content="Perfect Shapes scan: baskets and basket ratios tracing straight trends and tradable ranges.">
+  <link rel="stylesheet" href="https://doruirimescu.github.io/nexus-design/nexus.css">
+  <script src="https://doruirimescu.github.io/nexus-design/nexus.js"></script>
+  <link rel="icon" href="https://doruirimescu.github.io/nexus-design/favicon.svg">
+  <style>/*__SHAPES_CSS__*/</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#"><span class="brand-mark">P</span>Perfect Shapes</a>
+      <nav class="nav"><a href="#" class="active">Run report</a></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="eyebrow">Run report · generated __GENERATED__</div>
+    <h1>__TITLE__ <span class="gradient-text">shapes</span></h1>
+    <p class="lead">__LEAD__</p>
+    <div id="report"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">In-sample search: some shapes are coincidence. Research tooling, not investment advice.</div>
+  </footer>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script>/*__REPORT_JS__*/</script>
+  <script>PS.renderReport(__DATA__, document.getElementById("report"), PS.canOpenLab() ? { onOpen: PS.openTradeLab } : {});</script>
+</body>
+</html>
