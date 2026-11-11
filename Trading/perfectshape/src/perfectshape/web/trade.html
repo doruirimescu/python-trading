@@ -95,7 +95,7 @@
         <div class="group">
           <h4><span data-tip-for="execution">Execution</span></h4>
           <label class="field"><span>Position</span><select class="input" id="mode">
-            <option value="pair">pair (long/short)</option><option value="rotation">rotation</option><option value="longnum">numerator only</option></select></label>
+            <option value="rotation">rotation</option><option value="pair">pair (long/short)</option><option value="longnum">numerator only</option></select></label>
           <label class="field" data-for-mode="pair"><span>Exposure per leg (×)</span><input class="input" type="number" id="leg" step="0.25" min="0.25" max="3"></label>
           <label class="field"><span>Starting capital ($)</span><input class="input" type="number" id="capital" step="1000" min="100"></label>
           <label class="field"><span>Costs per side (bps)</span><input class="input" type="number" id="bps" step="1" min="0"></label>
@@ -112,10 +112,12 @@
       <section style="min-width:0">
         <div class="kpis tight" id="kpis"></div>
 
-        <div class="panel chart-panel">
+        <div class="panel chart-panel" id="ratio_panel">
           <div class="chart-head"><h3>Ratio, rules and trades</h3>
             <div class="legend"><span><i class="ln sw-accent"></i>ratio</span><span><i class="band sw-neutral"></i>band / averages</span>
-              <span><i class="sw-under"></i>enter: numerator up</span><span><i class="sw-series-2"></i>enter: denominator up</span><span><i class="sw-neutral"></i>exit</span></div></div>
+              <span><i class="sw-under"></i>enter: numerator up</span><span><i class="sw-series-2"></i>enter: denominator up</span><span><i class="sw-neutral"></i>exit</span></div>
+            <div class="tools"><button type="button" class="btn sm" id="ratio_max" aria-pressed="false"
+              title="Fill the screen with this chart (Esc to leave). Zoom and the swing meter keep working.">⛶ Full screen</button></div></div>
           <div class="meter" id="meter"><span class="meter-text" id="meter_text"></span>
             <button type="button" class="btn sm" id="meter_clear" hidden>Clear</button></div>
           <div id="c-ratio" class="chart h-lg"></div>

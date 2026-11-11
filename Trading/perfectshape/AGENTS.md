@@ -7,3 +7,5 @@ system (live nexus.css / nexus.js, see the nexus-style skill): layout-only CSS, 
 reads web/ files on every request, so front-end edits need only a browser refresh; Python edits need a restart, which
 ends a running scan. Scan hooks: pipeline.ScanControl.
 Standalone package: no imports from Trading.*, mrscore or tradelab. Do not commit runs/, data_cache/ or analyses/.
+Research (not part of the package, needs scikit-learn): research/robust_ranges/ = the forward test of lagged
+scans behind scoring.range_robust (study, end-to-end replay, trend replay; README there).

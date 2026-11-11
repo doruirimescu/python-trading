@@ -40,7 +40,13 @@ Pages use the Investing Nexus design system (live `nexus.css` / `nexus.js`, them
   shapes, lookback windows, the scoring / ranking knobs and the max ratios per window (the size cap) and the holdout length. Every
   setting has an ⓘ bubble explaining it (hover, focus or tap); the texts live in `TIPS` in `web/dashboard.js`. The box under the form shows the number of
   ratios and an estimated runtime; the YAML preview can be saved to `configs/` and run from the CLI later.
-* **Lookback windows** default to **10y** only. **Lag (years before today)** (`data.lag_years`, default 0) ends
+* **Robust ranges only** (Scoring, ticked by default): ranges must revert often, with a band narrow against the
+  ratio's own volatility and swings that are not fading, the traits that predicted reversions after the scan in
+  a forward test of lagged scans (see "Robust ranges" below). Expect fewer ranges, sometimes none; untick it for
+  the classic ranking. Its three thresholds show under it.
+* **Lookback window (years)** defaults to **10**; type any length (0.5 to 30 years, one window per scan). The
+  prices loaded grow with it, and a stock listed for less than the window is left out of the search (the
+  robust-range gates were tested on 5- and 10-year windows only). **Lag (years before today)** (`data.lag_years`, default 0) ends
   the scan that many years ago: the search uses the windows ending then and never sees the years after. In the
   Trade Lab those years are the **final test** (below).
 * **▶ Play** starts the scan (and clears the previous run's results); the progress bar, current step, elapsed
@@ -74,8 +80,8 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
   band percentile, entry beyond the edge in %, exit at a share of the band: 50% = median, 100% = opposite
   edge), z-score mean reversion (lookback, entry / exit / stop z), trend (moving-average crossover with a
   buffer), buy & hold the ratio. Directions: both, numerator up only, denominator up only.
-* **Execution**: long/short pair (with exposure per leg), rotation (all money in the basket expected to
-  outperform, long only), numerator only; starting capital (default $10,000), costs in bps per side per leg,
+* **Execution**: rotation (default: all money in the basket expected to outperform, long only, cash when
+  flat), long/short pair (with exposure per leg), numerator only; starting capital (default $10,000), costs in bps per side per leg,
   fill at the next close (default, no look-ahead) or the same close. **Risk exits**: stop loss, take profit,
   maximum holding days (a stopped-out side is not re-entered until its signal resets). No position is opened on
   the last bar of the period; whatever is open is closed at the last in-period close ("end of period").
@@ -91,6 +97,9 @@ server (`/api/series`, the scan's price cache), and every change of a rule recom
 * **Swing meter** on the ratio chart: click a point, then a second one, for the % move of the ratio between
   them, the trading days, each basket's own move and what a long-numerator / short-denominator pair made over
   that stretch (a dotted line on the chart; hover previews after the first click; a third click starts again).
+  It works on a zoomed chart: the zoom stays through meter clicks and rule changes (it resets when the period
+  changes; double-click the chart to zoom out). **⛶ Full screen** gives the ratio chart, with its swing meter,
+  the whole screen (or the whole window if the browser refuses); Esc or the button leaves it.
 * Baskets are equal weight at the start date, held as fixed shares (as the scan values them). Shorts assume
   free borrow; no interest on cash. With the scan's band the backtest is in-sample inside the band's window.
 * Every setting can also be put in the URL (`&strategy=zscore&z_in=2.5&mode=rotation`), so a backtest can
@@ -140,7 +149,10 @@ directly; elsewhere, prefix with `mise exec --`.
 
 1. **Universe -> panel.** Lists in `universes/` (csv/txt/json/yaml) are merged; closes come from yfinance
    (auto-adjusted), cached per ticker in `data_cache/yfinance/*.npz` (re-downloaded after `max_age_days`;
-   a fixed past `data.end` is never re-downloaded). Union calendar, short holes forward-filled.
+   a fixed past `data.end` is never re-downloaded). Union calendar, short holes forward-filled. A ticker the
+   bulk download returns nothing for (yfinance drops some when it throttles) is retried once on its own and
+   never cached empty, so the next scan asks again. The report and dashboard name the stocks a scan could not
+   use: no prices at all, or listed for less than the window (in no basket of it).
 2. **Fit end.** The last `holdout_bars` (default 21) are never used by the search.
 3. **Search, per shape and per lookback window** (`windows`, e.g. 3 months ... 10 years):
    * every instrument is scored on its own (one vectorised pass);
@@ -235,11 +247,85 @@ Two guards keep one-off excursions from passing as ranges:
 days, ranges within it keep their score and slower ones get `min(1, D / days)` inside the square root (twice as
 slow keeps 71%), so faster-reverting ranges rank higher without the others being wiped out.
 
-Range report columns: harvest/yr, trades/yr, to mean, repeat, per trade, worst against (largest move against an open
-trade, from its entry edge), bottom->top and top->bottom (band size as a move
-from one edge to the other), **now in band** (last bar: 0% = bottom edge, 100% = top edge; outside 0-100% is
-an entry signal today) and drift/band. The chart shades the band, dots the median and extends both through
-the holdout.
+### Robust ranges (`scoring.range_robust`, on by default in ratio mode)
+
+A range that scores well over 10 years often stops working right after the scan: in the Trade Lab's final test
+the band breaks. To find out what tells the ranges that keep working apart, lagged scans were replayed for every
+sector SPDR (top 20 holdings, 3 vs 3, scan ends every 6 months from 2015 to mid-2024) and every range was traded
+with its fixed scan-window band over the next 2 years, like the final test (study, scripts and full numbers:
+`research/robust_ranges/`). Findings:
+
+* The classic score does not predict the final test (AUC ~0.5): only ~15% of the ranges it passes made at least
+  2 profitable reversions in the 2 years after the scan.
+* What does, in every scan year: how often and how fast the range reverts **relative to its own noise**, and
+  whether its swings are still alive at the scan end. These traits do not predict the size of the P&L; they
+  predict that reversions keep coming.
+
+So with `range_robust` a range scores 0 (it is neither kept by the search nor listed) unless its window has:
+
+| gate | setting (dashboard) | default | why |
+|---|---|---|---|
+| completed band trades per year | `range_min_trades_per_year` (Min trades / yr) | 2.0 | ~4 expected in a 2-year final test; the strongest single predictor |
+| half-band / annual volatility of the ratio's daily changes (**band/vol**) | `range_max_band_vol` (Max band / vol) | 0.40 | ordinary noise keeps carrying the ratio to the edges; ~ a mean-reversion half-life under 35 days. A band crossed only by a few big, slow swings rarely repeats |
+| volatility of the window's last fifth / its median fifth (**recent vol**) | `range_min_recent_vol` (Min recent vol) | 1.0 | below 1 the swings are fading and the band stops being reached |
+
+The thresholds were first chosen at 1.5 trades/yr and band/vol 0.45 on 2015-2019 scan ends; the stricter
+2.0 / 0.40 became the default after a range that passed the looser gates only just broke in its final test
+(`research/robust_ranges/README.md`, "Follow-up"). The cheap gates run before the band-trade simulation, so the
+search also gets a little faster. Results of the real scan pipeline with the dashboard settings (10y window,
+21-bar holdout, top 30, overlap thinning), robust off vs on, 211 lagged scans, every listed range traded over
+the 2 years after its scan end:
+
+| per listed range | plain | robust 1.5 / 0.45 | robust 2.0 / 0.40 (default) |
+|---|---|---|---|
+| at least 2 profitable reversions in 2 years | 18.5% | 33.5% | **40%** |
+| at least 2 reversions (any P&L) | 19.8% | 39.1% | **48%** |
+| completed reversions (mean) | 0.82 | 1.47 | **1.67** |
+| at least 1 profitable reversion in the first year | 32% | 47% | 43% |
+| mean / median 2-year band P&L | -1.4% / +0.7% | +0.1% / +2.1% | +0.4% / +2.0% |
+| loss over 50% | 6.4% | 3.1% | 7% (3 of 42) |
+| ranges listed | 5.9 per scan | 2.8 per listing scan, 115 of 211 scans list one | 1.1 per listing scan, **39 of 211 scans list one** |
+
+The last column is an estimate: the 1.5 / 0.45 listings that also pass 2.0 / 0.40 (a real rerun could list a
+few more, where a removed range had crowded out an overlapping one), and with 42 ranges its percentages are
+rough. The looser gates hold in both halves (scan ends 2015-2019: 36% vs 16%; 2020-2024: 32% vs 21%; study,
+scan-weighted: 40.7% vs 13.9% and 40.6% vs 18.1%). The stricter ones add little on 2015-2019 and more on
+2020-2024 (study, all gated 10-year ranges: 46% vs 46% and 49% vs 39%; listed: 35% and 45%), with the same mean
+P&L (+5.3% in the study) and far fewer listings (study: 64 of 206 scans instead of 112). Ranges that pass the
+gates only just (e.g. 1.50 trades/yr, band/vol 0.44, recent vol 1.00 under the looser gates) did somewhat worse
+than the quarter with the most room to spare (10-year windows: 42% vs 46%; 5-year windows: 32% vs 40%). To go
+back, set Min trades / yr 1.5 and Max band / vol 0.45.
+
+What it does not do: it does not keep the ratio **inside** the band. The scanner picks the flattest of hundreds
+of thousands of ratios, so the scan-window band understates how far the ratio will swing: 89% of the robust
+ranges it listed went past their own 10-year high or low within 2 years (a ratio that kept behaving as in the
+window would do so about 30% of the time), with a median excursion of 2.8 half-bands beyond the band edge
+against 1.2 inside the window. The gates predict that it keeps **coming back**, not that it stays put. It does
+not stop a single stock from blowing a range up (a ratio whose swings come mostly from one stock is a bet on
+that stock: watch **top stock**, red above 45%; on 5-year windows its top fifth had about three times the
+losses beyond 60%; on 10-year windows it showed no link), and it does not make the P&L large: the band rule has
+no stop. A **10% stop loss** in the Trade Lab (replayed in pair mode) cut the listed robust ranges with a 2-year loss beyond 20% from 23%
+to 4% at the same mean P&L and almost the same success rate (32% vs 34%), but over all gated 10-year ranges in
+the study it also cut the mean from +5.3% to +1.0% (trades that ran 10% against often came back): a choice of
+risk, not a free improvement. A stop at the window's own high / low did no better than 10%, and entering further
+outside the band kept the mean P&L while halving the ranges with 2 reversions. How concentrated a leg has become
+under its fixed shares (the members' **now** weights; e.g. one stock at 80% of a leg) did not predict breaks
+among the gated ranges either. It usually lists **no range at all** for a sector (about 4 scans in 5 at the defaults), which is the
+point: untick it to see the classic ranking. On 5-year windows it raises the success rate as well (24% to 35%) but not the mean P&L (TSLA's 2020 run sat in a
+third of the big losers). The study's universe is today's holdings (survivorship). The gates were validated on
+basket ratios only, so weighted baskets keep the classic score unless `range_robust: true` is set.
+The same replay for **uptrends** found no robust filter: 58% of listed 10-year trends were still up 2 years
+later, at a median pace of only 18% of their fitted slope, and no in-sample trait predicted which ones
+(`research/robust_ranges/README.md`).
+
+Range report columns: harvest/yr, trades/yr, **band/vol** and **recent vol** (the robust-range measures, above),
+to mean, repeat, per trade, worst against (largest move against an open trade, from its entry edge), bottom->top
+and top->bottom (band size as a move from one edge to the other), **top stock** (ratio mode: the share of the
+ratio's daily swings coming from its most influential stock with the legs at equal weight, and which one; red
+above 45%), **now in band**
+(last bar: 0% = bottom edge, 100% = top edge; outside 0-100% is an entry signal today) and drift/band. The
+chart shades the band, dots the median and extends both through the holdout. Trends in ratio mode also show
+top stock.
 
 **Holdout**: the last `holdout_bars` (21, about a month) are never seen by the search, the band or the score.
 They are an out-of-sample check only: a trend must stay on the right side of its channel, a range inside its

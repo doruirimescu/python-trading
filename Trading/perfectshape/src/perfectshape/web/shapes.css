@@ -153,6 +153,12 @@ table.data th.grp { text-align: center; border-bottom: 1px solid var(--border); 
 .meter-text .big { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
 #c-ratio { cursor: crosshair; }
 
+/* ---------- Trade Lab: full-screen ratio chart (browser full screen, or the whole window as a fallback) ---------- */
+#ratio_panel.maximized { position: fixed; inset: 0; z-index: 1000; margin: 0; border-radius: 0; display: flex; flex-direction: column;
+  background: var(--surface); padding-bottom: 10px; }
+#ratio_panel.maximized #c-ratio { flex: 1 1 auto; height: auto; min-height: 0; }
+body.chart-maximized { overflow: hidden; }
+
 /* ---------- saved analyses ---------- */
 .save-panel, .saved-info { margin-top: 16px; }
 .save-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 14px; }

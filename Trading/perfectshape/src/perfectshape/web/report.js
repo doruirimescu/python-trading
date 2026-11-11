@@ -69,7 +69,26 @@
     `A trade opens when the curve leaves the band and closes at the ${sc.range_exit === "mid" ? "median" : "opposite edge"}; <b>harvest/yr</b> = trades/yr × capture per trade (in-sample, before costs). ` +
     `<b>To mean</b> = average trading days from leaving the band to the exit${sc.range_speed_days ? ` (scored against a target of ${sc.range_speed_days} days: slower ranges × √(target / days))` : ""}. ` +
     `<b>Repeat</b> = share of the span's ${sc.range_segments} parts with a closed trade. <b>Worst against</b> = largest move against an open trade past its entry edge. ` +
-    `<b>Now</b>: 0% = bottom edge, 100% = top edge; outside = an entry signal today.`;
+    `<b>Band/vol</b> = half the band over the ratio's annual volatility (low = ordinary noise keeps reaching the edges: a fast range). ` +
+    `<b>Recent vol</b> = volatility of the span's last fifth over its median fifth (below 1: the swings are fading). ` +
+    `<b>Top stock</b> = share of the ratio's daily swings from its most influential stock, legs at equal weight (red above ${(TOP_SHARE_WARN * 100).toFixed(0)}%: a bet on that stock's moves). ` +
+    `<b>Now</b>: 0% = bottom edge, 100% = top edge; outside = an entry signal today.` +
+    (sc.range_robust ? ` <b>Robust ranges</b> (on): listed only with ≥ ${sc.range_min_trades_per_year} trades/yr, band/vol ≤ ${sc.range_max_band_vol} and recent vol ≥ ${sc.range_min_recent_vol}, ` +
+      `the in-sample traits that predicted, out of sample, that a scan-window band keeps reverting after the scan (sector ratios, 2015–2024). ` +
+      `They predict that the ratio keeps coming back, not that it stays inside: 9 in 10 listed ranges still went past their scan-window extremes within 2 years.` : "");
+
+  // stocks the scan could not use: no prices at all (often a failed download), or a history shorter than the window
+  function coverageNote(P) {
+    const miss = P.missing || [], short = P.short || [];
+    if (!miss.length && !short.length) return "";
+    const yrs = P.window ? ` ${(P.window / 252).toFixed(1).replace(/\.0$/, "")}-year` : "";
+    const parts = [];
+    if (miss.length) parts.push(`<b>${miss.length} stock${miss.length === 1 ? "" : "s"} had no price data</b> and ${miss.length === 1 ? "was" : "were"} left out: ${miss.map(esc).join(", ")}` +
+      " (a failed download is retried by the next scan)");
+    if (short.length) parts.push(`<b>${short.length}</b> listed for less than the${yrs} window ${short.length === 1 ? "is" : "are"} in no ratio: ${short.map(esc).join(", ")}`);
+    const used = (P.symbols || 0) - short.length;
+    return `<div class="notice" style="margin:8px 0">⚠ ${parts.join(". ")}. The search used <b>${used}</b> of ${P.requested} stocks.</div>`;
+  }
 
   const METRICS = {
     annual_return: ["Annual", (v) => signed(v)],
@@ -87,7 +106,14 @@
     drift_ratio: ["Drift/band", (v) => v.toFixed(2)],
     height: ["Height", (v) => (v * 100).toFixed(1) + "%"],
     swings: ["Swings", (v) => v.toFixed(0)],
+    band_vol: ["Band/vol", (v) => v.toFixed(2)],
+    recent_vol: ["Recent vol", (v) => `<span class="${v < 1 ? "neg" : ""}">${v.toFixed(2)}</span>`],
+    top_share: ["Top stock", (v, it) => (Number.isFinite(v)
+      ? `<span class="${v > TOP_SHARE_WARN ? "neg" : ""}" title="${esc(it && it.top_member ? it.top_member + " carries " + (v * 100).toFixed(0) + "% of the ratio's daily swings" : "")}">${(v * 100).toFixed(0)}%${it && it.top_member ? " " + esc(it.top_member) : ""}</span>`
+      : "–")],
   };
+  // a ratio whose swings come mostly from one stock is a bet on that stock (forward test: its jumps broke ranges)
+  const TOP_SHARE_WARN = 0.45;
   function bandPos(v) {
     const t = (v * 100).toFixed(0) + "%";
     if (v <= 0) return `<mark>${t} ▼ below</mark>`;
@@ -176,7 +202,10 @@
     let html = `<p class="muted small shape-note">${note}</p>`;
     if (!S.items.length) {
       html += `<div class="panel empty-state">No ${ratio ? "ratio" : "basket"} holds this shape yet` +
-        `${DATA.partial ? " — more lookback windows are still to come." : "."}</div>`;
+        `${DATA.partial ? " — more lookback windows are still to come." : "."}` +
+        (shape === "range" && DATA.scoring.range_robust && !DATA.partial
+          ? " <b>Robust ranges</b> is on: none of these ranges reverts often enough, with a band narrow enough against its volatility and swings that are not fading, " +
+            "to have passed the forward test. Untick it to see the classic ranking." : "") + `</div>`;
       host.innerHTML = html;
       return;
     }
@@ -188,7 +217,7 @@
     for (const it of S.items) {
       html += `<tr data-i="${S.items.indexOf(it)}" title="${esc(namesText(it))}"><td class="rank">${it.rank}</td><td>${basketCell(it)}</td><td class="num">${heldText(it, ppy)}</td>` +
         `<td class="num"><b>${it.score.toFixed(3)}</b></td>` +
-        mk.map((k) => `<td class="num">${it.metrics[k] == null ? "–" : METRICS[k][1](it.metrics[k])}</td>`).join("") +
+        mk.map((k) => `<td class="num">${it.metrics[k] == null ? "–" : METRICS[k][1](it.metrics[k], it)}</td>`).join("") +
         `<td class="num">${signed(it.holdout_return)}</td>` +
         `<td>${it.alive ? '<span class="verdict under">Alive</span>' : '<span class="verdict over">Broken</span>'}</td></tr>`;
     }
@@ -235,7 +264,7 @@
       `<div class="results-head"><div class="segmented" role="group" aria-label="Shape">` +
       shapes.map((s) => `<button class="btn" data-shape="${s}" aria-pressed="${s === current}">${s} · ${DATA.shapes[s].items.length}</button>`).join("") +
       `</div><span class="muted small">${P.symbols} of ${P.requested} instruments · ${P.start} → ${P.end} · fit end ${P.fit_end} · ${desc} · threshold ${DATA.scoring.threshold}` +
-      `${DATA.partial ? ' · <span class="badge past">partial</span>' : ""}</span></div><div data-host></div>`;
+      `${DATA.partial ? ' · <span class="badge past">partial</span>' : ""}</span></div>${coverageNote(P)}<div data-host></div>`;
     const host = root.querySelector("[data-host]");
     const state = { all: false, onOpen: opts.onOpen || null };
     const show = (s) => {

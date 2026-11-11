@@ -66,7 +66,8 @@ DEFAULT_CONFIG = {
     "scoring": {"space": "log", "threshold": 0.6, "min_annual_return": 0.05, "min_range_height": 0.10,
                 "max_range_drift": 0.5, "complexity_penalty": 0.0, "range_band_pct": 10, "range_exit": "mid",
                 "range_harvest_scale": 0.15, "range_pain_scale": 2.0, "range_segments": 4,
-                "range_speed_days": 0},
+                "range_speed_days": 0, "range_robust": True, "range_min_trades_per_year": 2.0,
+                "range_max_band_vol": 0.40, "range_min_recent_vol": 1.0},
     "ranking": {"top_n": 30, "require_alive": True, "max_overlap": 0.5, "max_per_member": 3,
                 "range_sort": "score", "range_min_held": 504, "range_min_score_window": 252},
 }

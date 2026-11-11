@@ -124,6 +124,11 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
         ctl.stage("searching " + " + ".join(s.name for s in shapes))
         for L in order:
             detail = f"window {L} bars"
+            n_full = len(panel.complete_columns(fit_end - L, panel.n_bars))
+            if n_full < len(panel.symbols):
+                # a stock listed for less than the window cannot be in any of its ratios
+                detail += f", {n_full} of {len(panel.symbols)} stocks have the full history"
+                log.info("window %d: %d of %d instruments have the full history", L, n_full, len(panel.symbols))
             ctl.checkpoint(done / total, detail)
 
             def on_chunk(frac, _base=done, _L=L, _d=detail):

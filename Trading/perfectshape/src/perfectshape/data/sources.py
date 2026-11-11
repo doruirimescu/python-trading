@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from datetime import date, timedelta
 from typing import Optional
 
@@ -13,6 +14,9 @@ from perfectshape.data.cache import SeriesCache
 from perfectshape.data.panel import Panel, align
 
 log = logging.getLogger(__name__)
+
+# pause before the one sequential retry of tickers a bulk download returned nothing for (throttling)
+RETRY_PAUSE_S = 2.0
 
 
 def analysis_end(cfg: DataConfig, today: Optional[date] = None) -> Optional[date]:
@@ -46,36 +50,45 @@ def load_yfinance(tickers: list[str], cfg: DataConfig, *, today: date) -> dict[s
     stale: list[str] = []
     for t in tickers:
         e = cache.get(t)
-        if e is not None and SeriesCache.is_fresh(e, today=today, end=cfg.end, years=cfg.years,
-                                                  max_age_days=cfg.max_age_days):
-            if not e.empty:
-                out[t] = (e.dates, e.close)
+        # an empty entry (written by older versions after a download returned nothing) is always retried
+        if e is not None and not e.empty and SeriesCache.is_fresh(e, today=today, end=cfg.end, years=cfg.years,
+                                                                    max_age_days=cfg.max_age_days):
+            out[t] = (e.dates, e.close)
         else:
             stale.append(t)
     log.info("yfinance: %d cached, %d to download", len(tickers) - len(stale), len(stale))
     if stale:
         end = cfg.end or today
         start = end - timedelta(days=int(cfg.years * 365.25) + 10)
+        got: dict[str, tuple[np.ndarray, np.ndarray]] = {}
         for i in range(0, len(stale), cfg.chunk_size):
             chunk = stale[i:i + cfg.chunk_size]
             log.info("downloading %d-%d of %d", i + 1, i + len(chunk), len(stale))
-            got = _download_chunk(chunk, start, end + timedelta(days=1))
-            for t in chunk:
-                d, c = got.get(t, (np.array([], dtype="datetime64[D]"), np.array([])))
+            got.update(_download_chunk(chunk, start, end + timedelta(days=1)))
+        retry = [t for t in stale if t not in got]
+        if retry:
+            # a throttled bulk download silently drops some tickers: ask once more, one at a time
+            log.info("no data for %d tickers, retrying them sequentially: %s", len(retry), ", ".join(retry[:20]))
+            time.sleep(RETRY_PAUSE_S)
+            got.update(_download_chunk(retry, start, end + timedelta(days=1), threads=False))
+        for t in stale:
+            if t in got:
+                d, c = got[t]
                 cache.put(t, d, c, fetched_on=today, years=cfg.years)
-                if len(d):
-                    out[t] = (d, c)
+                out[t] = (d, c)
+            # nothing is cached for a ticker without data: a failed download must not hide it until tomorrow
     missing = [t for t in tickers if t not in out]
     if missing:
         log.warning("no data for %d tickers: %s", len(missing), ", ".join(missing[:20]))
     return out
 
 
-def _download_chunk(tickers: list[str], start: date, end: date) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+def _download_chunk(tickers: list[str], start: date, end: date,
+                    threads: bool = True) -> dict[str, tuple[np.ndarray, np.ndarray]]:
     import yfinance as yf
 
     df = yf.download(tickers, start=start.isoformat(), end=end.isoformat(), interval="1d", auto_adjust=True,
-                     group_by="ticker", threads=True, progress=False)
+                     group_by="ticker", threads=threads, progress=False)
     out: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     if df is None or df.empty:
         return out

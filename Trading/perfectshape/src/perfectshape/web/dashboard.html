@@ -53,9 +53,8 @@
         <div class="group">
           <h4><span data-tip-for="shapes">Shapes</span></h4>
           <div class="toggle-row" id="shapes"></div>
-          <h4 style="margin-top:14px"><span data-tip-for="windows">Lookback windows</span></h4>
-          <div class="toggle-row" id="windows"></div>
-          <label class="field" style="margin-top:12px"><span>Lag (years before today)</span><input class="input" type="number" id="lag" min="0" max="10" step="0.5"></label>
+          <label class="field" style="margin-top:14px"><span>Lookback window (years)</span><input class="input" type="number" id="window" min="0.5" max="30" step="0.5"></label>
+          <label class="field"><span>Lag (years before today)</span><input class="input" type="number" id="lag" min="0" max="10" step="0.5"></label>
           <div class="muted small" id="lag-note"></div>
         </div>
         <div class="group">
@@ -67,6 +66,12 @@
           <label class="field"><span>Harvest scale</span><input class="input" type="number" id="harvest" step="0.01" min="0.01"></label>
           <label class="field"><span>Pain scale</span><input class="input" type="number" id="pain" step="0.5" min="0.1"></label>
           <label class="field"><span>Target days to mean (0 = off)</span><input class="input" type="number" id="speed" step="5" min="0"></label>
+          <label class="check" style="margin-top:6px"><input type="checkbox" id="robust"> <span>Robust ranges only</span></label>
+          <div id="robust-fields">
+            <label class="field"><span>Min trades / yr</span><input class="input" type="number" id="r_tpy" step="0.1" min="0"></label>
+            <label class="field"><span>Max band / vol</span><input class="input" type="number" id="r_bvol" step="0.05" min="0.05"></label>
+            <label class="field"><span>Min recent vol</span><input class="input" type="number" id="r_rvol" step="0.05" min="0"></label>
+          </div>
           <label class="field"><span>Range min held (years)</span><input class="input" type="number" id="minheld" step="0.5" min="0"></label>
           <label class="field"><span>Holdout (trading days)</span><input class="input" type="number" id="holdout" step="1" min="0" max="252"></label>
         </div>

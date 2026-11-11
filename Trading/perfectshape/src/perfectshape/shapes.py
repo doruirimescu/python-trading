@@ -185,6 +185,26 @@ def speed_factor(days: np.ndarray, cfg: ScoringConfig) -> np.ndarray:
     return np.where(d > 0, np.minimum(1.0, cfg.range_speed_days / np.maximum(d, 1e-9)), 1.0)
 
 
+def band_vol(Y: np.ndarray, lo: np.ndarray, hi: np.ndarray, periods_per_year: int) -> np.ndarray:
+    """Half the band height over the annualised volatility of the curve's one-bar changes.
+
+    Low = the band edges are within easy reach of ordinary noise, so the curve keeps visiting them: a
+    fast-reverting range. For a mean-reverting (Ornstein-Uhlenbeck) curve with a p10-p90 band it is about
+    1.28 * sqrt(half-life / (2 ln 2) / periods_per_year): 0.40 (the default) is a half-life of roughly 35 bars.
+    """
+    vol = np.diff(Y, axis=0).std(axis=0) * np.sqrt(periods_per_year)
+    return ((hi - lo) / 2) / np.maximum(vol, 1e-12)
+
+
+def recent_vol(Y: np.ndarray, parts: int = 5) -> np.ndarray:
+    """Volatility of one-bar changes in the window's last ``parts``-th over that of its median part.
+
+    Below 1: the swings have been fading lately, and a band fitted on the whole window stops being reached."""
+    b = np.linspace(0, Y.shape[0], parts + 1).astype(int)
+    v = np.stack([np.diff(Y[s:e], axis=0).std(axis=0) for s, e in zip(b[:-1], b[1:])])
+    return v[-1] / np.maximum(np.median(v, axis=0), 1e-12)
+
+
 def zone_swings(Y: np.ndarray, lo_q: float = 20, hi_q: float = 80) -> np.ndarray:
     """Number of alternations between the lower zone (<= lo_q pct) and the upper zone (>= hi_q pct)."""
     lo = np.percentile(Y, lo_q, axis=0)
@@ -295,10 +315,22 @@ class Range(Shape):
     score = sqrt(flatness * coverage * (1 - exp(-harvest / range_harvest_scale))
                  * exp(-max(0, pain - 1) / range_pain_scale)).
     The band is fitted on the same window it trades: a descriptive, in-sample measure.
+
+    **Robust ranges** (``range_robust``, on in ratio mode): the score is 0 unless the window also shows what
+    predicted, out of sample, that the band keeps reverting after the scan: at least
+    ``range_min_trades_per_year`` completed trades a year, a band no wider than ``range_max_band_vol`` times the
+    annual volatility (:func:`band_vol`) and swings that are not fading (:func:`recent_vol` >=
+    ``range_min_recent_vol``). Validated on 2015-2024 sector ratios (README, "Robust ranges").
     """
 
     name = "range"
     objective = "range_ratio"
+
+    @staticmethod
+    def _robust_ok(Y, lo, hi, cfg):
+        """The cheap robust-range gates (band / volatility, recent volatility); trades / year come later."""
+        return ((band_vol(Y, lo, hi, cfg.periods_per_year) <= cfg.range_max_band_vol)
+                & (recent_vol(Y) >= cfg.range_min_recent_vol))
 
     def score_y(self, Y, cfg, full=True, floor=0.0):
         q = cfg.range_band_pct
@@ -312,6 +344,8 @@ class Range(Shape):
             flat = np.clip(1.0 - drift_ratio, 0, 1)
             gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
             live = np.flatnonzero(gate & (np.sqrt(flat) > floor))
+            if cfg.range_robust and len(live):
+                live = live[self._robust_ok(Y[:, live], lo[live], hi[live], cfg)]
             score = np.zeros(Y.shape[1])
             if len(live):
                 sl = slice(None) if np.ndim(scale) == 0 else live
@@ -337,11 +371,16 @@ class Range(Shape):
         pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
         soft = np.sqrt(flat * coverage * harvest_score * pain_score * speed_factor(days, cfg))
         gate = (height >= cfg.min_range_height) & (drift_ratio <= cfg.max_range_drift)
+        bvol, rvol = band_vol(Y, lo, hi, cfg.periods_per_year), recent_vol(Y)
+        if cfg.range_robust:
+            gate &= ((bvol <= cfg.range_max_band_vol) & (rvol >= cfg.range_min_recent_vol)
+                     & (n_trades / years >= cfg.range_min_trades_per_year))
         rel = np.expm1 if cfg.space == "log" else (lambda x: x)
         metrics = {"harvest": rel(harvest), "trades_per_year": n_trades / years, "per_trade": rel(per_trade),
                    "coverage": coverage, "pain": pain, "to_mean": days, "worst_against": -np.expm1(-adverse / scale)
                    if cfg.space == "log" else adverse / scale,
-                   "swing_up": swing_up, "swing_down": swing_down, "height": height, "drift_ratio": drift_ratio}
+                   "swing_up": swing_up, "swing_down": swing_down, "height": height, "drift_ratio": drift_ratio,
+                   "band_vol": bvol, "recent_vol": rvol}
         if full:
             metrics["swings"] = zone_swings(Y, q, 100 - q).astype(float)
         return ScoreResult(score=np.where(gate, soft, 0.0),
@@ -352,10 +391,14 @@ class Range(Shape):
         """The range score of columns that passed the gates (same formula as the full path)."""
         n_trades, capture, coverage, adverse, days = band_trades(Y, lo, mid, hi, cfg.range_exit, cfg.range_segments)
         pain = adverse / np.maximum((hi - lo) / 2, 1e-12)
-        harvest = (capture / scale) / (max(Y.shape[0] - 1, 1) / cfg.periods_per_year)
+        years = max(Y.shape[0] - 1, 1) / cfg.periods_per_year
+        harvest = (capture / scale) / years
         harvest_score = 1.0 - np.exp(-harvest / cfg.range_harvest_scale)
         pain_score = np.exp(-np.maximum(pain - 1.0, 0.0) / cfg.range_pain_scale)
-        return np.sqrt(flat * coverage * harvest_score * pain_score * speed_factor(days, cfg))
+        score = np.sqrt(flat * coverage * harvest_score * pain_score * speed_factor(days, cfg))
+        if cfg.range_robust:
+            score = np.where(n_trades / years >= cfg.range_min_trades_per_year, score, 0.0)
+        return score
 
     def channel(self, fit_curve, cfg):
         Y = to_space(fit_curve, cfg.space)

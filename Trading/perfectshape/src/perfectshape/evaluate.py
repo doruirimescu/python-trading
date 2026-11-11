@@ -37,6 +37,7 @@ class Result:
     fit_end: int = 0
     den_weights_now: list[float] = field(default_factory=list)
     ref_window: int = 0                            # window that score / metrics / channel / chart describe
+    top_member: str = ""                           # ratio mode: the stock behind the largest share of its swings
 
 
 class _Legs:
@@ -53,6 +54,29 @@ class _Legs:
         if self.di.size:
             v = v / (block[:, self.di] @ self.dsh)
         return v
+
+    def top_share(self, block: np.ndarray) -> tuple[int, float]:
+        """Ratio mode: (member index, share) of the member behind the largest share of the ratio's daily variance.
+
+        With both legs at equal weight, the ratio's daily log change is mean(r_i) - mean(r_j); a member's share
+        is cov(its signed term, the ratio's change) / var(the ratio's change). Shares sum to 1; similar members
+        of k vs k would each have 1 / (2k). A high share means one stock's own volatility drives the ratio (a
+        bet on that stock): on 5-year windows the top fifth of it had about 3x the losses beyond 60% in the
+        forward test (README, "Robust ranges"). Equal weight is the definition that was tested; the same share
+        under the drifted fixed-share weights showed no such link, nor did either one on 10-year windows.
+        """
+        if not self.di.size or len(block) < 3:
+            return -1, float("nan")
+        with np.errstate(invalid="ignore", divide="ignore"):
+            rn = np.diff(np.log(block[:, self.mi]), axis=0) / len(self.mi)
+            rd = np.diff(np.log(block[:, self.di]), axis=0) / len(self.di)
+            C = np.column_stack([rn, -rd])
+            r = C.sum(1)
+            share = ((C - C.mean(0)) * (r - r.mean())[:, None]).mean(0) / max(r.var(), 1e-18)
+        if not np.isfinite(share).all():
+            return -1, float("nan")
+        j = int(np.argmax(share))
+        return j, float(share[j])
 
 
 def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[int], fit_end: int,
@@ -121,6 +145,11 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
             blo, _, bhi = range_band(Yin, q)
             ylast = float(to_space(seg[-1:], scoring.space)[0])
             metrics["band_pos"] = (ylast - blo) / max(bhi - blo, 1e-12)
+        top_member = ""
+        if b.is_ratio:
+            j, metrics["top_share"] = legs[i].top_share(panel.close[fit_end - ref:fit_end])
+            if j >= 0:
+                top_member = b.all_members[j]
         hold_ret = float(curve[-1] / curve[fit_end - chart_start - 1] - 1.0) if len(Yh) else 0.0
         last = panel.close[-1, legs[i].mi] * legs[i].sh
         dlast = panel.close[-1, legs[i].di] * legs[i].dsh
@@ -129,6 +158,7 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
             holdout_return=hold_ret, weights_now=[float(x) for x in last / last.sum()],
             chart_start=chart_start, curve=curve, fit_end=fit_end,
             den_weights_now=[float(x) for x in dlast / dlast.sum()] if dlast.size else [], ref_window=ref,
+            top_member=top_member,
         ))
     return out
 

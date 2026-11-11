@@ -206,6 +206,9 @@ def _ratio_scan(plant: dict):
                  "synthetic": {"n_bars": 1600, "seed": 5, "plant": {"p": plant}}},
         "search": {"mode": "ratio", "windows": [126, 252, 504, 1008]},
         "ratio": {"k_num": 2, "k_den": 2},
+        # the planted range is an almost noiseless sine: the robust-range gates (made for noisy stock ratios)
+        # would reject it, see test_robust_ranges_*
+        "scoring": {"range_robust": False},
     })
     return scan(cfg)
 
@@ -545,3 +548,122 @@ def test_speed_to_mean_favours_faster_reversion_only_when_on():
     assert on.score[1] / off.score[1] < on.score[0] / off.score[0]          # the slow one loses more
     assert on.score[0] == pytest.approx(off.score[0])                       # within the target: untouched
     assert on.score[1] == pytest.approx(off.score[1] * np.sqrt(10 / on.metrics["to_mean"][1]))
+
+
+def _ou(n=2520, half_life=20.0, vol=0.012, seed=1, fade_last=None):
+    """Mean-reverting log ratio (Ornstein-Uhlenbeck) with daily noise ``vol``; ``fade_last`` scales the noise of
+    the last fifth (swings fading)."""
+    rng = np.random.default_rng(seed)
+    phi = 0.5 ** (1 / half_life)
+    e = rng.normal(0, vol, n)
+    if fade_last is not None:
+        e[-n // 5:] *= fade_last
+    y = np.zeros(n)
+    for t in range(1, n):
+        y[t] = phi * y[t - 1] + e[t]
+    return np.exp(y)
+
+
+def test_robust_ranges_keep_fast_noisy_reversion_and_drop_slow_or_fading_ones():
+    from perfectshape.shapes import band_vol, recent_vol, range_band
+    fast, slow, fading = _ou(half_life=15), _ou(half_life=80, seed=3), _ou(half_life=15, fade_last=0.5)
+    X = np.column_stack([fast, slow, fading])
+    Y = np.log(X)
+    lo, _, hi = range_band(Y, 10)
+    bv, rv = band_vol(Y, lo, hi, 252), recent_vol(Y)
+    assert bv[0] < 0.45 < bv[1]                                   # the slow one's band is far from its noise
+    assert rv[0] > 0.8 and rv[2] < 0.7                            # fading: the last fifth is quieter
+    cfg = ScoringConfig(min_range_height=0.05, threshold=0.3)
+    off = get_shape("range").score(X, cfg.model_copy(update={"range_robust": False}))
+    on = get_shape("range").score(X, cfg.model_copy(update={"range_robust": True, "range_min_recent_vol": 0.8}))
+    assert (off.score > 0).all()                                  # all three are ranges to the classic score
+    assert on.score[0] == pytest.approx(off.score[0])             # a robust range keeps its score
+    assert on.score[1] == 0 and on.score[2] == 0
+    assert on.metrics["trades_per_year"][0] >= 1.5
+    # the search path (full=False, pruned) gives the same scores
+    fast_path = get_shape("range").score(X, cfg.model_copy(update={"range_robust": True,
+                                                                   "range_min_recent_vol": 0.8}), full=False)
+    np.testing.assert_allclose(fast_path.score, on.score)
+
+
+def test_robust_ranges_need_enough_trades_per_year():
+    X = _ou(half_life=15)[:, None]
+    cfg = ScoringConfig(min_range_height=0.05, range_robust=True, range_min_recent_vol=0.0)
+    r = get_shape("range").score(X, cfg)
+    tpy = r.metrics["trades_per_year"][0]
+    assert r.score[0] > 0
+    strict = get_shape("range").score(X, cfg.model_copy(update={"range_min_trades_per_year": tpy + 0.1}))
+    assert strict.score[0] == 0
+
+
+def test_robust_ranges_default_on_in_ratio_mode_only():
+    base = {"universe": {"tickers": ["A", "B", "C", "D"]}, "data": {"source": "synthetic", "years": 6}}
+    assert RunConfig.model_validate({**base, "search": {"mode": "ratio"}}).scoring.range_robust is True
+    assert RunConfig.model_validate(base).scoring.range_robust is False
+    off = RunConfig.model_validate({**base, "search": {"mode": "ratio"}, "scoring": {"range_robust": False}})
+    assert off.scoring.range_robust is False
+    assert ScoringConfig().range_robust is None                   # standalone: off (classic scoring)
+
+
+def test_top_share_names_the_stock_carrying_the_ratio():
+    from perfectshape.evaluate import _Legs
+    from perfectshape.search import Basket
+    rng = np.random.default_rng(3)
+    n = 600
+    vol = np.array([0.04, 0.005, 0.005, 0.005, 0.005, 0.005])         # A swings 8x more than the others
+    close = 50 * np.exp(np.cumsum(rng.normal(0, 1, (n, 6)) * vol, axis=0))
+    syms = list("ABCDEF")
+    b = Basket(shape="range", members=["A", "B", "C"], weights=[1 / 3] * 3, fit_window=n, fit_start=0, fit_score=1,
+               shares={s: 1 / 3 / close[0, i] for i, s in enumerate("ABC")}, den_members=["D", "E", "F"],
+               den_weights=[1 / 3] * 3, den_shares={s: 1 / 3 / close[0, i + 3] for i, s in enumerate("DEF")})
+    j, share = _Legs(b, {s: i for i, s in enumerate(syms)}).top_share(close)
+    assert b.all_members[j] == "A" and share > 0.8
+    even = 50 * np.exp(np.cumsum(rng.normal(0, 0.01, (n, 6)), axis=0))
+    _, share = _Legs(b, {s: i for i, s in enumerate(syms)}).top_share(even)
+    assert share < 0.35                                                # 6 similar members: about 1/6 each
+
+
+def test_yfinance_retries_missing_tickers_and_never_caches_an_empty_download(tmp_path, monkeypatch):
+    from datetime import date
+
+    from perfectshape.config import DataConfig
+    from perfectshape.data import sources
+    from perfectshape.data.cache import SeriesCache
+
+    dates = np.arange(np.datetime64("2026-01-02"), np.datetime64("2026-01-12"))
+    calls = []
+
+    def fake(tickers, start, end, threads=True):
+        calls.append((list(tickers), threads))
+        # the bulk call is throttled and drops B; the sequential retry gets it; C has no data at all
+        serve = {"A"} if threads else {"B"}
+        return {t: (dates, np.linspace(10, 11, len(dates))) for t in tickers if t in serve}
+
+    monkeypatch.setattr(sources, "_download_chunk", fake)
+    monkeypatch.setattr(sources, "RETRY_PAUSE_S", 0.0)
+    cfg = DataConfig(cache_dir=str(tmp_path), years=1)
+    today = date(2026, 1, 12)
+    cache = SeriesCache(str(tmp_path), "yfinance")
+    cache.put("D", dates[:0], np.array([]), fetched_on=today, years=1)        # an empty entry from an older version
+    out = sources.load_yfinance(["A", "B", "C", "D"], cfg, today=today)
+    assert set(out) == {"A", "B"}
+    assert calls == [(["A", "B", "C", "D"], True), (["B", "C", "D"], False)]
+    assert cache.get("C") is None and cache.get("D").empty                  # nothing new cached without data
+    calls.clear()
+    sources.load_yfinance(["A", "B", "C", "D"], cfg, today=today)
+    assert calls[0] == (["C", "D"], True)                                   # A, B from the cache; C, D asked again
+
+
+def test_payload_names_stocks_without_data_or_full_history(tmp_path):
+    from perfectshape.data.panel import Panel
+    from perfectshape.data.sources import synthetic_panel
+    from perfectshape.report.writer import _payload
+
+    cfg = _small_ratio_cfg()
+    cfg.universe.tickers.append("GONE")                                      # requested, but no prices at all
+    p = synthetic_panel(cfg.universe.tickers[:10], n_bars=1300, seed=2)
+    close = p.close.copy()
+    close[:600, 3] = np.nan                                                  # S03 listed 600 bars in
+    out = scan(cfg, panel=Panel(p.dates, p.symbols, close))
+    meta = _payload(out, [])["panel"]
+    assert meta["missing"] == ["GONE"] and meta["short"] == ["S03"] and meta["window"] == 1008

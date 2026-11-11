@@ -92,6 +92,19 @@ class ScoringConfig(_Strict):
         "mid", description="range trade: enter outside the band, exit at the median (mid) or the opposite edge")
     range_harvest_scale: float = Field(
         0.15, gt=0, description="annual range capture (log) at which the harvest term reaches 63%; higher = stricter")
+    range_robust: Optional[bool] = Field(
+        None, description="robust ranges: score 0 unless the window shows what predicted, out of sample, that a "
+                          "scan-window band keeps reverting after the scan (sector ratios 2015-2024, see README): "
+                          "enough reversions per year, a band narrow against the ratio's volatility, swings not "
+                          "fading lately. null = on in ratio mode, off for weighted baskets")
+    range_min_trades_per_year: float = Field(
+        2.0, ge=0, description="robust ranges: completed band trades per year in the window")
+    range_max_band_vol: float = Field(
+        0.40, gt=0, description="robust ranges: half-band / annualised volatility of the curve's daily changes "
+                                "(narrow = the edges are reached often, a fast-reverting range)")
+    range_min_recent_vol: float = Field(
+        1.0, ge=0, description="robust ranges: volatility of daily changes in the window's last fifth / in its "
+                               "median fifth (below 1: the swings are fading and the band edges stop being reached)")
     complexity_penalty: float = Field(0.02, ge=0, description="score multiplier loss per extra basket member")
     periods_per_year: int = 252
 
@@ -158,6 +171,9 @@ class RunConfig(_Strict):
         if ratio and "downtrend" in self.search.shapes:
             raise ValueError("ratio mode: a falling A/B is a rising B/A, every trend is reported as an uptrend; "
                              "drop 'downtrend' from search.shapes")
+        if self.scoring.range_robust is None:
+            # the robust-range gates were validated on basket ratios only
+            self.scoring.range_robust = ratio
         return self
 
     @model_validator(mode="after")

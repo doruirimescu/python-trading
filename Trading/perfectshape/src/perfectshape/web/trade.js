@@ -120,7 +120,7 @@
       strategy: range ? "band" : "hold", band_src: "fixed", band_lb: 252, band_pct: +(P.get("band_pct") || 10),
       entry_buf: 0, exit_frac: P.get("exit") === "opposite" ? 100 : 50,
       z_lb: 126, z_in: 2, z_out: 0, z_stop: 0, ma_fast: 20, ma_slow: 100, ma_buf: 0,
-      dirs: "both", mode: "pair", leg: 1, capital: 10000, bps: 5, lag: "1", stop: 0, tp: 0, maxdays: 0,
+      dirs: "both", mode: "rotation", leg: 1, capital: 10000, bps: 5, lag: "1", stop: 0, tp: 0, maxdays: 0,
     };
   }
   // any setting can also come from the URL (&strategy=zscore&z_in=2.5 ...): shareable, bookmarkable backtests
@@ -479,7 +479,9 @@
         hoverinfo: "skip" });
     }
     meterText(meter.a, meter.b, false);
+    // uirevision: a zoom survives re-renders (a swing-meter click, a rule change) until the period changes
     Plotly.react("c-ratio", data, Nexus.plotlyLayout({ hovermode: "closest", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
+      uirevision: `${S.dates[s]}|${S.dates[e]}`,
       yaxis: { type: "log", tickformat: ".3f" }, shapes: [...bands.shapes, ...boundary.shapes], annotations: [...bands.annotations, ...boundary.annotations] }), cfg);
     bindMeter();
     const finalBand = withFinal ? Nexus.bands([{ x0: S.dates[FINAL], x1: S.dates[e], label: "final test", tone: "positive" }]) : { shapes: [], annotations: [] };
@@ -923,6 +925,33 @@
     el.on("plotly_unhover", () => { if (meter.a != null && meter.b == null) meterText(meter.a, null, false); });
   }
   $("meter_clear").onclick = () => { meter = { a: null, b: null }; render(readSettings()); };
+
+  // ---------------------------------------------------------------- full-screen ratio chart
+  // the panel (title, swing meter, chart) takes the whole screen when the browser allows it, else the whole window
+  const isMax = () => $("ratio_panel").classList.contains("maximized");
+  function setMaximized(on) {
+    $("ratio_panel").classList.toggle("maximized", on);
+    document.body.classList.toggle("chart-maximized", on);
+    const b = $("ratio_max");
+    b.setAttribute("aria-pressed", String(on));
+    b.textContent = on ? "✕ Exit full screen" : "⛶ Full screen";
+    requestAnimationFrame(() => { if (window.Plotly) Plotly.Plots.resize($("c-ratio")); });
+  }
+  $("ratio_max").onclick = () => {
+    if (!isMax()) {
+      setMaximized(true);
+      const p = $("ratio_panel");
+      if (p.requestFullscreen) p.requestFullscreen().catch(() => {});   // refused: it still fills the window
+    } else if (document.fullscreenElement) document.exitFullscreen();  // fullscreenchange restores the layout
+    else setMaximized(false);
+  };
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && isMax()) setMaximized(false);   // Esc in browser full screen
+    else if (window.Plotly) Plotly.Plots.resize($("c-ratio"));
+  });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && isMax() && !document.fullscreenElement) setMaximized(false);
+  });
 
   // ---------------------------------------------------------------- page
   function header() {
