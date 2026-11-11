@@ -75,6 +75,19 @@ Size: all ratios are enumerated, so the count grows fast with the holdings used 
 Backtests buying and selling one ratio, in the browser: prices of its members and SPY come from the dashboard
 server (`/api/series`, the scan's price cache), and every change of a rule recomputes at once.
 
+* **Backtest** (first control): **Whole history** runs the rules over From -> To, the way the range was found
+  (in-sample with the scan-window band). **After the scan: the next swings** (a scan run with a lag) runs only
+  what you would have traded after it: one episode that starts flat on the scan's last day, trades the ratio the
+  scan scored (equal weight at its window start, fixed shares since) with the same rules, takes at most **Max
+  trades** (default 1) within the **Horizon** (default 1 year; an open trade is closed there), then stops. **Enter**
+  "only if outside the band at the scan end" (default) trades only a ratio that is ready to swing that day, else
+  the episode has no trade; "at any band edge" waits for the edge. A stop loss, or the optional **range-break
+  stop** (the ratio passes the scored window's high / low on its losing side, drawn as dashed lines), ends the
+  episode. The ratio chart still shows the window the range came from; statistics, equity and drawdown cover
+  the episode only. In the replay of lagged sector scans (`research/robust_ranges/`), robust ranges outside the
+  band at the scan end completed 1 swing within a year 72% of the time (mean +5.8% in pair mode) against 59%
+  (+0.8%) for those inside it; one episode is still one or two trades, an example rather than a probability.
+
 * **Strategies**: band mean reversion (the scan's in-sample band; a rolling band of the last N days; or an
   expanding band of every day since From, available after N days of warm-up; the last two use past data only;
   band percentile, entry beyond the edge in %, exit at a share of the band: 50% = median, 100% = opposite

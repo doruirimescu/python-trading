@@ -74,10 +74,12 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
 
     ratio_mode = cfg.search.mode == "ratio"
     if ratio_mode:
-        n_ratios = count_ratios(len(panel.symbols), cfg.ratio)
+        # stocks listed for less than the longest window are in no ratio: count only the usable ones
+        n_use = len(panel.complete_columns(fit_end - max(windows), panel.n_bars))
+        n_ratios = count_ratios(n_use, cfg.ratio)
         if n_ratios > cfg.ratio.max_ratios:
             raise ValueError(
-                f"ratio mode: {len(panel.symbols)} instruments at {cfg.ratio.k} vs {cfg.ratio.k} "
+                f"ratio mode: {n_use} instruments at {cfg.ratio.k} vs {cfg.ratio.k} "
                 f"give {n_ratios:,} ratios > ratio.max_ratios={cfg.ratio.max_ratios:,}; "
                 "use a smaller universe or smaller baskets")
         log.info("ratio mode: %s ratios of %d vs %d instruments per window", f"{n_ratios:,}",
@@ -127,7 +129,8 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
             n_full = len(panel.complete_columns(fit_end - L, panel.n_bars))
             if n_full < len(panel.symbols):
                 # a stock listed for less than the window cannot be in any of its ratios
-                detail += f", {n_full} of {len(panel.symbols)} stocks have the full history"
+                detail += (f", {n_full} of {len(panel.symbols)} stocks have the full history "
+                           f"({count_ratios(n_full, cfg.ratio):,} ratios)")
                 log.info("window %d: %d of %d instruments have the full history", L, n_full, len(panel.symbols))
             ctl.checkpoint(done / total, detail)
 

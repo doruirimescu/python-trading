@@ -667,3 +667,6 @@ def test_payload_names_stocks_without_data_or_full_history(tmp_path):
     out = scan(cfg, panel=Panel(p.dates, p.symbols, close))
     meta = _payload(out, [])["panel"]
     assert meta["missing"] == ["GONE"] and meta["short"] == ["S03"] and meta["window"] == 1008
+    # the ratio count follows the stocks that can really be used (9 of 10 here), not the requested universe
+    from perfectshape.ratio import count_ratios
+    assert meta["used"] == 9 and meta["ratios"] == count_ratios(9, cfg.ratio) != count_ratios(10, cfg.ratio)

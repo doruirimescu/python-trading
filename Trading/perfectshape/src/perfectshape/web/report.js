@@ -87,7 +87,8 @@
       " (a failed download is retried by the next scan)");
     if (short.length) parts.push(`<b>${short.length}</b> listed for less than the${yrs} window ${short.length === 1 ? "is" : "are"} in no ratio: ${short.map(esc).join(", ")}`);
     const used = (P.symbols || 0) - short.length;
-    return `<div class="notice" style="margin:8px 0">⚠ ${parts.join(". ")}. The search used <b>${used}</b> of ${P.requested} stocks.</div>`;
+    return `<div class="notice" style="margin:8px 0">⚠ ${parts.join(". ")}. The search used <b>${used}</b> of ${P.requested} stocks` +
+      `${P.ratios != null ? `, <b>${P.ratios.toLocaleString()}</b> ratios per window` : ""}.</div>`;
   }
 
   const METRICS = {

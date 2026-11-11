@@ -12,6 +12,9 @@
  *   positions pair: long one basket and short the other, each leg = equity at entry x leverage;
  *             rotation: hold the basket expected to outperform, all equity, long only; numerator only: +1 trades.
  *   costs     bps of each leg's notional, on entry and on exit.
+ *   backtests whole history: the rules over From -> To (the final test optional);
+ *             after the scan (a lagged scan only): one episode from the scan end, on the scan's own ratio and band,
+ *             at most N trades within a horizon, then stop: the out-of-sample "one or two more swings".
  */
 (function () {
   "use strict";
@@ -22,6 +25,15 @@
 
   // ---------------------------------------------------------------- info bubbles
   Object.assign(PS.TIPS, {
+    bt: "<b>Whole history</b>: the rules over the period below, the way the range was found (in-sample with the scan-window band). " +
+      "<b>After the scan</b>: only what you would have traded <b>after</b> the scan, the out-of-sample part: it starts flat on the scan's last day, " +
+      "trades the ratio and band the scan found, takes at most <b>Max trades</b> within the <b>Horizon</b>, then stops. Needs a scan run with a <b>lag</b> (dashboard). " +
+      "One episode is one or two trades: an example, not a probability.",
+    ep_years: "How long after the scan end the episode may trade. An open trade is closed at the horizon.",
+    ep_trades: "The episode stops after this many closed trades (1 = one swing back to the exit). A stop loss or a range break also ends it: the range is treated as broken.",
+    ep_entry: "<b>Only if outside the band at the scan end</b>: trade only a ratio that is ready to swing the day the scan ends (enter at the next close); otherwise the episode has no trade. " +
+      "In last year's replay of lagged sector scans this was the better selection (1 swing within a year: 72% vs 59% for ratios inside the band). <b>At any edge touch</b>: wait for the band edge within the horizon.",
+    ep_break: "Close a trade when the ratio passes the highest / lowest value of the window the scan scored on its losing side: the range is broken. Ends the episode.",
     period: "The backtest runs from <b>From</b> to <b>To</b>. Both baskets are equal weight at the start date and then held as fixed shares, like the scan values them. Defaults: the start of the window the scan scored, to the last bar.",
     strategy: "<b>Band</b>: trade the ratio back into its band. <b>Z-score</b>: the same idea with a rolling mean and standard deviation. <b>Moving-average crossover</b>: follow the trend of the ratio. <b>Buy &amp; hold</b>: own the ratio for the whole period.",
     band_src: "<b>Scan window</b>: the band the dashboard showed, fitted on the window the scan scored (in-sample: it knew the future of that window). <b>Rolling</b>: at each day, the band of the previous N days only. <b>Expanding</b>: at each day, the band of every day since <b>From</b> up to that day, so it remembers more and more. Rolling and expanding use past data only: honest out-of-sample tests.",
@@ -111,11 +123,12 @@
   }
 
   // ---------------------------------------------------------------- settings
-  const SETTINGS = ["from", "to", "strategy", "band_src", "band_lb", "band_pct", "entry_buf", "exit_frac", "z_lb", "z_in",
+  const SETTINGS = ["bt", "ep_years", "ep_trades", "ep_entry", "ep_break", "from", "to", "strategy", "band_src", "band_lb", "band_pct", "entry_buf", "exit_frac", "z_lb", "z_in",
     "z_out", "z_stop", "ma_fast", "ma_slow", "ma_buf", "dirs", "mode", "leg", "capital", "bps", "lag", "stop", "tp", "maxdays"];
   function defaults() {
     const range = (P.get("shape") || "range") === "range";
     return {
+      bt: "history", ep_years: 1, ep_trades: 1, ep_entry: "start", ep_break: "0",
       from: P.get("fit_from") || S.dates[0], to: FINAL ? S.dates[FINAL - 1] : S.dates[S.dates.length - 1],
       strategy: range ? "band" : "hold", band_src: "fixed", band_lb: 252, band_pct: +(P.get("band_pct") || 10),
       entry_buf: 0, exit_frac: P.get("exit") === "opposite" ? 100 : 50,
@@ -139,6 +152,7 @@
     document.querySelectorAll("[data-not-for]").forEach((el) => (el.hidden = el.dataset.notFor === o.strategy));
     document.querySelectorAll("[data-for-src]").forEach((el) => (el.hidden = !el.dataset.forSrc.split(" ").includes(o.band_src)));
     document.querySelectorAll("[data-for-mode]").forEach((el) => (el.hidden = el.dataset.forMode !== o.mode));
+    document.querySelectorAll("[data-for-bt]").forEach((el) => (el.hidden = el.dataset.forBt !== o.bt));
   }
 
   // ---------------------------------------------------------------- indicators (arrays over all dates, cached)
@@ -233,18 +247,25 @@
   }
 
   // ---------------------------------------------------------------- the backtest
-  /** run the rules over [s, e]: the dates of o.from / o.to, or the index range given */
-  function backtest(o, range) {
+  /** run the rules over [s, e]: the dates of o.from / o.to, or the index range given.
+   *  opts (the "after the scan" episode): anchor = the index where both baskets are equal weight (default s; an
+   *  episode trades the scan's own ratio, anchored at the window start); maxTrades = no new entry after that many
+   *  closed trades; startOnly = no trade at all unless the entry signal is on at s; brk = [low, high] of the log
+   *  ratio: an open trade that passes it on its losing side closes ("range break"); episode = a stop or a range
+   *  break ends the trading. */
+  function backtest(o, range, opts = {}) {
     const s = range ? range[0] : firstIndexOnOrAfter(o.from), e = range ? range[1] : lastIndexOnOrBefore(o.to);
     if (e - s < 20) throw new Error("the period is too short (fewer than 20 trading days)");
-    const late = [...S.num, ...S.den].filter((t) => S.close[t][s] == null);
+    const anchor = opts.anchor ?? s;
+    const late = [...S.num, ...S.den].filter((t) => S.close[t][Math.min(s, anchor)] == null);
     if (late.length) {
       const first = Math.max(...late.map((t) => S.close[t].findIndex((v) => v != null)));
       throw new Error(`${late.join(", ")} ${late.length > 1 ? "have" : "has"} no price on ${S.dates[s]}: ` +
         `start on ${S.dates[first]} or later (the first day every member trades).`);
     }
-    const B = base(s), N = B.N, D = B.D, Y = B.Y;
-    const key = indicatorKey(o);
+    const B = base(anchor), N = B.N, D = B.D, Y = B.Y;
+    // rolling and expanding bands start at s, so their cache entry is per start
+    const key = indicatorKey(o) + (o.strategy === "band" && o.band_src !== "fixed" ? `|${s}` : "");
     let ind = B.ind.get(key);
     if (!ind) {
       ind = indicators(o, Y, s, e);
@@ -260,6 +281,7 @@
     let pos = null;                  // {side, t0, N0, D0, E, equityBefore}
     let pending = null;              // {action: "open"|"close"|"reverse", side, reason}
     let blocked = { 1: false, "-1": false };
+    let ended = false;               // episode: no new entry any more (stopped out, or not ready at the start)
     const eq = new Float64Array(S.dates.length).fill(NaN);
     const trades = [];
 
@@ -310,6 +332,7 @@
     const exitSignal = (t) => {
       const y = Y[t], side = pos.side, r = value(t) / pos.equityBefore - 1, held = t - pos.t0;
       if (o.stop > 0 && r <= -o.stop / 100) return "stop loss";
+      if (opts.brk && ((side > 0 && y < opts.brk[0]) || (side < 0 && y > opts.brk[1]))) return "range break";
       if (o.tp > 0 && r >= o.tp / 100) return "take profit";
       if (o.maxdays > 0 && held >= o.maxdays) return "max days";
       if (o.strategy === "band" && Number.isFinite(ind.lo[t])) {
@@ -342,15 +365,18 @@
       // decide on today's close
       const sig = entrySignal(t);
       for (const side of [1, -1]) if (sig !== side) blocked[side] = false;     // a signal that resets unblocks
+      const allowed = sig !== 0 && ((sig > 0 && allowLong) || (sig < 0 && allowShort));
+      if (opts.startOnly && t === s && !allowed) ended = true;                   // not ready to swing at the start
       let act = null;
       if (pos) {
         const why = exitSignal(t);
         if (why) {
-          if (why === "stop loss" || why === "z stop") blocked[pos.side] = true;
-          const again = sig !== 0 && sig !== pos.side && ((sig > 0 && allowLong) || (sig < 0 && allowShort)) && !blocked[sig];
+          if (why === "stop loss" || why === "z stop" || why === "range break") { blocked[pos.side] = true; if (opts.episode) ended = true; }
+          const room = !ended && (!opts.maxTrades || trades.length + 1 < opts.maxTrades);   // this exit is a trade too
+          const again = room && allowed && sig !== pos.side && !blocked[sig];
           act = again ? { action: "reverse", side: sig, reason: why, entry: "signal" } : { action: "close", reason: why };
         }
-      } else if (sig !== 0 && ((sig > 0 && allowLong) || (sig < 0 && allowShort)) && !blocked[sig]) {
+      } else if (allowed && !blocked[sig] && !ended && (!opts.maxTrades || trades.length < opts.maxTrades)) {
         act = { action: "open", side: sig, reason: "signal" };
       }
       if (act) {
@@ -360,7 +386,7 @@
     if (pos) { close(e, "end of period"); eq[e] = cash; }
     let exposure = 0;
     for (const tr of trades) exposure += tr.t1 - tr.t0;
-    return { s, e, N, D, Y, ind, eq, trades, exposure: exposure / Math.max(e - s, 1) };
+    return { s, e, N, D, Y, ind, eq, trades, exposure: exposure / Math.max(e - s, 1), startSig: entrySignal(s) };
   }
 
   // ---------------------------------------------------------------- statistics
@@ -390,24 +416,53 @@
   const what = (o, side) => o.mode === "pair" ? (side > 0 ? "long numerator / short denominator" : "long denominator / short numerator")
     : side > 0 ? "hold numerator" : "hold denominator";
 
+  // "after the scan": from the scan's last day, the scan's own ratio (equal weight at the start of the window it
+  // scored, fixed shares since) and band, at most N trades within the horizon. null without a lagged scan.
+  function episodeSetup(o) {
+    if (!FINAL) return null;
+    const s = FINAL - 1, want = Math.round(Math.max(0.1, +o.ep_years || 1) * PPY);
+    const e = Math.min(S.dates.length - 1, s + want);
+    const c0 = P.get("fit_from") ? firstIndexOnOrAfter(P.get("fit_from")) : s;
+    const c1 = P.get("fit_end") ? Math.max(c0, lastIndexOnOrBefore(P.get("fit_end"))) : s;
+    const Y = base(c0).Y;
+    let lo = Infinity, hi = -Infinity;
+    for (let t = c0; t <= c1; t++) if (Number.isFinite(Y[t])) { lo = Math.min(lo, Y[t]); hi = Math.max(hi, Y[t]); }
+    return { s, e, c0, c1, cut: e - s < want, ext: [lo, hi],
+      opts: { anchor: c0, episode: true, maxTrades: Math.max(1, Math.round(+o.ep_trades || 1)), startOnly: o.ep_entry !== "any",
+        brk: o.ep_break === "1" && hi > lo ? [lo, hi] : null } };
+  }
+  // trades closed by the strategy's own exit (a completed swing), not by a stop, a time limit or the period end
+  const RISK_EXITS = new Set(["stop loss", "z stop", "range break", "max days", "end of period"]);
+
   function render(o) {
+    if (o.bt === "episode" && !FINAL) { o.bt = "history"; $("bt").value = "history"; }
     syncVisibility(o);
-    const withFinal = !!FINAL && $("final_test").checked;
-    if (FINAL && !withFinal && o.to > S.dates[FINAL - 1]) { o.to = S.dates[FINAL - 1]; $("to").value = o.to; }   // final years stay out
+    const ep = o.bt === "episode" ? episodeSetup(o) : null;
+    const withFinal = !ep && !!FINAL && $("final_test").checked;
+    if (!ep && FINAL && !withFinal && o.to > S.dates[FINAL - 1]) { o.to = S.dates[FINAL - 1]; $("to").value = o.to; }   // final years stay out
     let bt;
-    try { bt = backtest(o); $("error").hidden = true; } catch (err) { $("error").hidden = false; $("error").textContent = err.message; return; }
+    try { bt = ep ? backtest(o, [ep.s, ep.e], ep.opts) : backtest(o); $("error").hidden = true; }
+    catch (err) { $("error").hidden = false; $("error").textContent = err.message; return; }
     const { s, e, eq, trades } = bt, C = window.Nexus ? Nexus.colors : {};
     const dates = S.dates.slice(s, e + 1);
     const st = stats(eq, s, e);
     const si = splitDate ? firstIndexOnOrAfter(splitDate) : -1;
-    const split = si > s + 20 && si < e - 20 ? si : null;        // train / test boundary after an optimizer Apply
+    const split = !ep && si > s + 20 && si < e - 20 ? si : null;        // train / test boundary after an optimizer Apply
+    const swings = trades.filter((t) => !RISK_EXITS.has(t.reason)).length;
+    const startTxt = bt.startSig > 0 ? "below the band" : bt.startSig < 0 ? "above the band" : "inside the band";
+    $("ep_note").innerHTML = !FINAL
+      ? "<b>After the scan</b> needs a scan run with a <b>lag</b> (dashboard): the episode is the time after the scan end."
+      : ep ? `Episode <b>${S.dates[s]} → ${S.dates[e]}</b>${ep.cut ? " (the data ends there)" : ""}. At the scan end the ratio was <b>${startTxt}</b>` +
+        `${ep.opts.startOnly && !bt.startSig ? ": nothing to trade with “only if outside the band”" : ""}. ` +
+        `${trades.length} trade${trades.length === 1 ? "" : "s"}, ${swings} completed swing${swings === 1 ? "" : "s"}. ` +
+        `Ratio and band as the scan scored them (window ${S.dates[ep.c0]} → ${S.dates[ep.c1]}).` : "";
     const boundary = split ? Nexus.events([{ x: S.dates[split], label: "train | test", tone: "accent" }]) : { shapes: [], annotations: [] };
     // benchmarks: SPY and all members equal weight, same capital, same days
     const B = S.bench ? S.close[S.bench] : null;
     const spyEq = new Float64Array(S.dates.length).fill(NaN), ewEq = new Float64Array(S.dates.length).fill(NaN);
     for (let t = s; t <= e; t++) {
       if (B && B[t] != null && B[s] != null) spyEq[t] = o.capital * B[t] / B[s];
-      ewEq[t] = o.capital * (bt.N[t] * S.num.length + bt.D[t] * S.den.length) / (S.num.length + S.den.length);
+      ewEq[t] = o.capital * (bt.N[t] / bt.N[s] * S.num.length + bt.D[t] / bt.D[s] * S.den.length) / (S.num.length + S.den.length);
     }
     const spy = B ? stats(spyEq, s, e) : null, ew = stats(ewEq, s, e);
     const bc = spy ? betaCorr(st.rets, spy.rets) : { beta: NaN, corr: NaN };
@@ -416,7 +471,8 @@
 
     // KPIs
     const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${label}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
-    $("kpis").innerHTML =
+    $("kpis").innerHTML = (ep ? kpi("After the scan", `${swings} swing${swings === 1 ? "" : "s"}`,
+        `started ${startTxt} · ${trades.length} of max ${ep.opts.maxTrades} trade${ep.opts.maxTrades === 1 ? "" : "s"} · ${S.dates[s]} → ${S.dates[e]}`) : "") +
       kpi("Final value", money(st.final), `from ${money(o.capital)} · SPY ${spy ? money(spy.final) : "–"}`) +
       kpi("CAGR", signed(st.cagr), `SPY ${spy ? pct(spy.cagr) : "–"} · ${dates[0]} → ${dates[dates.length - 1]}`) +
       kpi("Max drawdown", `<span class="neg">${pct(st.mdd)}</span>`, `SPY ${spy ? pct(spy.mdd) : "–"}`) +
@@ -435,7 +491,7 @@
       } catch (err) { fin = null; }
     }
     // snapshot of the results, saved with an analysis
-    lastSummary = { from: S.dates[s], to: S.dates[e], strategy: o.strategy, mode: o.mode, rules: rulesText(o), capital: o.capital,
+    lastSummary = { from: S.dates[s], to: S.dates[e], backtest: ep ? "after the scan" : "whole history", strategy: o.strategy, mode: o.mode, rules: rulesText(o), capital: o.capital,
       final: st.final, total: st.total, cagr: st.cagr, sharpe: st.sharpe, mdd: st.mdd, trades: trades.length,
       win_rate: trades.length ? wins.length / trades.length : null, spy_total: spy ? spy.total : null, spy_cagr: spy ? spy.cagr : null };
     if (analysis) showSavedInfo();
@@ -443,8 +499,9 @@
     if (!window.Plotly || !window.Nexus) return;
     const cfg = Object.assign({}, Nexus.plotlyConfig, { displaylogo: false });
     // ratio + rules + trades
-    const R = dates.map((_, i) => Math.exp(bt.Y[s + i]));
-    const line = (arr, name, extra) => ({ x: dates, y: Array.from(arr.slice(s, e + 1)).map((v) => (Number.isFinite(v) ? Math.exp(v) : null)),
+    const rs = ep ? Math.min(ep.c0, s) : s, rDates = S.dates.slice(rs, e + 1);    // an episode also shows the range it came from
+    const R = rDates.map((_, i) => Math.exp(bt.Y[rs + i]));
+    const line = (arr, name, extra) => ({ x: rDates, y: Array.from(arr.slice(rs, e + 1)).map((v) => (Number.isFinite(v) ? Math.exp(v) : null)),
       mode: "lines", name, hoverinfo: "skip", ...extra });
     const data = [];
     if (o.strategy === "band" || o.strategy === "zscore") {
@@ -455,21 +512,25 @@
       data.push(line(bt.ind.fast, `fast ${o.ma_fast}d`, { line: { width: 1.2, color: C.series2 } }));
       data.push(line(bt.ind.slow, `slow ${o.ma_slow}d`, { line: { width: 1.2, color: C.neutral, dash: "dash" } }));
     }
-    data.push({ x: dates, y: R, mode: "lines", name: "ratio", line: { color: C.accent, width: 1.6 }, hovertemplate: "%{x}<br>ratio %{y:.4f}<extra></extra>" });
+    if (ep && ep.opts.brk) for (const v of ep.opts.brk)
+      data.push({ x: [S.dates[rs], S.dates[e]], y: [Math.exp(v), Math.exp(v)], mode: "lines", name: "range break", hoverinfo: "skip",
+        line: { color: C.negative, width: 1, dash: "dash" } });
+    data.push({ x: rDates, y: R, mode: "lines", name: "ratio", line: { color: C.accent, width: 1.6 }, hovertemplate: "%{x}<br>ratio %{y:.4f}<extra></extra>" });
     const mark = (list, name, symbol, color) => ({ x: list.map((p) => S.dates[p.t]), y: list.map((p) => Math.exp(bt.Y[p.t])), mode: "markers", name,
       marker: { symbol, size: 12, color, line: { width: 1, color: C.surface } }, text: list.map((p) => p.text), hovertemplate: "%{x}<br>%{text}<extra></extra>" });
     data.push(mark(trades.filter((t) => t.side > 0).map((t) => ({ t: t.t0, text: `enter: ${what(o, 1)}` })), "enter: numerator up", "triangle-up", C.positive));
     data.push(mark(trades.filter((t) => t.side < 0).map((t) => ({ t: t.t0, text: `enter: ${what(o, -1)}` })), "enter: denominator up", "triangle-down", C.series2));
     data.push(mark(trades.map((t) => ({ t: t.t1, text: `exit (${t.reason}): ${pct(t.ret)}` })), "exit", "x", C.text));
     const eras = [];
-    if (bt.ind.calib) eras.push({ x0: S.dates[Math.max(bt.ind.calib[0], s)], x1: S.dates[Math.min(bt.ind.calib[1], e)], label: "band fitted", tone: "accent" });
+    if (bt.ind.calib) eras.push({ x0: S.dates[Math.max(bt.ind.calib[0], rs)], x1: S.dates[Math.min(bt.ind.calib[1], e)], label: "band fitted", tone: "accent" });
     if (withFinal) eras.push({ x0: S.dates[FINAL], x1: S.dates[e], label: "final test", tone: "positive" });
-    const fe = P.get("fit_end");
-    if (fe && fe < S.dates[e]) eras.push({ x0: fe, x1: S.dates[e], label: "after the scan (holdout)", tone: "neutral" });
+    const fe = P.get("fit_end"), feEnd = ep ? S.dates[s] : S.dates[e];
+    if (fe && fe < feEnd) eras.push({ x0: fe, x1: feEnd, label: "after the scan (holdout)", tone: "neutral" });
+    if (ep) eras.push({ x0: S.dates[s], x1: S.dates[e], label: "episode", tone: "positive" });
     const bands = Nexus.bands(eras);
     // swing meter: the points clicked on this chart and the line between them
-    lastBt = bt;
-    if (meter.a != null && (meter.a < s || meter.a > e || (meter.b != null && (meter.b < s || meter.b > e)))) meter = { a: null, b: null };
+    lastBt = Object.assign({}, bt, { s: rs });
+    if (meter.a != null && (meter.a < rs || meter.a > e || (meter.b != null && (meter.b < rs || meter.b > e)))) meter = { a: null, b: null };
     if (meter.a != null) {
       const pts = meter.b == null ? [meter.a] : [meter.a, meter.b];
       const ch = meter.b == null ? "" : pct(Math.exp(bt.Y[meter.b] - bt.Y[meter.a]) - 1);
@@ -481,7 +542,7 @@
     meterText(meter.a, meter.b, false);
     // uirevision: a zoom survives re-renders (a swing-meter click, a rule change) until the period changes
     Plotly.react("c-ratio", data, Nexus.plotlyLayout({ hovermode: "closest", showlegend: false, margin: { l: 56, r: 14, t: 10, b: 36 },
-      uirevision: `${S.dates[s]}|${S.dates[e]}`,
+      uirevision: `${S.dates[rs]}|${S.dates[e]}|${o.bt}`,
       yaxis: { type: "log", tickformat: ".3f" }, shapes: [...bands.shapes, ...boundary.shapes], annotations: [...bands.annotations, ...boundary.annotations] }), cfg);
     bindMeter();
     const finalBand = withFinal ? Nexus.bands([{ x0: S.dates[FINAL], x1: S.dates[e], label: "final test", tone: "positive" }]) : { shapes: [], annotations: [] };
@@ -507,7 +568,7 @@
       const sp = stats(b.eq, s0, e0);
       return { st: sp, trades: b.trades, exposure: b.exposure, bc: spy ? betaCorr(sp.rets, stats(spyEq, s0, e0).rets) : { beta: NaN, corr: NaN } };
     };
-    const cols = [{ title: split ? "Strategy · whole period" : "Strategy", ...part(bt, s, e) }];
+    const cols = [{ title: ep ? `After the scan · ${S.dates[s]} → ${S.dates[e]}` : split ? "Strategy · whole period" : "Strategy", ...part(bt, s, e) }];
     if (split) {
       try {
         cols.push({ title: `Train · ${S.dates[s]} → ${S.dates[split]}`, ...part(backtest(o, [s, split]), s, split) });
@@ -553,6 +614,7 @@
     // trades table
     $("trades-note").textContent = trades.length
       ? `${trades.length} trades · ${what(o, 1)} when the ratio is expected to rise` + (allowShortNote(o) ? `, ${what(o, -1)} when it is expected to fall` : "")
+      : ep && ep.opts.startOnly && !bt.startSig ? "No trade: at the scan end the ratio was inside the band, and Enter is set to “only if outside the band at the scan end”."
       : "No trade was triggered with these rules.";
     $("trades").innerHTML = `<thead><tr><th>#</th><th data-list="title">Side</th><th data-list="subtitle">Entry</th><th class="num">Entry ratio</th>` +
       `<th>Exit</th><th class="num">Exit ratio</th><th>Why</th><th class="num">Days</th><th class="num" data-list="value">Return</th>` +
@@ -578,7 +640,11 @@
       `<th class="num">Difference</th><th class="num" data-list="subtitle" data-list-suffix="trades closed">Trades closed</th></tr></thead><tbody>` +
       years.map((r) => `<tr><td>${r.y}</td><td class="num">${signed(r.st)}</td><td class="num">${signed(r.spy)}</td><td class="num">${signed(r.st - r.spy)}</td><td class="num">${r.n}</td></tr>`).join("") + `</tbody>`;
 
-    $("caveat").innerHTML = (o.strategy === "band" && o.band_src === "fixed"
+    $("caveat").innerHTML = ep
+      ? `<b>Out of sample:</b> the episode starts on the scan's last day and the scan never saw it. The ratio is the one the scan scored (both baskets equal weight on ${S.dates[ep.c0]}, ` +
+        `the start of its window, held as fixed shares since) and the scan-window band was fitted before the episode. One episode is one or two trades: an example, not a probability. ` +
+        "Short positions assume borrow is available at no cost; no interest on cash or margin."
+      : (o.strategy === "band" && o.band_src === "fixed"
       ? "<b>In-sample:</b> the band was fitted on the window the scan scored, so trades inside the shaded “band fitted” span knew where the band would be. Trades after the scan's fit end (holdout) did not. Switch “Band from” to rolling for an out-of-sample test. "
       : "") + "Baskets are equal weight at the start date, held as fixed shares. Short positions assume borrow is available at no cost; no interest on cash or margin.";
   }
@@ -807,7 +873,9 @@
     let t = describe(o.strategy, o);
     if (o.strategy === "band" && o.band_src === "fixed") t = t.replace(/^\d+d band/, "scan-window band");
     if (o.strategy === "band" && o.band_src === "expanding") t = t.replace(/^(\d+)d band/, "expanding band ($1d warm-up)");
-    return `${t} · ${MODE_NAME[o.mode]}${o.bps ? ` · ${o.bps} bps` : ""}${o.lag === "0" ? " · same-close fills" : ""}`;
+    const epi = o.bt === "episode" ? ` · after the scan: max ${o.ep_trades} trade${+o.ep_trades === 1 ? "" : "s"} in ${o.ep_years}y` +
+      `${o.ep_entry === "any" ? "" : ", only from outside the band"}${o.ep_break === "1" ? ", range-break stop" : ""}` : "";
+    return `${t} · ${MODE_NAME[o.mode]}${o.bps ? ` · ${o.bps} bps` : ""}${o.lag === "0" ? " · same-close fills" : ""}${epi}`;
   }
   // everything needed to reopen this exact analysis: the ratio, its scan context and every setting
   function currentQuery() {
@@ -992,6 +1060,7 @@
     document.querySelectorAll(".lab-side input, .lab-side select").forEach((el) => el.addEventListener("input", changed));
     $("show_ew").checked = P.get("show_ew") === "1";
     setupFinal();
+    if (!FINAL) $("bt").querySelector('option[value="episode"]').disabled = true;   // no years after the scan to trade
     $("show_ew").addEventListener("change", () => render(readSettings()));
     if (window.Nexus && Nexus.onThemeChange) Nexus.onThemeChange(() => render(readSettings()));
     render(readSettings());

@@ -53,6 +53,21 @@
     <div class="lab">
       <aside class="panel lab-side" aria-label="Strategy">
         <div class="group">
+          <h4><span data-tip-for="bt">Backtest</span></h4>
+          <label class="field wide"><select class="input" id="bt">
+            <option value="history">Whole history</option>
+            <option value="episode">After the scan: the next swings</option></select></label>
+          <div data-for-bt="episode">
+            <label class="field"><span>Horizon (years)</span><input class="input" type="number" id="ep_years" min="0.25" max="5" step="0.25"></label>
+            <label class="field"><span>Max trades</span><input class="input" type="number" id="ep_trades" min="1" max="10" step="1"></label>
+            <label class="field"><span>Enter</span><select class="input" id="ep_entry">
+              <option value="start">only if outside the band at the scan end</option><option value="any">at any band edge</option></select></label>
+            <label class="field"><span>Range-break stop</span><select class="input" id="ep_break">
+              <option value="0">off</option><option value="1">past the window's high / low</option></select></label>
+          </div>
+          <div class="muted small" id="ep_note"></div>
+        </div>
+        <div class="group" data-for-bt="history">
           <h4><span data-tip-for="period">Period</span></h4>
           <label class="field"><span>From</span><input class="input" type="date" id="from"></label>
           <label class="field"><span>To</span><input class="input" type="date" id="to"></label>

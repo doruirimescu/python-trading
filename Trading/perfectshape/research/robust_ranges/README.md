@@ -172,6 +172,24 @@ defaults then moved to 2.0 trades/yr and band/vol 0.40 on request, to test in th
 42% success at the same mean P&L, gained on 2020-2024 scan ends only, with about half as many scans listing a
 range (the main README's end-to-end table has an estimate for what the dashboard lists).
 
+## Episodes: one or two swings after the scan (`episodes.py`, needs `concentration.py` output)
+
+The Trade Lab's "After the scan" backtest, replayed on every range the dashboard listed in the end-to-end run
+(1.5 / 0.45 gates): start flat at the scan end with the scan-window band, enter beyond an edge, exit at the
+median, at most N trades within H, then stop; pair mode (the range's own edge), 5 bps, next-close fills.
+
+| listed ranges, by where the ratio was at the scan end | N, H | got N swings | mean / median P&L | loss > 20% |
+|---|---|---|---|---|
+| robust, outside the band (50) | 1, 1 year | 72% | +5.8% / +8.4% | 2% |
+| | 2, 1.5 years | 40% | +4.3% / +9.5% | 12% |
+| robust, inside the band (199) | 1, 1 year | 59% | +0.8% / +6.3% | 10% |
+| not robust, outside the band (223) | 1, 1 year | 39% | -2.0% / +5.0% | 20% |
+
+Outside the band at the scan end is what helps (positive on 2015-2019 and 2020-2024 scan ends alike; only 50
+episodes); being just inside an edge (outer 15%) did no better than mid-band. A second swing adds little on
+average and doubles the losing tail. In rotation mode (long only) most of the P&L is the market: robust ranges
+inside the band earned nearly as much as those outside (+6.7% vs +7.4% over a year).
+
 ## Caveats
 
 * Today's sector holdings, so survivorship: stocks that left the index are missing, and a stock that later

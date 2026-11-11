@@ -252,7 +252,8 @@
     const running = s.state === "running" || s.state === "paused";
     $("kpis").innerHTML =
       kpi("Stocks", P.symbols ?? est.instruments ?? "–", P.requested ? `of ${P.requested} requested` : "in the universe") +
-      kpi("Ratios per window", (est.ratios ?? 0).toLocaleString(), `${$("k").value} vs ${$("k").value}`) +
+      kpi("Ratios per window", (P.ratios ?? est.ratios ?? 0).toLocaleString(),
+        `${$("k").value} vs ${$("k").value}` + (P.ratios != null && est.ratios != null && P.ratios !== est.ratios ? ` · ${est.ratios.toLocaleString()} if all stocks had the history` : "")) +
       kpi("Progress", `${(s.progress * 100).toFixed(1)}%`, `<div class="progress"><div style="width:${(s.progress * 100).toFixed(1)}%"></div></div>`) +
       kpi(running ? "Time left" : "Run time", running ? fmtDur(s.eta) : fmtDur(s.elapsed), running ? `elapsed ${fmtDur(s.elapsed)}` : s.state) +
       Object.entries(P.found || {}).map(([k, v]) => kpi(k === "range" ? "Ranges" : k[0].toUpperCase() + k.slice(1) + "s", v.n,
@@ -284,7 +285,7 @@
       if (s.payload) {
         lastV = s.version;
         const P = s.payload;
-        s.payload_meta = { symbols: P.panel.symbols - (P.panel.short || []).length, requested: P.panel.requested,
+        s.payload_meta = { symbols: P.panel.symbols - (P.panel.short || []).length, requested: P.panel.requested, ratios: P.panel.ratios,
           found: Object.fromEntries(Object.entries(P.shapes).map(([k, v]) => [k, { n: v.items.length, best: Math.max(0, ...v.items.map((i) => i.score)) }])) };
         const y = window.scrollY;
         PS.renderReport(P, $("report"), { onOpen: PS.openTradeLab });

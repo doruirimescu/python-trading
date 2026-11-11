@@ -7,11 +7,13 @@ import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
 from perfectshape.evaluate import Result
 from perfectshape.pipeline import ScanOutput
+from perfectshape.ratio import count_ratios
 from perfectshape.shapes import get_shape, linear_fit, range_band, to_space
 
 MAX_CHART_POINTS = 400
@@ -154,6 +156,14 @@ def _coverage(out: ScanOutput) -> tuple[list[str], list[str]]:
     return missing, short
 
 
+def _usable(out: ScanOutput) -> tuple[int, Optional[int]]:
+    """Stocks that can be in a basket of the longest window, and (ratio mode) how many ratios that window scans."""
+    p = out.panel
+    start = max(0, out.fit_end - max(out.cfg.search.windows))
+    n = len(p.complete_columns(start, p.n_bars))
+    return n, (count_ratios(n, out.cfg.ratio) if out.cfg.search.mode == "ratio" else None)
+
+
 def _payload(out: ScanOutput, rows: list[dict]) -> dict:
     cfg = out.cfg
     shapes = {}
@@ -179,11 +189,13 @@ def _payload(out: ScanOutput, rows: list[dict]) -> dict:
         shapes[shape] = {"candidates": out.n_candidates[shape], "items": items,
                          "metric_order": METRIC_ORDER.get(shape, [])}
     missing, short = _coverage(out)
+    used, n_ratios = _usable(out)
     return {
         "name": cfg.name,
         "generated": datetime.now().isoformat(timespec="seconds"),
         "panel": {"bars": out.panel.n_bars, "symbols": len(out.panel.symbols),
                   "requested": len(out.universe.tickers), "missing": missing, "short": short,
+                  "used": used, "ratios": n_ratios,
                   "window": max(cfg.search.windows), "start": str(out.panel.dates[0]), "end": str(out.panel.dates[-1]),
                   "fit_end": str(out.panel.dates[out.fit_end - 1])},
         "search": cfg.search.model_dump(), "scoring": cfg.scoring.model_dump(), "ratio": cfg.ratio.model_dump(),
