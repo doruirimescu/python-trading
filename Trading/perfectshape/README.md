@@ -466,6 +466,27 @@ after `python research/dca/kelly_cv.py`).
 * Fitted on all eras: premium +9.2% above / +1.1% below, rate penalty 0.087 per point, k = 0.15, debt at most 12
   payments, no cash. It borrows only above the average with the VIX under about 12: the gentlest borrower here.
 
+**Four combined strategies** (`Kelly(signal=, vol=, sell=)`, `VARIANTS`; `research/dca/kelly4_cv.py`, then
+`research/dca/dip_ablation.py` and `research/dca/combined_page.py <run>`): the one above is "optimism, never sells".
+"Pessimism" borrows in dips: plain DCA plus a Kelly bet on the dip's extra return,
+`1 + k x (p_dip x (depth below the all-time high - its average) - a x rate rise) / variance`, with the last 10 years'
+realised volatility (the VIX would veto every dip). Each also comes in a version that sells to reach its target.
+Leave one era out, 10-year accounts (1928-61 / 1962-99 / 2000-26: beats DCA, median edge):
+
+| | 1928-61 | 1962-99 | 2000-26 | pooled |
+|---|---|---|---|---|
+| Optimism, never sells | 82%, +6.8% | 60%, +2.0% | 100%, +0.6% | 77% |
+| Pessimism, never sells | 84%, +2.3% | 88%, +3.6% | 87%, +3.5% | 87% |
+| Optimism, sells | 76%, +26.0% | 88%, +21.0% | 9%, -11.5% | 65% |
+| Pessimism, sells | 69%, +4.6% | 100%, +28.4% | 81%, +1.9% | 84% |
+
+* **The pessimism edge is mostly not from dips.** With the rate term off, the dip term alone helped only in 1928-61
+  (never sells: 78%, +1.4%; 0% and 21% in the other eras, where the fitted dip slope was zero or tiny). The rest is the
+  rate term: borrow after the 10-year yield fell, hold back after it rose. The dip slope's t-statistic is about 0.5.
+* **Optimism with selling does not survive**: full-Kelly sizing on the VIX keeps it more than half in cash, which
+  cost 11.5% against DCA in 2000-26 (falls 31 points shallower). The simple trend rule with the same caps did better.
+* None of the never-selling versions falls less than plain DCA.
+
 Modules: `dca/data.py` (market history), `account.py` (the account: interest, margin, many start dates at once,
 and the perfect-foresight bound), `signals.py`, `policy.py`, `evaluate.py`, `strategy.py`, `report.py` +
 `web/dca.html`. Every number above and the signals that did not make it (VIX, policy news, credit, turn of the

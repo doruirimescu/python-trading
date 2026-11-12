@@ -4,7 +4,7 @@ shift them one day before trading on them.
 Price action: ``dd`` (drawdown from the 1-year high), ``dd_ath`` (from the all-time high), ``trend`` (price over
 its 200-day average - 1), ``mom12`` (12-month return skipping the last month), ``ret21`` / ``ret5`` (last month /
 week), ``rv21`` (realised volatility of the last month, a year), ``rv_ratio`` (that over its 1-year median:
-volatility clusters). Options: ``vix``, ``vix_pct`` (rank in the last 5 years), ``vrp`` (VIX - realised),
+volatility clusters), ``vol_long`` (realised volatility of the last 10 years). Options: ``vix``, ``vix_pct`` (rank in the last 5 years), ``vrp`` (VIX - realised),
 ``term`` (VIX / 3-month VIX: above 1 = stress), ``skew``. Rates: ``y10``, ``y10_chg`` (6-month change),
 ``curve`` (10-year - 3-month), ``real_carry`` (trailing 5-year stock return a year - 10-year yield). Credit:
 ``credit`` (high-yield fund over Treasury fund, against its 200-day average). News: ``epu`` (policy-uncertainty
@@ -42,6 +42,8 @@ def features(df):
     f["ret5"] = px / px.shift(5) - 1.0
     f["rv21"] = lr.rolling(21).std() * np.sqrt(252) * 100.0
     f["rv_ratio"] = f["rv21"] / f["rv21"].rolling(252, min_periods=126).median()
+    # long-run volatility: the last 10 years' realised volatility (a year, %; from 1 year of data on)
+    f["vol_long"] = lr.rolling(2520, min_periods=252).std() * np.sqrt(252) * 100.0
     f["vix"] = df["vix"]
     # implied volatility for every year: the VIX where it exists (1990 on), before that realised volatility
     # scaled by the VIX's typical premium over it (median VIX / realised, 1990 to today; one constant)

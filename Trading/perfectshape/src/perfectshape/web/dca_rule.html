@@ -40,6 +40,10 @@
       <div class="panel"><h3>Why anyone would expect it to work</h3><p id="idea"></p></div>
       <div class="panel"><h3>What goes wrong</h3><p id="risk"></p></div>
     </div>
+    <section class="r-section" id="fam_sec" hidden><h2>The four combined strategies</h2>
+      <p class="muted small r-note">Optimism borrows when the market rises calmly; pessimism borrows when it has fallen. Each comes in a version that never sells (payments repay the debt) and one that sells to reach its target. Results are out of sample: each era scored by a version fitted on the other two.</p>
+      <div id="fam"></div>
+    </section>
     <section class="r-section" id="fn_sec" hidden><h2>The function</h2>
       <div class="panel" style="padding:16px 20px"><pre id="fn_formula" style="white-space:pre-wrap;margin:0"></pre></div>
       <div class="r-grid">
@@ -93,7 +97,7 @@
     const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${label}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
     const X = D.kind === "exposure", S = D.stats, r10 = S.us10, e10 = S.early10;
 
-    $("eyebrow").textContent = D.combined ? "Combined strategy · a continuous function of the VIX, the margin rate, the Fed's rate and the trend · never sells" : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
+    $("eyebrow").textContent = D.combined ? D.combined.eyebrow : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
     $("title").textContent = D.name;
     $("lead").textContent = (D.docs && D.docs.what) || "";
     $("how").textContent = (D.docs && D.docs.how) || "";
@@ -141,22 +145,24 @@
       const K = D.combined, N = K.now;
       $("fn_sec").hidden = false;
       $("fn_formula").textContent = K.formula;
-      const r = (x) => (x * 100).toFixed(2) + "%";
-      $("fn_now").innerHTML = tbl(["Input / step", "Value"], [
-        ["Signals of the close of", N.date], ["S&P 500 vs its 200-day average", pct(N.trend)], ["VIX", N.vix.toFixed(1)],
-        ["10-year yield (the margin rate)", N.y10.toFixed(2) + "%"], ["3-month bill (the Fed's rate)", N.y3m.toFixed(2) + "%"],
-        ["10-year yield, change over 6 months", (N.y10_chg >= 0 ? "+" : "") + N.y10_chg.toFixed(2) + " points"],
-        ["Expected S&P 500 return a year (mu)", r(N.mu)], ["Volatility (sigma, from the VIX)", r(N.sigma)],
-        ["Borrow side E_b", N.e_b.toFixed(2)], ["Cash side E_l", N.e_l.toFixed(2)],
-        ["<strong>Target exposure</strong>", `<strong>${N.target.toFixed(2)}</strong>`]]);
+      $("fn_now").innerHTML = tbl(["Input / step", "Value"], K.now_rows);
       $("fn_params").innerHTML = tbl(["Parameter", "Value", "Meaning"], K.params.map((x) => [esc(x[0]), esc(x[1]), esc(x[2])]));
       $("fn_fit").innerHTML = tbl(K.cv.head, K.cv.rows.map((row) => row.map(esc))) +
-        '<p class="muted small r-note">Each cell: beats plain DCA in · median edge · worst account · median fall against plain DCA (points; + = shallower). The trend rules run with the same debt and cash caps.</p>' +
+        `<p class="muted small r-note">${esc(K.cv.note)}</p>` +
+        (K.ablation ? '<h3>Where the edge comes from: dips or rates</h3>' + tbl(K.ablation.head, K.ablation.rows.map((row) => row.map(esc))) +
+          '<p class="muted small r-note">The same fitted strategy on its held-out era, with one of its two terms switched off. Cells as above.</p>' : "") +
         (K.attempts && K.attempts.length ? '<h3>Earlier fits that did not survive the test</h3>' + tbl(["Attempt", "Fitted on 1962-1999", "Tested on 2000-today", "Tested on 1928-1961", "What went wrong"],
           K.attempts.map((x) => [esc(x.name), esc(x.train), esc(x.test), esc(x.early), esc(x.why)])) : "");
-      $("map_head").textContent = `Exposure the function asks for, by VIX and distance from the 200-day average (10-year ${N.y10.toFixed(2)}%, bill ${N.y3m.toFixed(2)}%, no rate rise; x = today, whose rate rise of ${N.y10_chg.toFixed(2)} points lowers it further)`;
+      $("map_head").textContent = K.map.head;
+      if (K.family && K.family.length) {
+        $("fam_sec").hidden = false;
+        $("fam").innerHTML = tbl(["Strategy", "Beats DCA, out of sample", "1928-1961", "1962-1999", "2000-today", "Exposure today"],
+          K.family.map((f) => [f.current ? `<strong>${esc(f.name)}</strong>` : `<a href="${esc(f.href)}">${esc(f.name)}</a>`,
+            `${share(f.win)} <span class="faint small">of ${f.n}</span>`].concat(f.eras.map((e) => esc(e[1]))).concat([f.today.toFixed(2)]))) +
+          '<p class="muted small r-note">Era cells: beats plain DCA in · median edge · worst account · median fall against plain DCA (points; + = shallower), 10-year accounts.</p>';
+      }
     }
-    const groups = { combined: "Combined strategy", exposure: "Account-sized rules", payments: "Six-payment rules" };
+    const groups = { combined: "Combined strategies", exposure: "Account-sized rules", payments: "Six-payment rules" };
     $("nav").innerHTML = Object.keys(groups).map((g) => `<h3>${groups[g]}</h3><ul class="r-nav">` +
       D.nav.filter((n) => n.kind === g).map((n) => n.name === D.name ? `<li><strong>${esc(n.name)}</strong></li>` : `<li><a href="${esc(n.href)}">${esc(n.name)}</a></li>`).join("") + `</ul>`).join("") +
       `<p><a href="../report.html">← Back to the DCA report</a></p>`;
@@ -196,12 +202,12 @@
           L({ yaxis: { tickformat: "$,.0f" }, yaxis2: { overlaying: "y", side: "right", tickformat: "$,.0f", showgrid: false }, margin: { l: 70, r: 70, t: 8, b: 30 } }), cfg);
       }
       if (D.combined) {
-        const Mp = D.combined.map, N = D.combined.now;
+        const Mp = D.combined.map;
         window.Plotly.react("c_map", [
-          { x: Mp.vix, y: Mp.dist, z: Mp.z, type: "heatmap", zmin: 0, zmax: 2, zsmooth: "best", colorscale: [[0, window.Nexus.rgba(C.negative, 0.9)], [0.5, window.Nexus.rgba(C.neutral, 0.25)], [1, C.accent]],
-            colorbar: { title: { text: "exposure" } }, hovertemplate: "VIX %{x}<br>vs average %{y:+.0%}<br>exposure %{z:.2f}<extra></extra>" },
-          { x: [N.vix], y: [Math.max(-0.2, Math.min(0.2, N.trend))], mode: "markers", name: "today", marker: { size: 12, color: C.text, symbol: "x" } }],
-          L({ hovermode: "closest", showlegend: false, xaxis: { title: { text: "VIX" } }, yaxis: { title: { text: "S&P 500 vs 200-day average" }, tickformat: "+.0%" }, margin: { l: 64, r: 12, t: 8, b: 46 } }), cfg);
+          { x: Mp.x, y: Mp.y, z: Mp.z, type: "heatmap", zmin: 0, zmax: 2, zsmooth: "best", colorscale: [[0, window.Nexus.rgba(C.negative, 0.9)], [0.5, window.Nexus.rgba(C.neutral, 0.25)], [1, C.accent]],
+            colorbar: { title: { text: "exposure" } }, hovertemplate: `${esc(Mp.xlabel)} %{x:${Mp.fmt.x}}<br>${esc(Mp.ylabel)} %{y:${Mp.fmt.y}}<br>exposure %{z:.2f}<extra></extra>` },
+          { x: [Mp.today[0]], y: [Mp.today[1]], mode: "markers", name: "today", marker: { size: 12, color: C.text, symbol: "x" } }],
+          L({ hovermode: "closest", showlegend: false, xaxis: { title: { text: Mp.xlabel }, tickformat: Mp.fmt.x }, yaxis: { title: { text: Mp.ylabel }, tickformat: Mp.fmt.y }, margin: { l: 64, r: 12, t: 8, b: 46 } }), cfg);
       }
       const E = D.edges;
       window.Plotly.react("c_edge", [

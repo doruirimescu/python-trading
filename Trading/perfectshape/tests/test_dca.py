@@ -314,8 +314,7 @@ def test_kelly_function_borrows_when_cheap_and_calm_and_never_looks_ahead():
     k = Kelly(p_above=0.09, p_below=0.01, a=0.08, k=0.15, max_debt=12, max_cash=0)
     g = pd.DataFrame({"trend": [0.05, 0.05, -0.05, 0.05], "vix_like": [10.0, 30.0, 10.0, 10.0], "y10": 4.0, "y3m": 3.0,
                       "y10_chg": [0.0, 0.0, 0.0, 1.0], "curve": 1.0})
-    from perfectshape.dca.pages import _exposure_of
-    e = _exposure_of(k, g)[0]
+    e = np.asarray(k.parts(g)[4])
     assert e[0] > 1.0 and e[1] == 1.0 and e[2] == 1.0 and e[3] == 1.0   # calm and above: borrow; otherwise plain DCA
     m = make_market(years=9, drift=0.0005)
     f = features(m)
@@ -327,3 +326,27 @@ def test_kelly_function_borrows_when_cheap_and_calm_and_never_looks_ahead():
     np.testing.assert_array_equal(a[:X + 1], b[:X + 1])
     fc = estimate_kelly_forecast(month_table(m, f), ["1962-1999"])
     assert {"p_above", "p_below", "a"} <= set(fc) and fc["months"] > 50
+
+
+def test_dip_kelly_borrows_more_the_deeper_the_fall_and_the_sell_versions_sell():
+    from perfectshape.dca.continuous import VARIANTS, Kelly, estimate_dip_forecast, month_table
+
+    g = pd.DataFrame({"dd_ath": [0.0, -0.1, -0.3, -0.6], "vol_long": 16.0, "vix_like": 60.0, "trend": -0.1, "y10": 4.0,
+                      "y3m": 3.0, "y10_chg": 0.0})
+    dip = Kelly(signal="dip", vol="long", p0=0.05, p_dip=0.3, d_mean=0.05, a=0.05, k=1.0, max_debt=12, max_cash=0)
+    e = np.asarray(dip.parts(g)[4])
+    assert e[0] == 1.0 and e[1] < e[2] <= e[3] and e[2] > 1.0      # deeper = more; the VIX does not veto it
+    assert e[3] == pytest.approx(np.asarray(dip.parts(g.assign(dd_ath=-0.4))[4])[3])   # depth counted up to 40%
+    sells = Kelly(signal="dip", vol="long", p0=0.05, p_dip=0.3, d_mean=0.05, k=1.0, sell=True)
+    es = np.asarray(sells.parts(g)[4])
+    assert es[0] < 1.0 < es[2] and sells.rule().sell and np.isinf(sells.account().max_cash)   # less at the high
+    assert not Kelly().rule().sell and len({Kelly(signal=s, sell=x).title for s, _, x in VARIANTS.values()}) == 4
+    m = make_market(years=9, drift=0.0005)
+    f = features(m)
+    X = 1700
+    m2 = m.copy()
+    m2.iloc[X:, m2.columns.get_loc("px")] *= 0.6
+    a, b = dip.rule().array(f), dip.rule().array(features(m2))
+    np.testing.assert_array_equal(a[:X + 1], b[:X + 1])
+    fc = estimate_dip_forecast(month_table(m, f), ["1962-1999"])
+    assert {"p0", "p_dip", "a", "t_dip"} <= set(fc)

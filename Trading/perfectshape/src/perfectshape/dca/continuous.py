@@ -167,7 +167,7 @@ def describe(c: Combined) -> dict:
 
 
 __all__ = ["Combined", "fit", "objective", "evaluate_train", "from_vector", "describe", "replace", "Kelly",
-           "estimate_kelly_forecast", "month_table", "ERAS"]
+           "estimate_kelly_forecast", "estimate_dip_forecast", "month_table", "ERAS", "VARIANTS"]
 
 
 # ---------------------------------------------------------------- the robust version: Kelly sizing on coarse forecasts
@@ -178,42 +178,97 @@ ERAS = {"1928-1961": ("1928-01-01", "1961-12-31"), "1962-1999": ("1962-01-01", "
 
 @dataclass(frozen=True)
 class Kelly:
-    """Merton / Kelly sizing on the forecasts that held in every era: the excess return of the S&P 500 over the
-    10-year yield is ``p_above`` well above the 200-day average and ``p_below`` well below it (smooth in between, over
-    about ``width`` of distance), minus ``a`` per point the 10-year yield rose over 6 months. Variance from the VIX.
-    Borrow when k x (expected - margin rate) / variance > 1, hold payments when k x (expected - bill rate) / variance
-    < 1. Never sells; debt and cash capped in payments."""
+    """Merton / Kelly sizing on a coarse forecast of the S&P 500's excess return over the 10-year yield.
+
+    Two forecasts (``signal``):
+
+    * ``"trend"`` (optimism): ``p_above`` well above the 200-day average, ``p_below`` well below it (smooth in between,
+      over about ``width`` of distance);
+    * ``"dip"`` (pessimism): ``p0`` on average, plus ``p_dip`` per unit of drawdown from the all-time high beyond the
+      typical one (``d_mean``; the depth counted up to ``dip_cap``);
+
+    both minus ``a`` per point the 10-year yield rose over 6 months. Volatility (``vol``) from the VIX, or ``"long"``:
+    the last 10 years' realised volatility, so that a crash's VIX does not veto the dip it is meant to buy.
+
+    Optimism: borrow when k x (expected - margin rate) / variance > 1, hold cash when k x (expected - bill rate) /
+    variance < 1. Pessimism is an overlay on plain DCA, a Kelly bet on the dip's extra return alone:
+    exposure = 1 + k x (p_dip x (depth - d_mean) - a x rise) / variance, so it borrows only in deeper-than-usual
+    falls (and, allowed to sell, holds less near the highs).
+    ``sell=False``: never sells (payments repay the debt; cash only from held-back payments, at most ``max_cash``);
+    ``sell=True``: sells to reach the target, down to 0. Debt is capped at ``max_debt`` payments (inf: only Reg T)."""
 
     p_above: float = 0.09
     p_below: float = 0.01
     a: float = 0.05
     k: float = 0.2
-    max_debt: int = 18
-    max_cash: int = 3
+    max_debt: float = 18
+    max_cash: float = 3
     width: float = 0.02
     spread: float = 0.0
+    signal: str = "trend"
+    p0: float = 0.0
+    p_dip: float = 0.0
+    dip_cap: float = 0.4
+    vol: str = "vix"
+    sell: bool = False
+    d_mean: float = 0.0
+
+    def extra(self, g):
+        """Pessimism: the dip's expected return over the usual (a year, decimal)."""
+        depth = (-g["dd_ath"].fillna(0.0)).clip(0.0, self.dip_cap)
+        return self.p_dip * (depth - self.d_mean) - self.a * g["y10_chg"].fillna(0.0)
 
     def expected(self, g):
-        w = 0.5 * (1.0 + np.tanh(g["trend"].fillna(0.0) / self.width))
-        return (g["y10"] / 100.0 + self.p_below + (self.p_above - self.p_below) * w
-                - self.a * g["y10_chg"].fillna(0.0))
+        if self.signal == "dip":
+            return g["y10"] / 100.0 + self.p0 + self.extra(g)
+        else:
+            w = 0.5 * (1.0 + np.tanh(g["trend"].fillna(0.0) / self.width))
+            base = self.p_below + (self.p_above - self.p_below) * w
+        return g["y10"] / 100.0 + base - self.a * g["y10_chg"].fillna(0.0)
+
+    def sigma(self, g):
+        col = "vol_long" if self.vol == "long" else "vix_like"
+        return g[col].bfill().ffill() / 100.0
+
+    def parts(self, g):
+        """mu, sigma, E_b, E_l and the exposure for signal rows ``g`` (already the previous close's)."""
+        mu = self.expected(g)
+        s2 = self.sigma(g) ** 2
+        if self.signal == "dip":
+            # overlay on plain DCA: the Kelly bet on the dip's extra return (borrow side and cash side are one line)
+            e = 1.0 + self.k * self.extra(g) / s2
+            e_b = e_l = e
+        else:
+            e_b = self.k * (mu - g["y10"] / 100.0 - self.spread) / s2
+            e_l = self.k * (mu - g["y3m"].fillna(0.0) / 100.0) / s2
+            e = e_b.where(e_b > 1.0, e_l.where(e_l < 1.0, 1.0))
+        if not self.sell and self.max_cash <= 0:
+            e = e.clip(lower=1.0)
+        return mu, np.sqrt(s2), e_b, e_l, e.clip(0.0, 2.0).fillna(1.0)
 
     def target(self, f):
-        g = lagged(f)
-        mu = self.expected(g)
-        s2 = (g["vix_like"].bfill().ffill() / 100.0) ** 2
-        e_b = self.k * (mu - g["y10"] / 100.0 - self.spread) / s2
-        e_l = self.k * (mu - g["y3m"].fillna(0.0) / 100.0) / s2
-        e = e_b.where(e_b > 1.0, e_l.where(e_l < 1.0, 1.0))
-        if self.max_cash <= 0:
-            e = e.clip(lower=1.0)
-        return e.clip(0.0, 2.0).fillna(1.0)
+        return self.parts(lagged(f))[4]
+
+    @property
+    def title(self) -> str:
+        mood = "pessimism: borrows in dips" if self.signal == "dip" else "optimism: borrows in calm uptrends"
+        return f"Combined {mood}, {'sells' if self.sell else 'never sells'}"
 
     def rule(self) -> Rule:
-        return Rule("Combined: Kelly borrowing on VIX, rates and trend, never sells", self.target, False, "combined")
+        return Rule(self.title, self.target, self.sell, "combined")
 
     def account(self, **kw) -> ExposureConfig:
-        return ExposureConfig(max_debt=float(self.max_debt), max_cash=float(self.max_cash), borrow_spread=self.spread, **kw)
+        cash = float("inf") if self.sell else float(self.max_cash)
+        return ExposureConfig(max_debt=float(self.max_debt), max_cash=cash, borrow_spread=self.spread, **kw)
+
+
+VARIANTS = {
+    # slug: (signal, vol, sell); "combined-strategy" keeps the published link of the first combined strategy
+    "combined-strategy": ("trend", "vix", False),
+    "combined-pessimism": ("dip", "long", False),
+    "combined-optimism-sells": ("trend", "vix", True),
+    "combined-pessimism-sells": ("dip", "long", True),
+}
 
 
 def month_table(m, f):
@@ -225,22 +280,44 @@ def month_table(m, f):
     days = pd.Series(m.index, index=m.index).diff().dt.days.fillna(1)
     ex = r - m["y10"] / 100.0 * days / 365.0
     g = f.shift(1)
-    df = pd.DataFrame({"ex": ex, "trend": g["trend"], "rise": g["y10_chg"]}, index=m.index)
-    mon = df.groupby(m.index.to_period("M")).agg(ex=("ex", "sum"), trend=("trend", "first"), rise=("rise", "first")).dropna()
+    df = pd.DataFrame({"ex": ex, "trend": g["trend"], "rise": g["y10_chg"], "dd": g["dd_ath"]}, index=m.index)
+    mon = df.groupby(m.index.to_period("M")).agg(ex=("ex", "sum"), trend=("trend", "first"), rise=("rise", "first"),
+                                                 dd=("dd", "first")).dropna()
     mon["ex"] *= 12.0
     return mon
 
 
-def estimate_kelly_forecast(mon, eras: list[str]) -> dict:
-    """p_above, p_below: mean excess return of months starting above / below the average; a: slope of the excess
-    return on the 6-month yield rise (with the trend state held fixed). Only months of ``eras``."""
+def _era_mask(mon, eras):
     import pandas as pd
 
     keep = np.zeros(len(mon), dtype=bool)
     for e in eras:
         a, b = ERAS[e]
         keep |= (mon.index >= pd.Period(a[:7], "M")) & (mon.index <= pd.Period(b[:7], "M"))
-    x = mon[keep]
+    return keep
+
+
+def estimate_dip_forecast(mon, eras: list[str], cap: float = 0.4) -> dict:
+    """p0: the average monthly excess return; p_dip: its slope on the drawdown depth (up to ``cap``) beyond the average
+    depth ``d_mean``, at least 0 (a dip strategy; with no dip premium it does nothing); a: slope on the 6-month yield
+    rise. Only months of ``eras``. Also the slope's t-statistic, as estimated (before the floor)."""
+    x = mon[_era_mask(mon, eras)]
+    depth = (-x["dd"]).clip(0.0, cap)
+    d_mean = float(depth.mean())
+    X = np.column_stack([np.ones(len(x)), depth - d_mean, -x["rise"]])
+    y = x["ex"].to_numpy()
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ beta
+    cov = np.linalg.inv(X.T @ X) * (resid @ resid) / max(len(y) - 3, 1)
+    t = beta / np.sqrt(np.diag(cov))
+    return {"p0": float(beta[0]), "p_dip": max(0.0, float(beta[1])), "p_dip_raw": float(beta[1]), "a": float(beta[2]),
+            "t_dip": float(t[1]), "d_mean": d_mean, "months": int(len(x)), "eras": list(eras), "cap": cap}
+
+
+def estimate_kelly_forecast(mon, eras: list[str]) -> dict:
+    """p_above, p_below: mean excess return of months starting above / below the average; a: slope of the excess
+    return on the 6-month yield rise (with the trend state held fixed). Only months of ``eras``."""
+    x = mon[_era_mask(mon, eras)]
     above = x["trend"] > 0
     X = np.column_stack([above.astype(float), (~above).astype(float), -x["rise"]])
     beta, *_ = np.linalg.lstsq(X, x["ex"].to_numpy(), rcond=None)

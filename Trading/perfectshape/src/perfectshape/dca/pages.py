@@ -590,11 +590,13 @@ def render_page(d: dict) -> str:
     page = (WEB / "dca_rule.html").read_text(encoding="utf-8")
     data = json.dumps(d, default=float).replace("</", "<\\/")
     # top nav (also the phone tab bar, <html data-nexus-tabs="page">): report, combined strategy, this rule
-    combined = d.get("family") == "combined"
-    active = ' class="active"' if combined else ""
+    # the first combined strategy's page (combined-strategy.html) also compares all four
+    first = d.get("family") == "combined" and d.get("variant", "combined-strategy") == "combined-strategy"
+    label = d.get("nav_label") or "Rule"
+    active = ' class="active"' if first else ""
     nav = ('<a data-nexus-icon="bars" href="../report.html">DCA timing</a>'
-           f'<a data-nexus-icon="target" href="combined-strategy.html"{active}>Combined strategy</a>'
-           + ("" if combined else '<a data-nexus-icon="doc" href="#" class="active">Rule</a>'))
+           f'<a data-nexus-icon="target" href="combined-strategy.html"{active}>Combined strategies</a>'
+           + ("" if first else f'<a data-nexus-icon="doc" href="#" class="active">{html.escape(label)}</a>'))
     return (page.replace("/*__SHAPES_CSS__*/", (WEB / "shapes.css").read_text(encoding="utf-8"))
                 .replace("__NAV__", nav).replace("__TITLE__", html.escape(d["name"])).replace("__DATA__", data))
 
@@ -610,26 +612,26 @@ def write_pages(pages: list[dict], run_dir: str | Path) -> dict[str, str]:
     return links
 
 
-# ---------------------------------------------------------------- the combined (continuous) strategy
-
-def _exposure_of(c, g) -> np.ndarray:
-    """The exposure the strategy's function gives for signal rows ``g`` (already the previous close's)."""
-    mu = np.asarray(c.expected(g), dtype=float)
-    s2 = (np.asarray(g["vix_like"], dtype=float) / 100.0) ** 2
-    e_b = c.k * (mu - np.asarray(g["y10"], dtype=float) / 100.0 - c.spread) / s2
-    e_l = c.k * (mu - np.asarray(g["y3m"], dtype=float) / 100.0) / s2
-    e = np.where(e_b > 1.0, e_b, np.where(e_l < 1.0, e_l, 1.0))
-    return np.clip(e, 0.0 if c.max_cash > 0 else 1.0, 2.0), mu, np.sqrt(s2), e_b, e_l
-
+# ---------------------------------------------------------------- the combined (continuous) strategies
 
 def _pct(x, d=1):
     return f"{x * 100:+.{d}f}%"
 
 
-def combined_page(c, cv: dict, attempts: list[dict], generated: str | None = None, nav: list | None = None) -> dict:
-    """Page data for the combined strategy (:class:`perfectshape.dca.continuous.Kelly`): the rule-page sections plus
-    the function itself (formula, parameters, a VIX x trend map, today's calculation), the leave-one-era-out test
-    (``cv``, from research/dca/kelly_cv.py) and the earlier fits that failed (``attempts``)."""
+def _debt(c) -> str:
+    return "only Reg T (at most 2x)" if not np.isfinite(c.max_debt) else f"{c.max_debt:g} payments (${c.max_debt * 2000:,.0f})"
+
+
+def _cell(r) -> str:
+    return (f"{r['win']:.0%} · {_pct(r['median'])} · worst {_pct(r['worst'])} · fall {r['dd_vs_dca'] * 100:+.1f}" if r else "–")
+
+
+def combined_page(c, cv: dict, attempts: list[dict] | None = None, generated: str | None = None, nav: list | None = None,
+                  family: list[dict] | None = None) -> dict:
+    """Page data for one combined strategy (:class:`perfectshape.dca.continuous.Kelly`): the rule-page sections plus
+    the function itself (formula, parameters, a map of the exposure it asks for, today's calculation), the
+    leave-one-era-out test (``cv``: one variant of research/dca/kelly4_cv.py), the earlier fits that failed
+    (``attempts``) and the four combined strategies side by side (``family``)."""
     import pandas as pd
     from dataclasses import replace as dc_replace
 
@@ -638,6 +640,7 @@ def combined_page(c, cv: dict, attempts: list[dict], generated: str | None = Non
 
     M = _markets()
     rule = c.rule()
+    dip = c.signal == "dip"
     st, edges = {}, {}
     for key, (label, mk, years, kw) in X_SETTINGS.items():
         cfg = dc_replace(c.account(), **kw) if kw else c.account()
@@ -645,89 +648,212 @@ def combined_page(c, cv: dict, attempts: list[dict], generated: str | None = Non
         st[key] = {**{k: r[k] for k in FKEYS}, "label": label + " (fitted on all eras)"}
         if key in ("us10", "early10"):
             edges[key] = {"dates": [str(x) for x in r["start_dates"]], "edge": np.round(r["edges"], 5).tolist()}
-    page = {"kind": "exposure", "name": rule.name, "family": "combined", "sell": False,
-            "generated": generated or datetime.now().strftime("%Y-%m-%d %H:%M"), "docs": COMBINED_DOCS, "stats": st,
-            "edges": edges, "nav": nav or [], **path_data(rule, c.account())}
+    page = {"kind": "exposure", "name": rule.name, "family": "combined", "sell": c.sell,
+            "generated": generated or datetime.now().strftime("%Y-%m-%d %H:%M"), "docs": COMBINED_DOCS[(c.signal, c.sell)],
+            "stats": st, "edges": edges, "nav": nav or [], **path_data(rule, c.account())}
     # the honest test: each era scored by a strategy fitted on the other two
-    cv_rows, wins = [], []
+    cv_rows, wins, others = [], [], []
     for fold in cv["folds"]:
         res = fold["results"]
         comb = next(v for k, v in res.items() if k.startswith("Combined"))
-        t125 = res.get("trend 1.25 + guard (no sell)")
-        t15 = res.get("trend 1.5 + guard (no sell)")
+        rest = [k for k in res if not k.startswith("Combined")]
+        others = others or rest
         kf, fc = fold["kelly"], fold["forecast"]
         wins.append(comb)
-        cell = lambda r: (f"{r['win']:.0%} · {_pct(r['median'])} · worst {_pct(r['worst'])} · fall {r['dd_vs_dca'] * 100:+.1f}"
-                          if r else "–")
-        cv_rows.append([fold["test"], ", ".join(fold["train"]),
-                        f"above {_pct(fc['p_above'])}, below {_pct(fc['p_below'])}, a {fc['a']:.3f}",
-                        f"k {kf.k:g}, debt {kf.max_debt}, cash {kf.max_cash}", cell(comb), cell(t125), cell(t15)])
-    page["verdict"] = _verdict_cv(cv, wins)
+        fc_txt = (f"{fc['p_dip_raw']:+.3f} per unit of drawdown beyond {fc['d_mean']:.0%} (t {fc['t_dip']:.1f})"
+                  f"{', floored at 0' if fc['p_dip_raw'] < 0 else ''}, a {fc['a']:.3f}" if dip
+                  else f"above {_pct(fc['p_above'])}, below {_pct(fc['p_below'])}, a {fc['a']:.3f}")
+        size = f"k {kf.k:g}, debt {_debt(kf)}" + ("" if c.sell else f", cash {kf.max_cash:g}")
+        cv_rows.append([fold["test"], ", ".join(fold["train"]), fc_txt, size, _cell(comb)] + [_cell(res.get(k)) for k in others])
+    page["verdict"] = _verdict_cv(cv, wins, c)
+    ablation = None
+    if cv.get("ablation"):
+        ab = cv["ablation"]
+        ablation = {"head": ["Tested on", "As fitted", "Dip term only (no rate penalty)", "Rate term only (dip slope 0)"],
+                    "rows": [[r["test"]] + [_cell(r[k]) for k in ("as fitted", "dip only", "rates only")] for r in ab]}
+        dip_won = [r["test"] for r in ab if r["dip only"]["median"] > 0.005]
+        page["verdict"] += (" Most of this edge is not from buying dips: with the rate term switched off, the dip term alone "
+                            f"added something only in {', '.join(dip_won) if dip_won else 'no era'}; the rest comes from "
+                            "borrowing after the 10-year yield has fallen and holding back after it has risen (table below).")
     # today's calculation, step by step (the last close's signals: what the next close trades on)
     f = M["f_us"]
     g = f.iloc[[-1]]
-    e, mu, sig, e_b, e_l = _exposure_of(c, g)
+    mu, sig, e_b, e_l, e = (float(np.asarray(x)[0]) for x in c.parts(g))
     row = g.iloc[0]
-    now = {"date": str(f.index[-1].date()), "trend": float(row["trend"]), "vix": float(row["vix_like"]), "y10": float(row["y10"]),
-           "y3m": float(row["y3m"]), "y10_chg": float(row["y10_chg"]), "mu": float(mu[0]), "sigma": float(sig[0]),
-           "e_b": float(e_b[0]), "e_l": float(e_l[0]), "target": float(e[0])}
-    # the map: exposure for each VIX and distance from the average, at today's yields but no rate rise (so its shape
-    # shows; today's rise is in the step-by-step table)
-    vix = np.arange(8, 45.1, 1.0)
-    dist = np.round(np.arange(-0.20, 0.2001, 0.02), 3)
-    grid = pd.DataFrame([{"trend": d, "vix_like": v, "y10": row["y10"], "y3m": row["y3m"], "y10_chg": 0.0,
-                          "curve": row["curve"]} for d in dist for v in vix])
-    z = np.round(_exposure_of(c, grid)[0].reshape(len(dist), len(vix)), 3).tolist()
-    formula = (f"expected return   mu = y10 + {_pct(c.p_below)} + ({_pct(c.p_above)} - {_pct(c.p_below)}) x w - {c.a:.3f} x (6-month rise of y10, points)\n"
-               f"                  w = (1 + tanh(distance from the 200-day average / {c.width:.0%})) / 2   (0 well below, 1 well above)\n"
-               f"variance          s2 = (VIX / 100)^2\n"
-               f"borrow side       E_b = {c.k:g} x (mu - y10) / s2      stocks against the margin rate\n"
-               f"cash side         E_l = {c.k:g} x (mu - y3m) / s2      stocks against T-bills (the Fed's rate)\n"
-               f"exposure          E_b if E_b > 1 (borrow); E_l if E_l < 1 (hold payments in cash); otherwise 1; at most 2\n"
-               f"limits            debt at most {c.max_debt} payments (${c.max_debt * 2000:,}), cash at most {c.max_cash} payments; never sells")
-    fc = cv["forecast_all"]
-    params = [["p_above", _pct(c.p_above), f"S&P 500 over the 10-year yield, months starting above the average ({fc['months']} months, 1928-today)"],
-              ["p_below", _pct(c.p_below), "the same for months starting below the average"],
-              ["a", f"{c.a:.3f}", "expected return lost per point the 10-year yield rose over 6 months"],
-              ["k", f"{c.k:g}", "Kelly fraction: the share of the theoretically optimal bet (chosen on the accounts)"],
-              ["max debt", f"{c.max_debt} payments", "the most debt the payments are asked to repay (chosen on the accounts)"],
-              ["max cash", f"{c.max_cash} payments", "the most payments held back (chosen on the accounts)"]]
-    page["combined"] = {"now": now, "formula": formula, "params": params,
-                        "map": {"vix": vix.tolist(), "dist": dist.tolist(), "z": z},
-                        "cv": {"head": ["Tested on", "Fitted on", "Forecast estimated", "Sizing chosen", "Combined",
-                                        "Trend 1.25 + guard", "Trend 1.5 + guard"], "rows": cv_rows},
-                        "attempts": attempts}
+    r2 = lambda x: f"{x * 100:.2f}%"
+    now = {"date": str(f.index[-1].date()), "trend": float(row["trend"]), "dd": float(row["dd_ath"]), "vix": float(row["vix_like"]),
+           "vol_long": float(row["vol_long"]), "y10": float(row["y10"]), "y3m": float(row["y3m"]), "y10_chg": float(row["y10_chg"]),
+           "mu": mu, "sigma": sig, "e_b": e_b, "e_l": e_l, "target": e}
+    rows = [["Signals of the close of", now["date"]]]
+    rows += ([["S&P 500 below its all-time high", _pct(now["dd"])], ["Volatility of the last 10 years", f"{now['vol_long']:.1f}%"]] if dip
+             else [["S&P 500 vs its 200-day average", _pct(now["trend"])], ["VIX", f"{now['vix']:.1f}"]])
+    rows += [["10-year yield (the margin rate)", f"{now['y10']:.2f}%"], ["3-month bill (the Fed's rate)", f"{now['y3m']:.2f}%"],
+             ["10-year yield, change over 6 months", f"{now['y10_chg']:+.2f} points"],
+             ["Expected S&P 500 return a year (mu)", r2(mu)],
+             [f"Volatility (sigma, {'10-year realised' if c.vol == 'long' else 'from the VIX'})", r2(sig)],
+             *([["Dip's extra return a year (x)", r2(float(np.asarray(c.extra(g))[0]))], ["1 + k x x / s2", f"{e_b:.2f}"]] if dip
+               else [["Borrow side E_b", f"{e_b:.2f}"], ["Cash side E_l", f"{e_l:.2f}"]]),
+             ["<strong>Target exposure</strong>", f"<strong>{e:.2f}</strong>"]]
+    # the map, at today's yields but no rate rise (so its shape shows; today's rise is in the step-by-step table)
+    base = {"y10": row["y10"], "y3m": row["y3m"], "y10_chg": 0.0, "curve": row["curve"], "trend": row["trend"],
+            "dd_ath": row["dd_ath"], "vix_like": row["vix_like"], "vol_long": row["vol_long"]}
+    if dip:
+        xs, xk, xl = np.round(np.arange(0.0, -0.5001, -0.025), 3), "dd_ath", "S&P 500 below its all-time high"
+        ys, yk, yl = np.arange(10.0, 30.01, 1.0), "vol_long", "volatility of the last 10 years (%)"
+        today = [max(-0.5, now["dd"]), now["vol_long"]]
+        fmt = {"x": ".0%", "y": ".0f"}
+    else:
+        xs, xk, xl = np.arange(8, 45.1, 1.0), "vix_like", "VIX"
+        ys, yk, yl = np.round(np.arange(-0.20, 0.2001, 0.02), 3), "trend", "S&P 500 vs 200-day average"
+        today = [now["vix"], max(-0.2, min(0.2, now["trend"]))]
+        fmt = {"x": ".0f", "y": "+.0%"}
+    grid = pd.DataFrame([{**base, yk: y, xk: x} for y in ys for x in xs])
+    z = np.round(np.asarray(c.parts(grid)[4], dtype=float).reshape(len(ys), len(xs)), 3).tolist()
+    head = (f"Exposure the function asks for, by {xl.split(' (')[0]} and {yl.split(' (')[0]} (10-year {now['y10']:.2f}%, bill "
+            f"{now['y3m']:.2f}%, no rate rise; x = today, whose rate rise of {now['y10_chg']:+.2f} points changes it)")
+    page["combined"] = {"eyebrow": f"Combined strategy · a continuous Kelly function · {'sells to reach its target' if c.sell else 'never sells'}",
+                        "now": now, "now_rows": rows, "formula": _formula(c), "params": _params(c, cv["forecast_all"]),
+                        "map": {"x": xs.tolist(), "y": ys.tolist(), "z": z, "xlabel": xl, "ylabel": yl, "today": today,
+                                "fmt": fmt, "head": head},
+                        "cv": {"head": ["Tested on", "Fitted on", "Forecast estimated", "Sizing chosen", "Combined"] + others,
+                               "rows": cv_rows,
+                               "note": ("Each cell: beats plain DCA in · median edge · worst account · median fall against plain DCA "
+                                        "(points; + = shallower). The two simple rules run with the same debt and cash caps and "
+                                        f"{'sell' if c.sell else 'never sell'} too.")},
+                        "attempts": attempts or [], "family": family or [], "ablation": ablation}
     return page
 
 
-def _verdict_cv(cv, folds) -> str:
+def _formula(c) -> str:
+    if c.signal == "dip":
+        floor = ("between 0 and 2; sells to reach it" if c.sell else "at least 1, at most 2; never sells" if c.max_cash <= 0
+                 else f"at most 2; below 1 it holds back up to {c.max_cash:g} payments; never sells")
+        return (f"dip's extra return  x = {c.p_dip:.3f} x (depth - {c.d_mean:.1%}) - {c.a:.3f} x (6-month rise of y10, points)\n"
+                f"                    depth = how far the S&P 500 is below its all-time high, counted up to {c.dip_cap:.0%};\n"
+                f"                    {c.d_mean:.1%} = its average since 1928 (so x > 0 only in deeper-than-usual falls)\n"
+                f"variance            s2 = (realised volatility of the last 10 years)^2\n"
+                f"exposure            1 + {c.k:g} x x / s2      a Kelly bet on the dip's extra return, on top of plain DCA; {floor}\n"
+                f"                    (a falling 10-year yield makes x positive too: it then borrows without any dip)\n"
+                f"limits              debt at most {_debt(c)}")
+    else:
+        mu = (f"expected return   mu = y10 + {_pct(c.p_below)} + ({_pct(c.p_above)} - {_pct(c.p_below)}) x w - {c.a:.3f} x (6-month rise of y10, points)\n"
+              f"                  w = (1 + tanh(distance from the 200-day average / {c.width:.0%})) / 2   (0 well below, 1 well above)\n")
+    var = "(realised volatility of the last 10 years)^2" if c.vol == "long" else "(VIX / 100)^2"
+    if c.sell:
+        tail = ("exposure          E_b if E_b > 1 (borrow); E_l if E_l < 1 (sell into T-bills); otherwise 1; between 0 and 2\n"
+                f"limits            debt at most {_debt(c)}; sells to reach the target")
+    else:
+        tail = ("exposure          E_b if E_b > 1 (borrow); E_l if E_l < 1 (hold payments in cash); otherwise 1; at most 2\n"
+                f"limits            debt at most {_debt(c)}, cash at most {c.max_cash:g} payments; never sells")
+    return (mu + f"variance          s2 = {var}\n"
+            f"borrow side       E_b = {c.k:g} x (mu - y10) / s2      stocks against the margin rate\n"
+            f"cash side         E_l = {c.k:g} x (mu - y3m) / s2      stocks against T-bills (the Fed's rate)\n" + tail)
+
+
+def _params(c, fc) -> list[list[str]]:
+    if c.signal == "dip":
+        rows = [["p_dip", f"{c.p_dip:.3f}", f"extra expected return a year per unit of drawdown beyond the usual (least squares on "
+                                            f"{fc['months']} months, 1928-today; t = {fc['t_dip']:.1f}: weak evidence; at least 0)"],
+                ["usual depth", f"{c.d_mean:.1%}", "the S&P 500's average distance below its all-time high, 1928-today"],
+                ["p0", _pct(c.p0), "the S&P 500's average return over the 10-year yield (shown in mu; the overlay does not use it)"]]
+    else:
+        rows = [["p_above", _pct(c.p_above), f"S&P 500 over the 10-year yield, months starting above the average ({fc['months']} months, 1928-today)"],
+                ["p_below", _pct(c.p_below), "the same for months starting below the average"]]
+    rows += [["a", f"{c.a:.3f}", "expected return lost per point the 10-year yield rose over 6 months"],
+             ["k", f"{c.k:g}", "Kelly fraction: the share of the theoretically optimal bet (chosen on the accounts)"],
+             ["max debt", _debt(c), "the most debt allowed (chosen on the accounts)"]]
+    if not c.sell:
+        rows.append(["max cash", f"{c.max_cash:g} payments", "the most payments held back (chosen on the accounts)"])
+    return rows
+
+
+def _verdict_cv(cv, folds, c) -> str:
     n = sum(f["n"] for f in folds)
     won = sum(f["win"] * f["n"] for f in folds)
-    parts = [f"{fo['test']}: {f['win']:.0%} ({_pct(f['median'])})" for fo, f in zip(cv["folds"], folds)]
+    parts = [f"{fo['test']}: {f['win']:.0%} ({_pct(f['median'])}, fall {f['dd_vs_dca'] * 100:+.1f} points)" for fo, f in zip(cv["folds"], folds)]
+    calls = sum(f["calls"] for f in folds)
     return ("Each era was scored by a version fitted only on the other two (leave-one-era-out), so these numbers are out of "
             f"sample: it beat plain DCA in {won / max(n, 1):.0%} of {n} ten-year accounts - " + "; ".join(parts) + ". "
-            "The strategy shown below is the same recipe fitted on all three eras, the version to use from today. It never "
-            "sells and had no margin call in any test.")
+            "The strategy shown below is the same recipe fitted on all three eras, the version to use from today. "
+            f"{'It sells to reach its target' if c.sell else 'It never sells'}; "
+            f"{'no margin call in any test' if calls == 0 else f'{calls} margin calls in the tests'}.")
+
+
+def family_rows(cvs: dict, finals: dict, nav_names: dict, current: str) -> list[dict]:
+    """The four combined strategies side by side: pooled out-of-sample results, per era, and today's target."""
+    M = _markets()
+    g = M["f_us"].iloc[[-1]]
+    out = []
+    for slug_, cv in cvs.items():
+        rs = [next(v for k, v in fo["results"].items() if k.startswith("Combined")) for fo in cv["folds"]]
+        n = sum(r["n"] for r in rs)
+        out.append({"name": nav_names[slug_], "href": f"{slug_}.html", "current": slug_ == current,
+                    "win": sum(r["win"] * r["n"] for r in rs) / max(n, 1), "n": n,
+                    "eras": [[fo["test"], _cell(r)] for fo, r in zip(cv["folds"], rs)],
+                    "today": float(np.asarray(finals[slug_].parts(g)[4])[0])})
+    return out
 
 
 COMBINED_DOCS = {
-    "what": "One continuous borrowing function instead of on/off rules: how much to borrow (or how many payments to hold "
-            "back) follows the trend, the VIX, the margin rate (10-year yield) and the Fed's rate (3-month bill) every day. The account never sells: it only "
-            "borrows more or less, and the monthly payments repay the debt.",
-    "how": "Each day, from the previous close: expected S&P 500 return = 10-year yield + a premium that moves smoothly from "
-           "its below-the-average value to its above-the-average value as the index crosses its 200-day average, minus a "
-           "penalty for a rising 10-year yield. Merton's rule turns that into an exposure: k x (expected return - rate) / "
-           "variance, the variance from the VIX. Against the margin rate (the 10-year yield) it says whether to borrow, "
-           "against the bill rate (the Fed's rate) whether to hold payments in cash. Debt is capped in payments. The two "
-           "premiums and the penalty are averages of monthly returns since 1928; k and the caps were chosen on the "
-           "10-year accounts; the test below fits each era without it.",
-    "idea": "Borrow when the expected reward for risk is high and the loan is cheap; borrow less when the market is "
-            "nervous (high VIX means each borrowed dollar carries more risk) or rates are rising. This is the textbook "
-            "(Merton / Kelly) answer to 'how much should I invest'; the research's findings (trend, rate shocks) enter as "
-            "the forecast of the expected return.",
-    "risk": "Never selling means debt taken before a crash is carried through it, repaid only as fast as the payments "
-            "allow: the debt cap in payments is what keeps this survivable. The expected-return forecast is crude, and "
-            "the fitted numbers rest on three eras, that is a handful of independent decades. With k small it borrows "
-            "rarely (about 1 day in 4) and adds about 2% over ten years: more conservative, and less rewarding, than the "
-            "simple trend rules. A no-sell account that holds no cash cannot fall less than plain DCA.",
+    ("trend", False): {
+        "what": "One continuous borrowing function instead of on/off rules: how much to borrow (or how many payments to hold "
+                "back) follows the trend, the VIX, the margin rate (10-year yield) and the Fed's rate (3-month bill) every day. "
+                "The account never sells: it only borrows more or less, and the monthly payments repay the debt.",
+        "how": "Each day, from the previous close: expected S&P 500 return = 10-year yield + a premium that moves smoothly from "
+               "its below-the-average value to its above-the-average value as the index crosses its 200-day average, minus a "
+               "penalty for a rising 10-year yield. Merton's rule turns that into an exposure: k x (expected return - rate) / "
+               "variance, the variance from the VIX. Against the margin rate (the 10-year yield) it says whether to borrow, "
+               "against the bill rate (the Fed's rate) whether to hold payments in cash. Debt is capped in payments. The two "
+               "premiums and the penalty are averages of monthly returns since 1928; k and the caps were chosen on the "
+               "10-year accounts; the test below fits each era without it.",
+        "idea": "Optimism: borrow when the market is rising calmly, the expected reward for risk is high and the loan is "
+                "cheap; borrow less when it is nervous (high VIX means each borrowed dollar carries more risk) or rates are "
+                "rising. The textbook (Merton / Kelly) answer to 'how much should I invest', with the research's findings "
+                "(trend, rate shocks) as the forecast.",
+        "risk": "Never selling means debt taken before a crash is carried through it, repaid only as fast as the payments "
+                "allow: the debt cap in payments is what keeps this survivable. The forecast is crude, and the fitted numbers "
+                "rest on three eras, a handful of independent decades. With k small it borrows rarely and adds a little over "
+                "ten years. A no-sell account that holds no cash cannot fall less than plain DCA.",
+    },
+    ("dip", False): {
+        "what": "The mirror image: a continuous function that borrows more the further the S&P 500 is below its all-time "
+                "high, and less when the 10-year yield (the margin rate) is rising. The account never sells: payments repay "
+                "the debt.",
+        "how": "Each day, from the previous close: the dip's extra expected return = a slope times how much deeper the fall "
+               "is than the usual one (the S&P 500 has been 17% below its high on average since 1928; depth counted up to "
+               "40%), minus a penalty for a rising 10-year yield; both fitted by least squares on monthly returns, the slope "
+               "at least zero. The exposure is plain DCA plus a Kelly bet on that extra return alone: 1 + k x extra / "
+               "variance, the variance from the last 10 years' realised volatility (the VIX would veto every dip: it is "
+               "highest exactly then). Debt is capped in payments; k and the caps were chosen on the 10-year accounts.",
+        "idea": "Pessimism: stocks are cheaper after a fall, so the expected return should be higher; buy more when others "
+                "are scared, with borrowed money, and let the payments repay it as the market recovers.",
+        "risk": "The dip premium is weak: its slope has a t-statistic around 0.5 on all the data and is zero or negative "
+                "in one of the three fits. Tested alone, the dip term helped only in 1928-1961; in the other eras the edge "
+                "came from the rate term (borrow after yields fell, hold back after they rose). Debt carried through a long "
+                "bear market (no selling) is what hurts; the cap in payments keeps it survivable.",
+    },
+    ("trend", True): {
+        "what": "The optimism function, allowed to sell: it borrows in calm uptrends and sells into T-bills when the expected "
+                "reward over the Fed's rate is too small for the risk, for example below the 200-day average in a nervous market.",
+        "how": "The same forecast and Kelly sizing as the never-selling optimism strategy, but the account trades to its "
+               "target both ways: above 1 it borrows, below 1 it sells shares into 3-month bills, down to nothing. Debt is "
+               "capped in payments or only by Reg T margin (chosen on the accounts).",
+        "idea": "Selling is what lets an account fall less than plain DCA: the trend and the VIX together point to the "
+                "stretches when stocks paid the least for their risk.",
+        "risk": "Every sale is a bet that the market will not rebound first; trend signals whipsaw in sideways markets, and "
+                "each round trip costs. Sales may be taxed in a real account (not modelled).",
+    },
+    ("dip", True): {
+        "what": "The pessimism function, allowed to sell: it borrows in deep falls and sells into T-bills near the highs when "
+                "the expected reward over the Fed's rate is small for the risk.",
+        "how": "The same overlay as the never-selling pessimism strategy, 1 + k x (the dip's extra return) / variance, but "
+               "the account trades to its target both ways: in deeper-than-usual falls it borrows, near the highs (shallower "
+               "than usual, or when the 10-year yield jumps) it sells shares into 3-month bills. Debt is capped in payments "
+               "or only by Reg T margin (chosen on the accounts).",
+        "idea": "Contrarian: hold less at the top, more after a fall. If dips are cheaper, the account buys low and sells "
+                "high by construction.",
+        "risk": "Markets spend most of their time near their highs, so a contrarian account is often under-invested in a "
+                "rising market; and it buys all the way down a long bear market. Tested alone, the dip term helped only in "
+                "1928-1961; the rest of the edge is the rate term. Sales may be taxed (not modelled).",
+    },
 }
