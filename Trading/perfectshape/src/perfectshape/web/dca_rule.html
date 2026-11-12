@@ -48,7 +48,7 @@
       <div class="panel" style="padding:16px 20px"><pre id="fn_formula" style="white-space:pre-wrap;margin:0"></pre></div>
       <div class="r-grid">
         <div class="panel chart-panel"><div class="chart-head" id="map_head"></div><div class="r-chart" id="c_map"></div></div>
-        <div><h3>Today, step by step</h3><div id="fn_now"></div></div>
+        <div><h3 id="fn_now_head">Today, step by step</h3><div id="fn_now"></div><p class="muted small r-note" id="fn_now_note"></p></div>
       </div>
       <h3>Parameters</h3><div id="fn_params"></div>
       <h3>Tested on eras it never saw (leave one era out)</h3><div id="fn_fit"></div>
@@ -92,9 +92,53 @@
     const pts = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1);
     const usd = (x) => (x < 0 ? "−$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-US");
     const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-    const tbl = (head, rows) => `<div class="table-wrap"><table class="data ps"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>` +
+    // info bubbles (nexus.js: one tooltip for every .info[data-tip]); a label gets one when TIP_OF knows it
+    const TIPS = {
+      win: "<b>Beats DCA.</b> We open one account every third month, pay in $2,000 a month and run it for the stated years, once with this rule and once as plain DCA (every payment invested the day it arrives). This is the share of those accounts where the rule ended with more money.",
+      edge: "<b>Median edge.</b> For each account: final wealth with the rule ÷ final wealth with plain DCA − 1. So +3% means the rule ended with 3% more money than plain DCA on the same payments and dates. The median is the middle account: half did better, half worse. Worst and best are the two extremes.",
+      p10: "<b>1 in 10 below.</b> One account in ten had an edge worse than this.",
+      fall: "<b>Deepest fall vs DCA's.</b> Each account's deepest fall from a previous peak (payments taken out, so a deposit does not count as a gain), minus plain DCA's deepest fall over the same years, in percentage points. −2 means the rule fell 2 points further, e.g. −36% where DCA fell −34%. Positive = shallower. The tile shows the median account.",
+      fallworst: "<b>Worst fall vs DCA.</b> The account where the rule fell the most beyond plain DCA, in points.",
+      shallower: "<b>Shallower in.</b> Share of accounts whose deepest fall was smaller than plain DCA's.",
+      ddworst: "<b>Deepest fall.</b> The largest fall from a previous peak, payments taken out (for a table row: the worst among its accounts).",
+      heldout: "<b>Held out.</b> The 1928-1961 history was set aside: no rule or setting was chosen by looking at it. It is a test on data the rule has never seen, which is the honest check against a rule that only fits the years it was tuned on. The tile shows the share of 10-year accounts in those years that beat plain DCA.",
+      exposure: "<b>Average exposure.</b> Exposure = stocks held ÷ your own money in the account. 1.00 is plain DCA: everything invested, no debt. 1.10 means stocks worth 110% of your money, 10% of it borrowed. 0.80 means a fifth sits in cash. This is the average over every day of every account.",
+      calls: "<b>Margin calls.</b> Times the broker would have forced a sale because the account's own money fell under 30% of the stocks held. 0 is what you want.",
+      turnover: "<b>Traded / wealth.</b> Dollars traded beyond the monthly payments, as a multiple of final wealth. Higher means more trading costs and, in a real account, more taxable sales.",
+      extra: "<b>Median extra.</b> Dollars ahead of plain DCA at the end, for the middle account.",
+      interest: "<b>Avg interest paid.</b> Net interest paid on borrowed payments over the account's life (cash held earns the T-bill rate, which is netted off).",
+      cagr: "<b>Growth a year.</b> One account ran the rule from 1928 to today. This is its yearly growth per dollar, with the monthly payments taken out (time-weighted), so it is comparable with the S&P 500's total return, which is what plain DCA earns.",
+      time: "<b>Time borrowed / in cash.</b> Share of trading days since 1928 on which the account held debt, and on which it held cash.",
+      oos: "<b>Out of sample.</b> History is cut into three eras. For each era, the strategy's numbers were fitted on the other two only, then it was scored on the era it had not seen. The percentage pools those three tests.",
+      today: "<b>Exposure today.</b> What the strategy asks for at the next close, from yesterday's closing data. 1.00 = fully invested, no debt; above 1 = borrow; below 1 = hold some cash.",
+      steps: "<b>Today, step by step.</b> The function evaluated on the last close's data, line by line: the inputs it reads, the return it expects, the risk it assumes, and the exposure that follows. This is what the account would trade toward at the next close.",
+      trend: "<b>Trend.</b> Today's index level against its average of the last 200 trading days. Above the average, stocks have historically earned much more over the loan rate than below it.",
+      vix: "<b>VIX.</b> The options market's forecast of S&P 500 volatility for the next month, in % a year. Higher = more nervous market = each borrowed dollar carries more risk.",
+      depth: "<b>Below the all-time high.</b> How far the index is under its highest close ever. The pessimism function borrows more the deeper this is beyond the usual depth.",
+      vollong: "<b>Volatility of the last 10 years.</b> How much the index actually moved, in % a year. Used as the risk measure here because the VIX jumps exactly in the dips this strategy wants to buy.",
+      y10: "<b>10-year yield.</b> What borrowing on margin is assumed to cost in this study. Borrowing only pays if stocks are expected to earn more than this.",
+      y3m: "<b>3-month bill.</b> What cash earns (close to the Fed's rate). Holding cash only pays if stocks are expected to earn less than this for their risk.",
+      rise: "<b>6-month change of the 10-year yield.</b> A jump in yields has been followed by weaker stock returns, so the function lowers its expected return by a fixed amount per point of rise (and raises it when yields fell).",
+      mu: "<b>Expected return (mu).</b> The function's forecast of the S&P 500's return over the next year: the 10-year yield plus a premium that depends on the signal, minus the rate penalty. A rough historical average, not a prediction of any one year.",
+      sigma: "<b>Volatility (sigma).</b> The risk assumed, in % a year. The exposure divides by its square, so twice the volatility means a quarter of the bet.",
+      eb: "<b>Borrow side E_b.</b> k × (expected return − margin rate) ÷ variance: the exposure worth holding with borrowed money. If it is above 1 the function borrows up to it; at or below 1, borrowing does not pay.",
+      el: "<b>Cash side E_l.</b> The same sum against the T-bill rate: the exposure worth holding when the alternative is cash. If it is below 1, holding some cash beats being fully invested.",
+      x: "<b>Dip's extra return (x).</b> How much more than usual stocks are expected to earn a year, given how deep the fall is and where rates are going. Negative near the highs or when yields have risen.",
+      overlay: "<b>1 + k × x ÷ variance.</b> Plain DCA (1) plus a bet sized on the extra return: a positive x adds borrowing, a negative x asks for less than fully invested.",
+      target: "<b>Target exposure.</b> Stocks to hold ÷ your own money in the account. On $100,000 of your own money: 1.20 = hold $120,000 of stocks, $20,000 of it borrowed; 1.00 = hold $100,000, no debt (plain DCA); 0.70 = hold $70,000 of stocks and $30,000 in T-bills. A never-selling account reaches a lower target only by keeping new payments in cash.",
+    };
+    const TIP_OF = [["Beats DCA, out of sample", "oos"], ["Beats DCA", "win"], ["Median edge", "edge"], ["1 in 10 below", "p10"], ["Deepest fall vs DCA", "fall"],
+      ["Fall vs DCA", "fall"], ["Worst fall vs DCA", "fallworst"], ["Shallower in", "shallower"], ["Deepest fall", "ddworst"], ["1928-1961, held out", "heldout"],
+      ["Average exposure", "exposure"], ["Avg exposure", "exposure"], ["Margin calls", "calls"], ["Traded / wealth", "turnover"], ["Median extra", "extra"],
+      ["Avg interest paid", "interest"], ["Growth a year", "cagr"], ["Time borrowed / in cash", "time"], ["Exposure today", "today"],
+      ["S&P 500 vs its 200-day average", "trend"], ["VIX", "vix"], ["S&P 500 below its all-time high", "depth"], ["Volatility of the last 10 years", "vollong"],
+      ["10-year yield (the margin rate)", "y10"], ["3-month bill", "y3m"], ["10-year yield, change over 6 months", "rise"], ["Expected S&P 500 return", "mu"],
+      ["Volatility (sigma", "sigma"], ["Borrow side E_b", "eb"], ["Cash side E_l", "el"], ["Dip's extra return", "x"], ["1 + k x x", "overlay"], ["Target exposure", "target"]];
+    const info = (key) => ` <button type="button" class="info" data-tip-html="${esc(TIPS[key])}" aria-label="What this means">i</button>`;
+    const lab = (h) => { const t = String(h).replace(/<[^>]+>/g, ""); const m = t.indexOf(":") < 0 && TIP_OF.find((x) => t.indexOf(x[0]) === 0); return m ? h + info(m[1]) : h; };
+    const tbl = (head, rows) => `<div class="table-wrap"><table class="data ps"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${lab(h)}</th>`).join("")}</tr></thead><tbody>` +
       rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`).join("") + `</tbody></table></div>`;
-    const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${label}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
+    const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${lab(label)}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
     const X = D.kind === "exposure", S = D.stats, r10 = S.us10, e10 = S.early10;
 
     $("eyebrow").textContent = D.combined ? D.combined.eyebrow : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
@@ -145,7 +189,14 @@
       const K = D.combined, N = K.now;
       $("fn_sec").hidden = false;
       $("fn_formula").textContent = K.formula;
-      $("fn_now").innerHTML = tbl(["Input / step", "Value"], K.now_rows);
+      $("fn_now").innerHTML = tbl(["Input / step", "Value"], K.now_rows.map((r) => [lab(r[0]), r[1]]));
+      $("fn_now_head").innerHTML = "Today, step by step" + info("steps");
+      const T = N.target, k$ = (x) => "$" + Math.round(x * 1000).toLocaleString("en-US");
+      $("fn_now_note").textContent = "In concrete terms, on $100,000 of your own money: " +
+        (T > 1.005 ? `hold ${k$(T * 100)} of stocks, ${k$((T - 1) * 100)} of it borrowed at the 10-year yield${D.sell ? "" : " (the monthly payments then repay the debt)"}.`
+          : T < 0.995 ? (D.sell ? `hold ${k$(T * 100)} of stocks and ${k$((1 - T) * 100)} in T-bills: the account sells down to that.`
+            : `the function wants only ${k$(T * 100)} in stocks, but this account never sells: it keeps what it has, borrows nothing, and lets new payments wait in cash (up to its cash limit) until the target is back at 1.`)
+          : "hold $100,000 of stocks, no debt and no cash: today it is plain DCA. Each new payment is simply invested.");
       $("fn_params").innerHTML = tbl(["Parameter", "Value", "Meaning"], K.params.map((x) => [esc(x[0]), esc(x[1]), esc(x[2])]));
       $("fn_fit").innerHTML = tbl(K.cv.head, K.cv.rows.map((row) => row.map(esc))) +
         `<p class="muted small r-note">${esc(K.cv.note)}</p>` +
