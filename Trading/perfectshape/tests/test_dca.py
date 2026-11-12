@@ -350,3 +350,41 @@ def test_dip_kelly_borrows_more_the_deeper_the_fall_and_the_sell_versions_sell()
     np.testing.assert_array_equal(a[:X + 1], b[:X + 1])
     fc = estimate_dip_forecast(month_table(m, f), ["1962-1999"])
     assert {"p0", "p_dip", "a", "t_dip"} <= set(fc)
+
+
+def _mega_assets(n=1500, seed=3):
+    rng = np.random.default_rng(seed)
+    idx = pd.bdate_range("2000-01-03", periods=n)
+    spx = rng.normal(0.0005, 0.01, n)
+    a = pd.DataFrame({"spx": spx, "px": 100 * np.cumprod(1 + spx), "ndx": rng.normal(0.0006, 0.013, n),
+                      "bond": rng.normal(0.0001, 0.004, n), "gold": rng.normal(0.0002, 0.01, n), "bill": 0.03 / 252,
+                      "y10": 4.0, "days": 1.0}, index=idx)
+    a["days"] = pd.Series(idx, index=idx).diff().dt.days.fillna(1).to_numpy()
+    return a
+
+
+def test_mega_weights_add_up_use_no_future_data_and_leverage_costs():
+    from perfectshape.dca.mega import Mega, dca_stats, leveraged, perf
+
+    a = _mega_assets()
+    m = Mega()
+    r, w = m.returns(a)
+    np.testing.assert_allclose(w.sum(axis=1), 1.0, atol=1e-9)
+    assert (w >= -1e-12).all().all() and w["eq"].max() <= 1.0 and w["eq"].max() > 0
+    X = 900
+    b = a.copy()
+    b.iloc[X:, b.columns.get_loc("spx")] = -0.03                      # a crash from day X on
+    b["px"] = 100 * np.cumprod(1 + b["spx"])
+    w2 = m.weights(b)
+    pd.testing.assert_frame_equal(w.iloc[:X + m.lag], w2.iloc[:X + m.lag])   # nothing before reacts to it
+    assert w2["eq"].iloc[-1] == 0.0                                    # and the downtrend ends in the safe asset
+    flat = pd.Series(0.0, index=a.index)
+    assert (leveraged(flat, a["bill"], 3.0, days=a["days"]) < 0).all()           # financing and fee
+    np.testing.assert_allclose(leveraged(a["spx"], a["bill"], 1.0), a["spx"])
+    p = perf(a["spx"], a["bill"])
+    assert {"cagr", "sharpe", "max_dd"} <= set(p)
+    dates = a.index.values.astype("datetime64[D]")
+    same = dca_stats(a["spx"].to_numpy(), a["spx"].to_numpy(), dates, years=2)
+    assert same["n"] > 0 and abs(same["median"]) < 1e-12
+    double = dca_stats((2 * a["spx"]).to_numpy(), a["spx"].to_numpy(), dates, years=2)
+    assert double["best"] > 0

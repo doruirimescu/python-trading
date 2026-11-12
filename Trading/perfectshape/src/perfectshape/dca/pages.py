@@ -594,9 +594,12 @@ def render_page(d: dict) -> str:
     first = d.get("family") == "combined" and d.get("variant", "combined-strategy") == "combined-strategy"
     label = d.get("nav_label") or "Rule"
     active = ' class="active"' if first else ""
+    mega = d.get("family") == "mega"
+    m_active = ' class="active"' if mega else ""
     nav = ('<a data-nexus-icon="bars" href="../report.html">DCA timing</a>'
+           f'<a data-nexus-icon="chart" href="mega-strategy.html"{m_active}>Mega strategy</a>'
            f'<a data-nexus-icon="target" href="combined-strategy.html"{active}>Combined strategies</a>'
-           + ("" if first else f'<a data-nexus-icon="doc" href="#" class="active">{html.escape(label)}</a>'))
+           + ("" if first or mega else f'<a data-nexus-icon="doc" href="#" class="active">{html.escape(label)}</a>'))
     return (page.replace("/*__SHAPES_CSS__*/", (WEB / "shapes.css").read_text(encoding="utf-8"))
                 .replace("__NAV__", nav).replace("__TITLE__", html.escape(d["name"])).replace("__DATA__", data))
 
@@ -650,7 +653,8 @@ def combined_page(c, cv: dict, attempts: list[dict] | None = None, generated: st
             edges[key] = {"dates": [str(x) for x in r["start_dates"]], "edge": np.round(r["edges"], 5).tolist()}
     page = {"kind": "exposure", "name": rule.name, "family": "combined", "sell": c.sell,
             "generated": generated or datetime.now().strftime("%Y-%m-%d %H:%M"), "docs": COMBINED_DOCS[(c.signal, c.sell)],
-            "stats": st, "edges": edges, "nav": nav or [], **path_data(rule, c.account())}
+            "stats": st, "edges": edges, "nav": nav or [], **path_data(rule, c.account()),
+            "horizons": saver_horizons(rule, c.account())}
     # the honest test: each era scored by a strategy fitted on the other two
     cv_rows, wins, others = [], [], []
     for fold in cv["folds"]:
@@ -765,6 +769,41 @@ def _params(c, fc) -> list[list[str]]:
     if not c.sell:
         rows.append(["max cash", f"{c.max_cash:g} payments", "the most payments held back (chosen on the accounts)"])
     return rows
+
+
+HORIZONS = (10, 20, 30)
+
+
+def _horizon(dates, wealth, wealth_dca, paid) -> dict:
+    """One saver's account, downsampled for the chart (every DS-th day plus the last)."""
+    idx = np.unique(np.r_[np.arange(0, len(dates), DS), len(dates) - 1])
+    r0 = lambda x: np.round(np.asarray(x, dtype=float)[idx], 0).tolist()
+    return {"dates": [str(x) for x in np.asarray(dates)[idx]], "wealth": r0(wealth), "wealth_dca": r0(wealth_dca), "paid": r0(paid)}
+
+
+def saver_horizons(rule, cfg) -> dict:
+    """A saver paying $2,000 a month who started 10, 20 and 30 years ago and followed ``rule`` (account ``cfg``), next to
+    one who invested the same payments in the S&P 500 (plain DCA): account value in dollars, every week, to the last
+    close."""
+    from perfectshape.dca.account import pay_days
+    from perfectshape.dca.exposure import ExposureConfig, simulate_exposure
+
+    M = _markets()
+    m, f = M["all"], M["f_all"]
+    dates = m.index.values.astype("datetime64[D]")
+    target = rule.array(f)
+    args = (m["tr"].to_numpy(), dates)
+    rates = (m["y10"].to_numpy(), m["y3m"].to_numpy())
+    pays = np.flatnonzero(pay_days(dates))
+    out = {}
+    for y in HORIZONS:
+        start = dates[-1] - np.timedelta64(int(y * 365.25), "D")
+        i0 = int(pays[np.searchsorted(dates[pays], start)])
+        a = simulate_exposure(*args, target, *rates, cfg, rule.sell, np.array([i0]), path=True)
+        b = simulate_exposure(*args, np.ones(len(dates)), *rates, ExposureConfig(), False, np.array([i0]), path=True)
+        paid = np.cumsum(np.where(pay_days(dates[i0:]), cfg.payment, 0.0))
+        out[str(y)] = _horizon(dates[i0:], a["wealth_path"][i0:], b["wealth_path"][i0:], paid)
+    return out
 
 
 def _verdict_cv(cv, folds, c) -> str:

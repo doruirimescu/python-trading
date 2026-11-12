@@ -54,6 +54,13 @@
       <h3>Tested on eras it never saw (leave one era out)</h3><div id="fn_fit"></div>
     </section>
     <section class="r-section"><h2>The verdict</h2><p class="r-note" id="verdict"></p></section>
+    <section class="r-section" id="hz_sec" hidden><h2>A saver who started 10, 20 or 30 years ago</h2>
+      <p class="muted small r-note">$2,000 a month from the first payment day of the period to the last close, once following this strategy and once put straight into the S&amp;P 500 (plain DCA). The lines are the account's value in dollars; the dotted line is what was paid in.</p>
+      <div class="segmented" role="group" aria-label="Years" id="hz_pick"></div>
+      <div class="r-kpis" id="hz_kpis"></div>
+      <div class="panel chart-panel"><div class="chart-head" id="hz_head"></div><div class="r-wide" id="c_hz"></div></div>
+    </section>
+    <div id="extra"></div>
     <section class="r-section"><h2>What it held</h2>
       <p class="muted small r-note" id="held_note"></p>
       <div class="panel chart-panel"><div class="chart-head" id="hold_head"></div><div class="r-wide" id="c_hold"></div></div>
@@ -94,6 +101,9 @@
     const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     // info bubbles (nexus.js: one tooltip for every .info[data-tip]); a label gets one when TIP_OF knows it
     const TIPS = {
+      sharpe: "<b>Sharpe ratio.</b> Return earned above T-bills, divided by volatility: how much reward each unit of risk paid. 0.46 is the S&P 500 since 1928; higher is better. A strategy can earn more and still have a lower Sharpe if it took much more risk to do it.",
+      volp: "<b>Volatility.</b> How much the account's value moves, in % a year (standard deviation of daily returns, annualised). The S&P 500 is about 19%.",
+      worstyear: "<b>Worst year.</b> The worst calendar-year return since 1928.",
       win: "<b>Beats DCA.</b> We open one account every third month, pay in $2,000 a month and run it for the stated years, once with this rule and once as plain DCA (every payment invested the day it arrives). This is the share of those accounts where the rule ended with more money.",
       edge: "<b>Median edge.</b> For each account: final wealth with the rule ÷ final wealth with plain DCA − 1. So +3% means the rule ended with 3% more money than plain DCA on the same payments and dates. The median is the middle account: half did better, half worse. Worst and best are the two extremes.",
       p10: "<b>1 in 10 below.</b> One account in ten had an edge worse than this.",
@@ -128,7 +138,8 @@
       target: "<b>Target exposure.</b> Stocks to hold ÷ your own money in the account. On $100,000 of your own money: 1.20 = hold $120,000 of stocks, $20,000 of it borrowed; 1.00 = hold $100,000, no debt (plain DCA); 0.70 = hold $70,000 of stocks and $30,000 in T-bills. A never-selling account reaches a lower target only by keeping new payments in cash.",
     };
     const TIP_OF = [["Beats DCA, out of sample", "oos"], ["Beats DCA", "win"], ["Median edge", "edge"], ["1 in 10 below", "p10"], ["Deepest fall vs DCA", "fall"],
-      ["Fall vs DCA", "fall"], ["Worst fall vs DCA", "fallworst"], ["Shallower in", "shallower"], ["Deepest fall", "ddworst"], ["1928-1961, held out", "heldout"],
+      ["Fall vs DCA", "fall"], ["Worst fall vs DCA", "fallworst"], ["Shallower in", "shallower"], ["Sharpe", "sharpe"], ["S&P 500 Sharpe", "sharpe"], ["Strategy Sharpe", "sharpe"], ["Volatility", "volp"], ["Worst year", "worstyear"],
+      ["Growth a year", "cagr"], ["S&P 500 a year", "cagr"], ["Strategy a year", "cagr"], ["10-year savers ahead of DCA", "win"], ["Worst edge", "edge"], ["Stock exposure", "exposure"], ["Deepest fall", "ddworst"], ["1928-1961, held out", "heldout"],
       ["Average exposure", "exposure"], ["Avg exposure", "exposure"], ["Margin calls", "calls"], ["Traded / wealth", "turnover"], ["Median extra", "extra"],
       ["Avg interest paid", "interest"], ["Growth a year", "cagr"], ["Time borrowed / in cash", "time"], ["Exposure today", "today"],
       ["S&P 500 vs its 200-day average", "trend"], ["VIX", "vix"], ["S&P 500 below its all-time high", "depth"], ["Volatility of the last 10 years", "vollong"],
@@ -141,7 +152,7 @@
     const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${lab(label)}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
     const X = D.kind === "exposure", S = D.stats, r10 = S.us10, e10 = S.early10;
 
-    $("eyebrow").textContent = D.combined ? D.combined.eyebrow : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
+    $("eyebrow").textContent = D.eyebrow ? D.eyebrow : D.combined ? D.combined.eyebrow : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
     $("title").textContent = D.name;
     $("lead").textContent = (D.docs && D.docs.what) || "";
     $("how").textContent = (D.docs && D.docs.how) || "";
@@ -213,10 +224,43 @@
           '<p class="muted small r-note">Era cells: beats plain DCA in · median edge · worst account · median fall against plain DCA (points; + = shallower), 10-year accounts.</p>';
       }
     }
-    const groups = { combined: "Combined strategies", exposure: "Account-sized rules", payments: "Six-payment rules" };
+    $("extra").innerHTML = (D.extra || []).map((t) => `<section class="r-section"><h2>${esc(t.title)}</h2>` + tbl(t.head, t.rows.map((row) => row.map(esc))) +
+      (t.note ? `<p class="muted small r-note">${esc(t.note)}</p>` : "") + `</section>`).join("");
+    if (D.family === "mega") {
+      $("held_note").textContent = "Top: the S&P 500 (log scale) with its 200-day average. Bottom: the account's stock exposure, averaged over about a month: 0 = all in the safe asset, 1 = as much as plain DCA, 2.1 = 70% of the account in the 3x fund.";
+      $("hold_head").textContent = "S&P 500 and the strategy's stock exposure, 1928 to today";
+    }
+    const groups = { mega: "Mega strategy", combined: "Combined strategies", exposure: "Account-sized rules", payments: "Six-payment rules" };
     $("nav").innerHTML = Object.keys(groups).map((g) => `<h3>${groups[g]}</h3><ul class="r-nav">` +
       D.nav.filter((n) => n.kind === g).map((n) => n.name === D.name ? `<li><strong>${esc(n.name)}</strong></li>` : `<li><a href="${esc(n.href)}">${esc(n.name)}</a></li>`).join("") + `</ul>`).join("") +
       `<p><a href="../report.html">← Back to the DCA report</a></p>`;
+
+    let hzYears = "10";
+    function drawHz() {
+      const H = D.horizons && D.horizons[hzYears];
+      if (!H) return;
+      const n = H.dates.length - 1, w = H.wealth[n], b = H.wealth_dca[n], p = H.paid[n];
+      const yrs = (new Date(H.dates[n]) - new Date(H.dates[0])) / 3.15576e10;
+      $("hz_kpis").innerHTML = kpi("This strategy today", usd(w), `${pct(w / b - 1)} against plain DCA`) +
+        kpi("Plain DCA (S&P 500) today", usd(b), `${(b / p).toFixed(2)}x what was paid in`) +
+        kpi("Paid in", usd(p), `since ${H.dates[0]}`) +
+        kpi("Difference", usd(w - b), `over ${yrs.toFixed(1)} years`);
+      $("hz_head").textContent = `Account value, $2,000 a month from ${H.dates[0]} to ${H.dates[n]}`;
+      $("hz_pick").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.y === hzYears)));
+      if (!window.Plotly || !window.Nexus) return;
+      const C = window.Nexus.colors;
+      window.Plotly.react("c_hz", [
+        { x: H.dates, y: H.paid, mode: "lines", name: "Paid in", line: { color: C.neutral, width: 1, dash: "dot" } },
+        { x: H.dates, y: H.wealth_dca, mode: "lines", name: "Plain DCA (S&P 500)", line: { color: C.neutral, width: 1.4 } },
+        { x: H.dates, y: H.wealth, mode: "lines", name: "This strategy", line: { color: C.accent, width: 2 } }],
+        window.Nexus.plotlyLayout({ margin: { l: 76, r: 16, t: 8, b: 30 }, hovermode: "x unified", legend: { orientation: "h", y: 1.12 },
+          yaxis: { tickformat: "$,.0f" } }), Object.assign({}, window.Nexus.plotlyConfig, { displayModeBar: false }));
+    }
+    if (D.horizons) {
+      $("hz_sec").hidden = false;
+      $("hz_pick").innerHTML = Object.keys(D.horizons).map((y) => `<button class="btn" type="button" data-y="${y}" aria-pressed="false">Last ${y} years</button>`).join("");
+      $("hz_pick").addEventListener("click", (e) => { const t = e.target.closest("button"); if (t) { hzYears = t.dataset.y; drawHz(); } });
+    }
 
     function draw() {
       const ids = ["c_hold", "c_growth", "c_dd", "c_edge", "c_saver", "c_map"];
@@ -267,6 +311,8 @@
         L({ yaxis: { tickformat: "+.0%", zeroline: true }, margin: { l: 56, r: 12, t: 8, b: 30 } }), cfg);
     }
     draw();
+    drawHz();
+    if (window.Nexus && window.Nexus.onThemeChange) window.Nexus.onThemeChange(() => { draw(); drawHz(); });
   })();
   </script>
 </body>

@@ -487,6 +487,19 @@ Leave one era out, 10-year accounts (1928-61 / 1962-99 / 2000-26: beats DCA, med
   cost 11.5% against DCA in 2000-26 (falls 31 points shallower). The simple trend rule with the same caps did better.
 * None of the never-selling versions falls less than plain DCA.
 
+### Mega strategy: any asset, leverage through 3x funds (`dca/mega.py`, `dca/mega_page.py`)
+
+Outside the DCA rules. While the S&P 500 is more than 1% above its 200-day average: a 3x S&P 500 fund, weight
+25% / (3 x the last 21 days' volatility), at most 100%; the rest, and everything in a downtrend, in 10-year
+Treasuries, gold or T-bills, whichever is above its own average. The 3x fund is modelled (3 x daily return, financing
+at bills + 0.5%, 0.95% fee) and matches UPRO since 2009 (+32.6% a year against +32.1%). Settings were the textbook ones,
+set before the first test. 1928 to today: +15.1% a year, Sharpe 0.62, deepest fall -50% (S&P 500: +10.2%, 0.46, -84%);
+10-year savers ahead of plain DCA in 85%, median +24%. Since 2013 it trails the S&P 500 (+14.3% / 0.59 against
++14.9% / 0.80). Neighbouring settings: 11.6% to 18.2% a year, Sharpe 0.56 to 0.67. Dropped: leveraged risk parity over
+stocks, Treasuries and gold (9.7%, 0.57), volatility sizing without a trend rule, shorting in downtrends (12.0%, 0.45),
+a short-volatility fund. `research/dca/mega_explore.py`, `mega_round2.py`, `mega_round3.py`; page:
+`python research/dca/mega_page.py <run>`.
+
 Modules: `dca/data.py` (market history), `account.py` (the account: interest, margin, many start dates at once,
 and the perfect-foresight bound), `signals.py`, `policy.py`, `evaluate.py`, `strategy.py`, `report.py` +
 `web/dca.html`. Every number above and the signals that did not make it (VIX, policy news, credit, turn of the

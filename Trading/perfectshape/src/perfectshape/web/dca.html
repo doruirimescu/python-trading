@@ -23,7 +23,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="#"><span class="brand-mark">P</span>Perfect Shapes</a>
-      <nav class="nav"><a data-nexus-icon="bars" href="#" class="active">DCA timing</a><a data-nexus-icon="target" href="rules/combined-strategy.html">Combined strategies</a></nav>
+      <nav class="nav"><a data-nexus-icon="bars" href="#" class="active">DCA timing</a><a data-nexus-icon="chart" href="rules/mega-strategy.html">Mega strategy</a><a data-nexus-icon="target" href="rules/combined-strategy.html">Combined strategies</a></nav>
     </div>
   </header>
   <main class="container">
@@ -148,7 +148,8 @@
       const xs = (D.exposure ? D.exposure.frontier.map((r) => r.rule) : []), ps = Object.keys(D.alternatives);
       const ul = (names) => `<ul class="dca-note">${names.filter((n) => PG[n]).map((n) => `<li>${link(n, esc(n))}</li>`).join("")}</ul>`;
       const cs = Object.keys(PG).filter((n) => n.indexOf("Combined") === 0);
-      $("pages_list").innerHTML = (cs.length ? `<h3>Combined strategies (continuous Kelly functions)</h3>${ul(cs)}` : "") +
+      const ms = Object.keys(PG).filter((n) => n.indexOf("Mega") === 0);
+      $("pages_list").innerHTML = (ms.length ? `<h3>Mega strategy (any asset, leverage)</h3>${ul(ms)}` : "") + (cs.length ? `<h3>Combined strategies (continuous Kelly functions)</h3>${ul(cs)}` : "") +
         `<h3>Account-sized rules</h3>${ul(xs)}<h3>Six-payment rules</h3>${ul(ps)}`;
     }
     const X = D.exposure;
