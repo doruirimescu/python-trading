@@ -771,7 +771,7 @@ def _params(c, fc) -> list[list[str]]:
     return rows
 
 
-HORIZONS = (10, 20, 30)
+HORIZONS = (10, 15, 20, 30)
 
 
 def _horizon(dates, wealth, wealth_dca, paid) -> dict:
@@ -782,7 +782,7 @@ def _horizon(dates, wealth, wealth_dca, paid) -> dict:
 
 
 def saver_horizons(rule, cfg) -> dict:
-    """A saver paying $2,000 a month who started 10, 20 and 30 years ago and followed ``rule`` (account ``cfg``), next to
+    """A saver paying $2,000 a month who started 10, 15, 20 and 30 years ago and followed ``rule`` (account ``cfg``), next to
     one who invested the same payments in the S&P 500 (plain DCA): account value in dollars, every week, to the last
     close."""
     from perfectshape.dca.account import pay_days

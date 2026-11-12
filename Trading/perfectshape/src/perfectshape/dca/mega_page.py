@@ -82,7 +82,7 @@ def mega_page(m: Mega = Mega(), generated: str | None = None, nav: list | None =
         st[key] = {**s, "label": label}
         if key in ("us10", "early10"):
             edges[key] = {"dates": [str(x) for x in d["start_dates"]], "edge": np.round(d["edges"], 5).tolist()}
-    # savers who started 10, 20 and 30 years ago: payments compounded along each return series
+    # savers who started 10, 15, 20 and 30 years ago: payments compounded along each return series
     pay = pay_days(dates).astype(float) * 2000.0
     horizons = {}
     for y in HORIZONS:
