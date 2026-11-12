@@ -18,6 +18,7 @@ import numpy as np
 
 from perfectshape.config import RankingConfig, ScoringConfig
 from perfectshape.data.panel import Panel
+from perfectshape.parallel import n_workers, ordered_map
 from perfectshape.search import Basket, penalised
 from perfectshape.shapes import Shape, range_band, to_space
 
@@ -80,34 +81,34 @@ class _Legs:
 
 
 def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[int], fit_end: int,
-             scoring: ScoringConfig, ref_window: str = "longest", min_ref: int = 0) -> list[Result]:
+             scoring: ScoringConfig, ref_window: str = "longest", min_ref: int = 0,
+             workers: int = 0) -> list[Result]:
     """ref_window: which window describes a basket (score, metrics, channel, chart): the longest one that
     holds the shape ("longest"), or the best-scoring one that holds it and is at least ``min_ref`` bars
-    long ("best")."""
+    long ("best"). The windows are scored on ``workers`` threads (0 = every logical core)."""
     if not baskets:
         return []
     sym_idx = {s: i for i, s in enumerate(panel.symbols)}
     legs = [_Legs(b, sym_idx) for b in baskets]
 
-    per_window: dict[int, tuple[np.ndarray, dict]] = {}
-    for L in windows:
-        s = fit_end - L
-        if s < 0:
-            continue
-        block = panel.close[s:fit_end]
+    workers = n_workers(workers)
+    k = np.array([b.size for b in baskets])
+
+    def score_window(L: int) -> tuple[np.ndarray, dict]:
+        block = panel.close[fit_end - L:fit_end]
         with np.errstate(invalid="ignore", divide="ignore"):
             V = np.column_stack([lg.value(block) for lg in legs])
         valid = np.isfinite(V).all(axis=0) & (V > 0).all(axis=0)
         V = np.where(valid, V, 1.0)
         res = shape.score(V / V[0], scoring)
-        k = np.array([b.size for b in baskets])
         sc = res.score * np.clip(1.0 - scoring.complexity_penalty * (k - 1), 0, 1)
-        sc = np.where(valid, sc, 0.0)
-        per_window[L] = (sc, res.metrics)
+        return np.where(valid, sc, 0.0), res.metrics
 
-    out: list[Result] = []
-    used = sorted(per_window)
-    for i, b in enumerate(baskets):
+    used = sorted(L for L in windows if fit_end - L >= 0)
+    per_window = dict(zip(used, ordered_map(score_window, used, workers)))
+
+    def one(i: int) -> Result:
+        b = baskets[i]
         ws = {L: float(per_window[L][0][i]) for L in used}
         held = [L for L in used if ws[L] >= scoring.threshold]
         duration = max(held) if held else 0
@@ -153,14 +154,16 @@ def evaluate(panel: Panel, shape: Shape, baskets: list[Basket], windows: list[in
         hold_ret = float(curve[-1] / curve[fit_end - chart_start - 1] - 1.0) if len(Yh) else 0.0
         last = panel.close[-1, legs[i].mi] * legs[i].sh
         dlast = panel.close[-1, legs[i].di] * legs[i].dsh
-        out.append(Result(
+        return Result(
             basket=b, duration=duration, score=ws[ref], metrics=metrics, window_scores=ws, alive=alive,
             holdout_return=hold_ret, weights_now=[float(x) for x in last / last.sum()],
             chart_start=chart_start, curve=curve, fit_end=fit_end,
             den_weights_now=[float(x) for x in dlast / dlast.sum()] if dlast.size else [], ref_window=ref,
             top_member=top_member,
-        ))
-    return out
+        )
+
+    # one thread: a basket is many small array operations that hold the GIL, threads would only contend
+    return [one(i) for i in range(len(baskets))]
 
 
 def _adverse(Y: np.ndarray, direction: int) -> float:

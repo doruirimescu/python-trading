@@ -6,6 +6,9 @@
    All candidates of a step are solved and scored in one batched call.
 3. Members below ``min_weight`` are pruned and the weights re-solved.
 
+The greedy searches of the seeds are independent and run on ``search.workers`` threads (0 = every logical
+core); they are recorded in seed order, so the result does not depend on the number of threads.
+
 Fit windows end ``holdout_bars`` before the last bar, so the most recent bars are never used to choose
 members or weights (see evaluate.py for how they are used).
 """
@@ -18,6 +21,7 @@ import numpy as np
 
 from perfectshape.config import ScoringConfig, SearchConfig
 from perfectshape.data.panel import Panel
+from perfectshape.parallel import n_workers, ordered_map
 from perfectshape.shapes import Shape
 from perfectshape.solver import Bounds, Solver
 
@@ -88,7 +92,8 @@ def search_window(panel: Panel, shape: Shape, window: int, fit_end: int, search:
         record([int(i)], np.array([1.0]), singles.score[i])
 
     all_idx = np.arange(len(cols))
-    for s in seeds:
+
+    def grow(s: int):
         basket, w, best = [s], np.array([1.0]), float(singles.score[s])
         best_soft = float(singles.soft[s])
         while len(basket) < search.max_assets:
@@ -104,7 +109,9 @@ def search_window(panel: Panel, shape: Shape, window: int, fit_end: int, search:
             if gain < search.min_improvement:
                 break
             basket, w, best, best_soft = list(sets[j]), W[j], float(sc[j]), float(soft[j])
-        basket, w, best = _prune(solver, shape, scoring, bounds, basket, w, best, search.min_weight)
+        return _prune(solver, shape, scoring, bounds, basket, w, best, search.min_weight)
+
+    for basket, w, best in ordered_map(grow, seeds, n_workers(search.workers)):
         if best > 0:
             record(basket, w, best)
     return list(found.values())

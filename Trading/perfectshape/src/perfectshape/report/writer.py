@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -49,7 +50,7 @@ def _years(bars: int, ppy: int) -> float:
 
 def write_run(out: ScanOutput, root: str | Path | None = None) -> Path:
     cfg = out.cfg
-    stamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     digest = hashlib.sha256(cfg.model_dump_json().encode()).hexdigest()[:8]
     run_dir = Path(root or cfg.output.dir) / f"{stamp}_{cfg.name}_{digest}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -62,11 +63,21 @@ def write_run(out: ScanOutput, root: str | Path | None = None) -> Path:
     if cfg.output.html:
         from perfectshape.report.html import render_html
         (run_dir / "report.html").write_text(render_html(payload), encoding="utf-8")
-    latest = run_dir.parent / "LATEST"
-    if latest.is_symlink() or latest.exists():
-        latest.unlink()
-    latest.symlink_to(run_dir.name)
+    _link_latest(run_dir)
     return run_dir
+
+
+def _link_latest(run_dir: Path) -> None:
+    """Point <runs>/LATEST at run_dir: a symlink, or a copy where symlinks need privileges (Windows)."""
+    latest = run_dir.parent / "LATEST"
+    if latest.is_symlink() or latest.is_file():
+        latest.unlink()
+    elif latest.is_dir():
+        shutil.rmtree(latest)
+    try:
+        latest.symlink_to(run_dir.name, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        shutil.copytree(run_dir, latest)
 
 
 def _rows(out: ScanOutput) -> list[dict]:

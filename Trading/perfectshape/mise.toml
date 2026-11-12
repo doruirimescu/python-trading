@@ -7,7 +7,7 @@ _.python.venv = { path = ".venv", create = true }
 
 [tasks.install]
 description = "Install perfectshape (editable) + dev dependencies into .venv"
-run = "uv pip install -e '.[dev]'"
+run = "uv pip install -e \".[dev]\""
 
 [tasks.scan]
 description = "Scan with a config: mise run scan configs/sp500.yaml"
@@ -36,6 +36,14 @@ run = "python -m perfectshape scan configs/etf_ratios.yaml"
 [tasks.dashboard]
 description = "Web dashboard on http://127.0.0.1:8765: pick a sector ETF, configure, play / pause, live results"
 run = "python -m perfectshape dashboard --open"
+
+[tasks.dca]
+description = "DCA timing: what to do with this month's payment (S&P 500 trend + rate guard)"
+run = "python -m perfectshape dca now"
+
+[tasks.dca-report]
+description = "DCA timing: the full study against plain DCA over every start month since 1962 (a few minutes)"
+run = "python -m perfectshape dca report"
 
 [tasks.universe]
 description = "Universe commands: mise run universe list | refresh sp500"

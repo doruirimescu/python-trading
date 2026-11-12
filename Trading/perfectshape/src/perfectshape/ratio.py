@@ -25,10 +25,12 @@ import numpy as np
 
 from perfectshape.config import RatioConfig, ScoringConfig
 from perfectshape.data.panel import Panel
+from perfectshape.parallel import n_workers, ordered_map
 from perfectshape.search import Basket, penalised
 from perfectshape.shapes import Shape, _centered_tau
 
-CHUNK_ELEMENTS = 4_000_000          # bars x ratios scored per vectorised call
+CHUNK_ELEMENTS = 4_000_000          # bars x ratios scored per vectorised call (one thread)
+PARALLEL_CHUNK_ELEMENTS = 1_000_000  # the same with several threads: smaller chunks, less memory per thread
 FLOAT32_ABOVE_BYTES = 2_000_000_000  # basket curves are kept in float32 when float64 would exceed this
 
 
@@ -101,13 +103,15 @@ class _Top:
 def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int, fit_end: int, rcfg: RatioConfig,
                         scoring: ScoringConfig, on_chunk: Optional[Callable[[float], None]] = None,
                         on_snapshot: Optional[Callable[[dict], None]] = None, snapshot_every: float = 10.0,
-                        snapshot_size: int = 100, snapshot_first: float = 3.0):
+                        snapshot_size: int = 100, snapshot_first: float = 3.0, workers: int = 0):
     """Search one window for one shape (returns its baskets) or for several (a list -> {name: baskets}).
 
     All shapes are scored from the same chunk of ratios (built once). ``on_chunk(fraction_done)`` is called
     before every chunk (progress, pause / stop hook); ``on_snapshot({name: baskets})`` every
     ``snapshot_every`` seconds (the first after ``snapshot_first``) with each shape's ``snapshot_size`` best
-    so far (live results).
+    so far (live results). Chunks are scored on ``workers`` threads (0 = every logical core); the callbacks
+    and the top lists stay in the calling thread, and chunks are merged in order, so the result does not
+    depend on the number of threads.
     """
     single = not isinstance(shape, (list, tuple))
     shapes = [shape] if single else list(shape)
@@ -132,6 +136,7 @@ def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int,
     if log_space:
         V = np.log(V)                                              # basket log curves, computed once
     overlaps = None if rcfg.allow_overlap else _overlap_fn(lib, n)
+    VT = np.ascontiguousarray(V.T)                                 # (B, T): gathering ratios reads whole rows
     _, tc, _ = _centered_tau(T)
     tc = tc.astype(dtype)
 
@@ -142,24 +147,35 @@ def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int,
         return [_basket(panel, name, cols, lib[i], lib[j], window, start, sc)
                 for sc, i, j in tops[name].best(limit)]
 
-    chunk = max(1, CHUNK_ELEMENTS // T)
+    workers = n_workers(workers)
+    chunk = max(1, (CHUNK_ELEMENTS if workers == 1 else min(CHUNK_ELEMENTS, PARALLEL_CHUNK_ELEMENTS)) // T)
     raw_total = len(lib) * (len(lib) - 1) // 2
     raw_done = 0
     next_snap = time.monotonic() + min(snapshot_first, snapshot_every)
-    for I, J in _pair_chunks(len(lib), chunk):
-        if on_chunk is not None:
-            on_chunk(raw_done / max(raw_total, 1))
-        if on_snapshot is not None and time.monotonic() >= next_snap:
-            on_snapshot({s.name: baskets(s.name, snapshot_size) for s in shapes})
-            next_snap = time.monotonic() + snapshot_every
-        raw_done += len(I)
-        if overlaps is not None:
-            ok = ~overlaps(I, J)
-            I, J = I[ok], J[ok]
-            if len(I) == 0:
-                continue
+
+    def tasks():
+        """Chunks of disjoint pairs, made in the calling thread (progress, pause / stop)."""
+        nonlocal raw_done
+        for I, J in _pair_chunks(len(lib), chunk):
+            if on_chunk is not None:
+                on_chunk(raw_done / max(raw_total, 1))
+            raw_done += len(I)
+            if overlaps is not None:
+                ok = ~overlaps(I, J)
+                I, J = I[ok], J[ok]
+                if len(I) == 0:
+                    continue
+            # exact pruning: once a top is full, a ratio must beat its weakest member to matter. A floor read
+            # before earlier chunks are merged is lower, so it only prunes less: the top comes out the same
+            floors = {s.name: tops[s.name].floor() / penalty if penalty > 0 else 0.0 for s in shapes}
+            yield I, J, floors
+
+    def score_chunk(task) -> list:
+        """(shape name, scores, numerator ids, denominator ids) of one chunk, for every shape."""
+        I, J, floors = task
+        scored = []
         if log_space:
-            Y = V[:, I] - V[:, J]                                  # log(A / B), shared by the shapes
+            Y = (VT[I] - VT[J]).T                                  # log(A / B), shared by the shapes
             for s in shapes:
                 Is, Js = I, J
                 if s.direction != 0:
@@ -167,9 +183,8 @@ def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int,
                     flip = (tc @ Y) * s.direction < 0
                     Y[:, flip] *= -1
                     Is, Js = np.where(flip, J, I), np.where(flip, I, J)
-                # exact pruning: once the top is full, a ratio must beat its weakest member to matter
-                floor = tops[s.name].floor() / penalty if penalty > 0 else 0.0
-                tops[s.name].add(s.score_y(Y, scoring, full=False, floor=floor).score * penalty, Is, Js)
+                sc = s.score_y(Y, scoring, full=False, floor=floors[s.name]).score * penalty
+                scored.append((s.name, sc, Is, Js))
         else:
             R = V[:, I] / V[:, J]
             for s in shapes:
@@ -180,7 +195,16 @@ def search_ratio_window(panel: Panel, shape: "Shape | list[Shape]", window: int,
                     flip = sc_f > sc
                     sc = np.where(flip, sc_f, sc)
                     Is, Js = np.where(flip, J, I), np.where(flip, I, J)
-                tops[s.name].add(sc, Is, Js)
+                scored.append((s.name, sc, Is, Js))
+        return scored
+
+    for scored in ordered_map(score_chunk, tasks(), workers):
+        for name, sc, Is, Js in scored:
+            tops[name].add(sc, Is, Js)
+        # snapshots right after a merge, while the next chunks are being scored
+        if on_snapshot is not None and time.monotonic() >= next_snap:
+            on_snapshot({s.name: baskets(s.name, snapshot_size) for s in shapes})
+            next_snap = time.monotonic() + snapshot_every
 
     out = {s.name: baskets(s.name, rcfg.keep_per_window) for s in shapes}
     return out[shapes[0].name] if single else out

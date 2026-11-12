@@ -4,6 +4,8 @@
   perfectshape universe list | show <name> | refresh sp500
   perfectshape fetch configs/sp500.yaml          # warm the price cache only
   perfectshape dashboard [--port 8765] [--open]  # web UI: configure, run, pause, live results
+  perfectshape dca now                           # DCA timing: what to do with this month's payment
+  perfectshape dca report                        # ... and the full study against plain DCA (a few minutes)
 
 Exit codes: 0 ok, 2 config error, 3 data error.
 """
@@ -37,6 +39,12 @@ def main(argv: list[str] | None = None) -> int:
     db.add_argument("--port", type=int, default=8765)
     db.add_argument("--open", action="store_true", help="open a browser tab")
 
+    dc = sub.add_parser("dca", help="beat monthly DCA into the S&P 500: this month's instruction, or the full report")
+    dc.add_argument("action", choices=["now", "report"])
+    dc.add_argument("--payment", type=float, default=2000.0, help="monthly payment in dollars")
+    dc.add_argument("--quick", action="store_true", help="report: skip the sensitivity table and the other markets")
+    dc.add_argument("--out", default="runs")
+
     un = sub.add_parser("universe", help="manage instrument lists")
     un.add_argument("action", choices=["list", "show", "refresh"])
     un.add_argument("name", nargs="?")
@@ -53,6 +61,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "universe":
         return _universe(args)
+
+    if args.cmd == "dca":
+        return _dca(args)
 
     from pydantic import ValidationError
 
@@ -99,6 +110,42 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{i:>3}. held {r.duration / ppy:4.1f}y{on}  score {r.score:.3f}  {band}"
                   f"{'alive ' if r.alive else 'BROKEN'}  {_fmt_members(r)}")
     print(f"\nrun: {run_dir}\nreport: {run_dir / 'report.html'}")
+    return 0
+
+
+def _dca(args) -> int:
+    from perfectshape.dca.data import load_market
+    from perfectshape.dca.signals import features
+    from perfectshape.dca.strategy import EXPOSURE_RECOMMENDED, RECOMMENDED, decision, exposure_decision
+
+    try:
+        market = load_market()
+    except Exception as e:
+        print(f"data error: {e}", file=sys.stderr)
+        return 3
+    if args.action == "now":
+        n = decision(market, features(market), RECOMMENDED)
+        print(f"{n['date']}: {n['text']}")
+        print(f"  S&P 500 {n['px']:,.0f}, {n['vs_avg']:+.1%} against its {RECOMMENDED.ma}-day average ({n['avg']:,.0f}), "
+              f"{n['days_in_state']} trading days {'above' if n['above'] else 'below'}")
+        print(f"  10-year yield {n['y10']:.2f}% ({n['y10_rise']:+.2f} points over {RECOMMENDED.guard_days} trading days; "
+              f"the guard trips above +{RECOMMENDED.guard_rise})")
+        x = exposure_decision(market, features(market), EXPOSURE_RECOMMENDED)
+        print(f"  account-sized variant (trend {EXPOSURE_RECOMMENDED.up:g} / {EXPOSURE_RECOMMENDED.down:g}, it sells): {x['text']}")
+        return 0
+    from perfectshape.dca.report import build_payload, summary_md, write_report
+
+    print("running every policy over every start month (a few minutes) ...")
+    payload = build_payload(RECOMMENDED, payment=args.payment, quick=args.quick)
+    pages = None
+    if not args.quick:
+        from perfectshape.dca.pages import build_pages
+
+        print("one page per rule (about 45 simulations on every core) ...")
+        pages = build_pages()
+    run_dir = write_report(payload, args.out, pages=pages)
+    print(summary_md(payload))
+    print(f"run: {run_dir}\nreport: {run_dir / 'report.html'}")
     return 0
 
 

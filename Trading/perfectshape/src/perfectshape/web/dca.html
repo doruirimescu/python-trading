@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" data-nexus-tabs="page">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DCA timing · Perfect Shapes</title>
+  <meta name="description" content="Beating monthly dollar-cost averaging into the S&P 500 by choosing when each payment goes in.">
+  <link rel="stylesheet" href="https://doruirimescu.github.io/nexus-design/nexus.css">
+  <script src="https://doruirimescu.github.io/nexus-design/nexus.js"></script>
+  <link rel="icon" href="https://doruirimescu.github.io/nexus-design/favicon.svg">
+  <style>/*__SHAPES_CSS__*/
+    .dca-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 16px 0; }
+    .dca-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; margin: 16px 0; }
+    .dca-chart { height: 320px; }
+    .dca-section { margin-top: 32px; }
+    .dca-note { max-width: 78ch; }
+    .dca-now { padding: 16px 20px; margin: 16px 0; }
+    .dca-now h3 { margin: 4px 0 8px; }
+    @media (max-width: 520px) { .dca-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#"><span class="brand-mark">P</span>Perfect Shapes</a>
+      <nav class="nav"><a data-nexus-icon="bars" href="#" class="active">DCA timing</a><a data-nexus-icon="target" href="rules/combined-strategy.html">Combined strategy</a></nav>
+    </div>
+  </header>
+  <main class="container">
+    <div class="eyebrow">DCA · generated __GENERATED__</div>
+    <h1>Beating monthly <span class="gradient-text">DCA</span></h1>
+    <p class="lead" id="lead"></p>
+    <div class="panel dca-now" id="pages_box" hidden><div class="eyebrow">Every rule, explained on its own page</div><div id="pages_list"></div></div>
+    <p class="dca-note"><a href="#sized">1. Borrowing sized against the account</a> (borrow 10% after a 10% crash, VIX, news, trend; scored on edge and drawdown) · <a href="#six">2. The six-payment strategy</a> (skip or borrow up to six payments, never sell)</p>
+    <section class="dca-section" id="sized"><h2>1. Borrowing sized against the account: crash, VIX, news and trend rules</h2>
+      <p class="dca-note">What if the saver may borrow more than six payments: 10% of the account after a 10% crash, half of it when the VIX spikes, and may sell to repay? Each rule sets the account's <strong>exposure</strong> (position over equity: 1 = plain DCA, 1.5 = borrowed half the equity, 0.5 = half in cash). Two questions per rule: how much does it beat plain DCA, and does it fall further than plain DCA did over the same years?</p>
+      <div class="panel dca-now" id="x_now"></div>
+      <div class="dca-kpis" id="x_kpis"></div>
+      <div class="dca-grid">
+        <div class="panel chart-panel"><div class="chart-head">Every rule: edge over DCA against its fall (10-year accounts, 1962 to today)</div><div class="dca-chart" id="c_front"></div></div>
+        <div class="panel chart-panel"><div class="chart-head" id="x_path_head">Drawdown</div><div class="dca-chart" id="c_xdd"></div></div>
+      </div>
+      <div id="x_table"></div>
+      <h3 id="x_checks_head"></h3><div id="x_checks"></div>
+      <h3>The same rules on S&amp;P 1928-1961 (held out)</h3><div id="x_early"></div>
+      <ul class="dca-note">
+        <li><strong>Buying the crash on margin never reduced the drawdown.</strong> Borrowing 10% after a 10% fall beat DCA in about two accounts in three, by about 1%, and fell deeper in every one of them. Bigger ladders earn more on average and lose 20% or more against DCA when the crash keeps going (1973, 2000, 2008).</li>
+        <li><strong>VIX, volatility spikes and policy news</strong> pick good moments on average but not reliably: about half to two thirds of accounts, with deeper falls.</li>
+        <li><strong>Only one family beats DCA and falls less:</strong> borrowed while the index is above its 200-day average, partly in cash below it. The borrowing pays for the cash; the cash is what cuts the fall.</li>
+        <li><strong>It trades a lot</strong> (the index crosses its average often) and it sells, so taxes and costs matter: at 0.2% a trade its lead shrinks by more than half. It did not work on the FTSE 100 and only half the time on the DAX.</li>
+      </ul>
+    </section>
+    <section class="dca-section" id="six"><h2>2. The six-payment strategy: skip or borrow up to six payments, never sell</h2></section>
+    <div class="panel dca-now" id="now"></div>
+    <div class="dca-kpis" id="kpis"></div>
+    <section class="dca-section"><h2>The rule</h2>
+      <ol class="dca-note" id="rule"></ol>
+    </section>
+    <section class="dca-section"><h2>Against plain DCA, for every start month</h2>
+      <p class="muted small dca-note">One saver is one sample of luck. Each row opens an account on every payment day in the data, runs it for that many years, and compares it with a plain-DCA account opened the same day. Edge = final wealth over plain DCA's, minus 1.</p>
+      <div id="horizons"></div>
+      <div class="dca-grid">
+        <div class="panel chart-panel"><div class="chart-head">Edge of a 10-year account, by the month it was opened</div><div class="dca-chart" id="c_edge"></div></div>
+        <div class="panel chart-panel"><div class="chart-head" id="saver_head">One saver</div><div class="dca-chart" id="c_saver"></div></div>
+      </div>
+      <div id="savers"></div>
+    </section>
+    <section class="dca-section"><h2>What was tried</h2>
+      <p class="muted small dca-note">10-year accounts, every start month since 1962, the same account rules for all. Holding payments back loses; borrowing all the time wins on average and fails in whole decades; borrowing only above the average is what holds up.</p>
+      <div id="alts"></div>
+    </section>
+    <section class="dca-section"><h2>Why it works</h2>
+      <p class="dca-note">Borrowing a payment pays when stocks beat the loan's rate. Over 98 years they did so, by a wide and steady margin, in months that began with the index above its 200-day average, and not reliably in months that began below it, where the swings were nearly twice as large.</p>
+      <div class="dca-grid"><div class="panel chart-panel"><div class="chart-head">S&amp;P 500 return over the 10-year yield, a year, by where the month starts</div><div class="dca-chart" id="c_mech"></div></div></div>
+      <div id="mech"></div>
+    </section>
+    <section class="dca-section"><h2>One change at a time</h2><div id="sens"></div></section>
+    <section class="dca-section"><h2>Other eras and markets</h2><div id="early"></div><div id="other"></div></section>
+    <section class="dca-section"><h2>Read this before trusting it</h2>
+      <ul class="dca-note">
+        <li><strong>The prize is small by construction.</strong> Six payments is a sliver of a grown account. A saver who knew every future price would gain about 14% over ten years; this rule gains 2 to 3%.</li>
+        <li><strong>It is leverage, timed.</strong> While borrowed, the account holds up to six payments more stock than the DCA saver. A crash that starts above the average (1929, 1987) hits before the rule steps back; a young account feels it most, which is why 5-year results are weaker than 10-year ones.</li>
+        <li><strong>The margin rate matters.</strong> The study borrows at the 10-year Treasury yield, as specified. Most brokers charge more; the table above shows 1, 2 and 3 points more.</li>
+        <li><strong>Not a law of nature.</strong> It works on the S&amp;P 500 in every era tested, on the Nasdaq-100 and the DAX; it adds little or nothing on the Russell 2000, FTSE 100 and Nikkei (price indices without dividends, US rates).</li>
+        <li><strong>Chosen with hindsight.</strong> The 200-day average is the textbook setting and 1928-1961 was held out, but the rate guard and the debt limit were picked after seeing 1962-2026. The untouched test starts now.</li>
+        <li>Daily closes, payments on the first trading day of the month, no taxes, interest accrued daily, dividends reinvested through the total-return index.</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="footer"><div class="container">Research tooling, not investment advice.</div></footer>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script>
+  (function () {
+    const D = __DATA__;
+    const NAME = "Strategy: trend + rate guard", TREND = "Borrow above the 200-day average (monthly)", EARLY = "Always 6 payments ahead";
+    const $ = (id) => document.getElementById(id);
+    const pct = (x, d = 1) => (x == null ? "–" : (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%");
+    const share = (x) => (x * 100).toFixed(0) + "%";
+    const usd = (x) => (x < 0 ? "−$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-US");
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const PG = D.pages || {};
+    const link = (name, inner) => (PG[name] ? `<a href="${esc(PG[name])}">${inner}</a>` : inner);
+    const S = D.strategy, N = D.now, H = D.horizons;
+    $("lead").innerHTML = `A saver puts <mark>${usd(D.payment)} a month</mark> into the S&amp;P 500. Can choosing <span class="hl-accent">when each payment goes in</span> ` +
+      `(holding up to six back, or borrowing up to six ahead on margin) beat investing it the day it arrives? ${esc(D.period.start)} → ${esc(D.period.end)}.`;
+    $("now").innerHTML = `<div class="eyebrow">This month · data to ${esc(N.date)}</div><h3>${esc(N.text)}</h3>` +
+      `<div class="muted small">S&amp;P 500 ${Math.round(N.px).toLocaleString("en-US")}, ${pct(N.vs_avg)} against its ${S.ma}-day average (${Math.round(N.avg).toLocaleString("en-US")}), ` +
+      `${N.days_in_state} trading days ${N.above ? "above" : "below"}. 10-year yield ${N.y10.toFixed(2)}%, ${(N.y10_rise >= 0 ? "+" : "") + N.y10_rise.toFixed(2)} points over ` +
+      `${S.guard_days} trading days (the guard trips above +${S.guard_rise}).</div>`;
+    const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${label}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
+    const h10 = H["10"][NAME], h5 = H["5"][NAME], hL = H[Object.keys(H).slice(-1)[0]][NAME], yL = Object.keys(H).slice(-1)[0];
+    $("kpis").innerHTML =
+      kpi("Beats DCA, 10-year accounts", share(h10.win), `${h10.n} start months since 1962`) +
+      kpi("Median edge", pct(h10.median, 2), `${usd(h10.usd_median)} on a 10-year account`) +
+      kpi("Worst 10-year account", `<span class="${h10.worst < 0 ? "neg" : ""}">${pct(h10.worst, 2)}</span>`, `best ${pct(h10.best, 2)}`) +
+      kpi("5-year accounts", share(h5.win), `worst ${pct(h5.worst, 2)}`) +
+      kpi(`${yL}-year accounts`, share(hL.win), `median ${usd(hL.usd_median)} extra`) +
+      (D.early && D.early["10"] ? kpi("1928-1961, held out", share(D.early["10"][NAME].win), `10-year accounts, worst ${pct(D.early["10"][NAME].worst, 2)}`) : "");
+    $("rule").innerHTML =
+      `<li>On payment day, look at yesterday's close. If the <strong>S&amp;P 500 is above its ${S.ma}-day average</strong>` +
+      (S.guard_days ? ` and the <strong>10-year Treasury yield has not risen more than ${S.guard_rise} points</strong> over the last ${S.guard_days} trading days` : "") +
+      `: borrow on margin until you are <strong>${S.months} payments ahead</strong>, and invest it. Never let the debt pass ${share(S.max_debt_share)} of the account.</li>` +
+      `<li>Otherwise: borrow nothing new. Each payment repays the debt first; once it is gone, payments buy as in plain DCA.</li>` +
+      `<li>Never sell, and never hold a payment back in cash: waiting lost in every era.</li>`;
+
+    const tbl = (head, rows) => `<div class="table-wrap"><table class="data ps"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>` +
+      rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`).join("") + `</tbody></table></div>`;
+    const cells = (r) => [r.n, share(r.win), pct(r.median, 2), pct(r.p10, 2), pct(r.worst, 2), pct(r.best, 2), usd(r.usd_median), usd(r.usd_worst), r.calls];
+    const HEAD = ["Start months", "Beats DCA", "Median edge", "1 in 10 below", "Worst", "Best", "Median extra", "Worst extra", "Margin calls"];
+    $("horizons").innerHTML = tbl(["Account length"].concat(HEAD), Object.keys(H).map((y) => [`${y} years`].concat(cells(H[y][NAME])))) +
+      `<h3>10-year accounts by the era they ran in</h3>` + tbl(["Era"].concat(HEAD), Object.keys(D.eras).filter((e) => D.eras[e][NAME]).map((e) => [esc(e)].concat(cells(D.eras[e][NAME]))));
+    $("alts").innerHTML = tbl(["Policy"].concat(HEAD), Object.keys(D.alternatives).map((k) => [link(k, k === NAME ? `<strong>${esc(k)}</strong>` : esc(k))].concat(cells(D.alternatives[k]))));
+    const M = D.mechanism || [];
+    $("mech").innerHTML = tbl(["Era", "Above: a year", "t", "Volatility", "Months", "Below: a year", "t", "Volatility", "Months"],
+      M.map((r) => [esc(r.era), pct(r.above_mean), r.above_t.toFixed(1), share(r.above_vol), r.above_months, pct(r.below_mean), r.below_t.toFixed(1), share(r.below_vol), r.below_months]));
+    const c3 = (r) => `${share(r.win)} · ${pct(r.median, 2)} · ${pct(r.worst, 2)}`;
+    $("sens").innerHTML = D.sensitivity.length ? tbl(["Change", "10 years: beats DCA · median · worst", "5 years: beats DCA · median · worst"],
+      D.sensitivity.map((r) => [esc(r.variant), c3(r.y10), c3(r.y5)])) : '<div class="empty-state small">not computed for this run</div>';
+    $("early").innerHTML = D.early && Object.keys(D.early).length ? `<h3>S&amp;P 1928-1961: not used to build the strategy</h3>` +
+      tbl(["Account length"].concat(HEAD), Object.keys(D.early).map((y) => [`${y} years`].concat(cells(D.early[y][NAME])))) : "";
+    $("other").innerHTML = D.other.length ? `<h3>Other markets, 10-year accounts, US rates: beats DCA · median · worst</h3>` +
+      tbl(["Market", "Strategy", "Trend only", "Always 6 ahead"], D.other.map((o) => [`${esc(o.market)}, from ${o.start.slice(0, 4)}`, c3(o.rows[NAME]), c3(o.rows[TREND]), c3(o.rows[EARLY])])) : "";
+    $("savers").innerHTML = `<h3>Four savers, to today</h3>` + tbl(["Opened", "Paid in", "Plain DCA", "Strategy", "Extra", "Edge", "Net interest paid", "Margin calls"],
+      D.savers.map((s) => [s.start, usd(s.paid), usd(s.final_dca), usd(s.final), usd(s.final - s.final_dca), pct(s.final / s.final_dca - 1, 2), usd(s.interest), s.calls]));
+
+    if (Object.keys(PG).length) {
+      $("pages_box").hidden = false;
+      const xs = (D.exposure ? D.exposure.frontier.map((r) => r.rule) : []), ps = Object.keys(D.alternatives);
+      const ul = (names) => `<ul class="dca-note">${names.filter((n) => PG[n]).map((n) => `<li>${link(n, esc(n))}</li>`).join("")}</ul>`;
+      const cs = Object.keys(PG).filter((n) => n.indexOf("Combined") === 0);
+      $("pages_list").innerHTML = (cs.length ? `<h3>Combined strategy (continuous, never sells)</h3>${ul(cs)}` : "") +
+        `<h3>Account-sized rules</h3>${ul(xs)}<h3>Six-payment rules</h3>${ul(ps)}`;
+    }
+    const X = D.exposure;
+    const pp = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1);
+    const xrow = (r) => [share(r.win), pct(r.median), pct(r.worst), pct(r.best), pp(r.dd_vs_dca), pp(r.dd_vs_dca_worst), share(r.dd_shallower), pct(r.dd_worst, 0), r.avg_exposure.toFixed(2), r.calls];
+    const XHEAD = ["Beats DCA", "Median edge", "Worst", "Best", "Fall vs DCA (points)", "Worst", "Shallower in", "Deepest fall", "Avg exposure", "Margin calls"];
+    if (X) {
+      const xs = X.strategy;
+      $("x_now").innerHTML = `<div class="eyebrow">${esc(X.name)} · today</div><h3>${esc(X.now.text)}</h3>` +
+        `<div class="muted small">Rule: exposure ${xs.up} while the S&amp;P 500 is above its ${xs.ma}-day average, ${xs.down} below it; never above 1 while the 10-year yield is up more than ${xs.guard_rise} points in ${xs.guard_days} trading days. Checked daily on the previous close, traded when more than 2% of equity off target. It sells shares to get there.</div>`;
+      const me = X.frontier.find((r) => r.rule === X.name), crash = X.frontier.find((r) => r.family === "crash");
+      const held = X.checks.find((r) => r.label.indexOf("1928") >= 0), c20 = X.checks.find((r) => r.label.indexOf("20-year") === 0), cost = X.checks.find((r) => r.label.indexOf("cost") >= 0);
+      $("x_kpis").innerHTML =
+        kpi("Beats DCA, 10-year accounts", share(me.win), `median ${pct(me.median)}, worst ${pct(me.worst)}`) +
+        kpi("Deepest fall against DCA's", `${pp(me.dd_vs_dca)} <span class="faint small">points</span>`, `shallower in ${share(me.dd_shallower)} of accounts`) +
+        (c20 ? kpi("20-year accounts", share(c20.win), `median ${pct(c20.median)}, shallower in ${share(c20.dd_shallower)}`) : "") +
+        (held ? kpi("1928-1961, held out", share(held.win), `median ${pct(held.median)}, shallower in ${share(held.dd_shallower)}`) : "") +
+        (cost ? kpi("With 0.2% cost per trade", share(cost.win), `median ${pct(cost.median)}`) : "") +
+        (crash ? kpi("Crash 10% → borrow 10%", share(crash.win), `median ${pct(crash.median)}, <span class="neg">${pp(crash.dd_vs_dca)} points deeper</span>`) : "");
+      const byEdge = (a) => a.slice().sort((p, q) => q.median - p.median);
+      const nm = (r) => link(r.rule, r.rule === X.name ? `<strong>${esc(r.rule)}</strong>` : esc(r.rule));
+      $("x_table").innerHTML = tbl(["Rule"].concat(XHEAD), byEdge(X.frontier).map((r) => [nm(r)].concat(xrow(r))));
+      $("x_early").innerHTML = X.early.length ? tbl(["Rule"].concat(XHEAD), byEdge(X.early).filter((r) => Math.abs(r.avg_exposure - 1) > 1e-6).map((r) => [nm(r)].concat(xrow(r)))) : '<div class="empty-state small">not available for this run</div>';
+      $("x_checks_head").textContent = `${X.name}: horizons, costs, other eras and markets`;
+      $("x_checks").innerHTML = tbl(["Check", "Accounts"].concat(XHEAD), X.checks.map((r) => [esc(r.label), r.n].concat(xrow(r))));
+    }
+
+    function draw() {
+      const ids = ["c_edge", "c_saver", "c_mech", "c_front", "c_xdd"];
+      if (!window.Plotly || !window.Nexus) { ids.forEach((id) => { $(id).innerHTML = '<div class="empty-state small">charts need Plotly + nexus.js (offline?)</div>'; }); return; }
+      const C = window.Nexus.colors, cfg = Object.assign({}, window.Nexus.plotlyConfig, { displayModeBar: false });
+      const L = (o) => window.Nexus.plotlyLayout(Object.assign({ margin: { l: 56, r: 12, t: 8, b: 30 }, hovermode: "x unified", legend: { orientation: "h", y: 1.12 } }, o));
+      const E = D.edges10, EE = D.edges10_early || {};
+      const tr = [];
+      if (E[EARLY]) tr.push({ x: E[EARLY].dates, y: E[EARLY].edge, mode: "lines", name: "Always 6 ahead", line: { color: C.neutral, width: 1.2 } });
+      if (EE[NAME]) tr.push({ x: EE[NAME].dates, y: EE[NAME].edge, mode: "lines", name: "Strategy, 1928-1961", line: { color: C.series2, width: 1.6 } });
+      if (E[NAME]) tr.push({ x: E[NAME].dates, y: E[NAME].edge, mode: "lines", name: "Strategy", line: { color: C.accent, width: 2 } });
+      window.Plotly.react("c_edge", tr, L({ yaxis: { tickformat: "+.0%", zeroline: true } }), cfg);
+      const s = D.savers[1] || D.savers[0];
+      $("saver_head").textContent = `A saver who started in ${s.start.slice(0, 7)}: dollars ahead of plain DCA, and the cash balance`;
+      window.Plotly.react("c_saver", [
+        { x: s.dates, y: s.extra, mode: "lines", name: "Ahead of DCA ($)", line: { color: C.accent, width: 1.8 } },
+        { x: s.dates, y: s.cash, mode: "lines", name: "Cash (negative = debt)", yaxis: "y2", line: { color: C.highlight, width: 1 } }],
+        L({ yaxis: { tickformat: "$,.0f" }, yaxis2: { overlaying: "y", side: "right", tickformat: "$,.0f", showgrid: false }, margin: { l: 70, r: 64, t: 8, b: 30 } }), cfg);
+      window.Plotly.react("c_mech", [
+        { x: M.map((r) => r.era), y: M.map((r) => r.above_mean), type: "bar", name: "Month starts above the average", marker: { color: C.accent } },
+        { x: M.map((r) => r.era), y: M.map((r) => r.below_mean), type: "bar", name: "Starts below", marker: { color: C.neutral } }],
+        L({ barmode: "group", yaxis: { tickformat: "+.0%" }, hovermode: "x" }), cfg);
+      if (X) {
+        const fams = { strategy: ["The strategy", C.accent], trend: ["Trend rules", C.series2], crash: ["Crash rules", C.negative], fear: ["VIX / volatility / news", C.highlight],
+          calm: ["Calm-market rules", C.neutral], rates: ["Rates", C.positive], always: ["Always borrowed", C.text] };
+        const traces = Object.keys(fams).map((k) => { const rs = X.frontier.filter((r) => r.family === k); return { x: rs.map((r) => r.dd_vs_dca), y: rs.map((r) => r.median),
+          text: rs.map((r) => r.rule), mode: "markers", name: fams[k][0], marker: { color: fams[k][1], size: k === "strategy" ? 16 : 10, symbol: k === "strategy" ? "star" : "circle" },
+          hovertemplate: "%{text}<br>edge %{y:+.1%}, fall vs DCA %{x:+.1%}<extra></extra>" }; });
+        window.Plotly.react("c_front", traces, L({ hovermode: "closest", xaxis: { tickformat: "+.0%", title: { text: "fall against plain DCA's (right = shallower)" }, zeroline: true },
+          yaxis: { tickformat: "+.0%", title: { text: "median edge over DCA" }, zeroline: true }, margin: { l: 64, r: 12, t: 8, b: 46 } }), cfg);
+        const P = X.path;
+        $("x_path_head").textContent = `A saver from ${P.start.slice(0, 7)}: fall from the peak (payments taken out). Deepest ${pct(P.max_dd, 0)} against ${pct(P.max_dd_dca, 0)} for plain DCA`;
+        window.Plotly.react("c_xdd", [
+          { x: P.dates, y: P.dd_dca, mode: "lines", name: "Plain DCA", line: { color: C.neutral, width: 1.2 }, fill: "tozeroy", fillcolor: window.Nexus.rgba(C.neutral, 0.15) },
+          { x: P.dates, y: P.dd, mode: "lines", name: "Strategy", line: { color: C.accent, width: 1.8 } }], L({ yaxis: { tickformat: ".0%" } }), cfg);
+      }
+    }
+    draw();
+  })();
+  </script>
+</body>
+</html>

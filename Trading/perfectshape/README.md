@@ -7,8 +7,8 @@ In **ratio mode** the same search runs over **basket ratios** in the style of `T
 oscillating against it.
 
 Successor of `Trading/utils/range/range.py::PerfectRange` and `Trading/algo/ranker` (single-instrument range
-ranking): same idea, generalised to multi-instrument baskets and to trends, vectorised so the S&P 500 scans in
-about 1.5 minutes.
+ranking): same idea, generalised to multi-instrument baskets and to trends, vectorised and spread over every
+CPU core (Windows and Linux) so the S&P 500 scans in about 20 s on 16 logical cores (about 50 s on one).
 
 Tooling is managed by [mise](https://mise.jdx.dev) (`mise.toml`): it installs Python 3.13 and uv, and creates
 and activates `.venv` automatically when you enter the directory.
@@ -21,14 +21,15 @@ mise run smoke                                # offline, synthetic, ~2 s
 mise run sp500                                # downloads/caches 11y of S&P 500 closes
 mise run country-ratios                       # basket ratios of country ETFs, ~30 s
 mise run etf-pairs                            # A / B over 39 ETFs (sectors, factors, regions, bonds, gold), ~15 s
-mise run etf-ratios                           # (A + B) / (C + D) over the same 39 ETFs, ~7 min
+mise run etf-ratios                           # (A + B) / (C + D) over the same 39 ETFs, ~30 s on 16 cores
 mise run dashboard                            # web UI: sector ETF -> 3 vs 3 stock ratios, play / pause, live
+mise run dca                                  # DCA timing: what to do with this month's payment (see "DCA")
 mise run scan configs/my.yaml                 # any config
 xdg-open runs/LATEST/report.html              # or read runs/LATEST/summary.md
 ```
 
 `mise tasks` lists all tasks (`install`, `scan`, `smoke`, `sp500`, `country-ratios`, `etf-pairs`,
-`etf-ratios`, `dashboard`, `universe`, `test`, `lint`).
+`etf-ratios`, `dashboard`, `dca`, `dca-report`, `universe`, `test`, `lint`).
 
 ## Dashboard: sector stock ratios (`mise run dashboard`)
 
@@ -171,7 +172,9 @@ directly; elsewhere, prefix with `mise exec --`.
    * every instrument is scored on its own (one vectorised pass);
    * from each of the best `seeds` singles, a basket grows greedily: every other instrument is tried as the
      next member, weights are re-solved for all candidates in one batched solve, the best-scoring addition
-     is kept, until `max_assets` or the gain < `min_improvement`.
+     is kept, until `max_assets` or the gain < `min_improvement`. The seeds grow on a thread pool
+     (`search.workers`, 0 = every logical core), recorded in seed order: the same baskets on any number of
+     threads.
    * Weight objectives (closed form, see `solver.py`):
      * trends: maximise the slope t-stat (move along the line / noise around it): `w ~ R^-1 c`;
      * range: minimise quadratic drift relative to oscillation (smallest generalised eigenvector).
@@ -221,6 +224,13 @@ The object of `Trading/basket` (mrscore `RatioUniverse`), searched for shapes in
   and can still beat the weakest of the best `keep_per_window` so far. All shapes are scored from the same
   chunk of ratios, and windows run longest first (strong candidates early raise the bar for the rest). Same
   rankings, about 6× faster than scoring every ratio in full (XLU top 16, 3 vs 3: 143 s → 24 s).
+* **Cores** (`parallel.py`, `search.workers`, default 0 = every logical core): chunks of ratios are scored
+  on a thread pool and merged in order, so the rankings are the same on any number of threads. Threads, not
+  processes: the scoring is numpy on large arrays, which releases the GIL, and threads share the panel
+  without spawning (slow on Windows) or copying. BLAS is pinned to one thread per worker
+  (`OPENBLAS_NUM_THREADS` etc., set on import unless already set) so the pools do not multiply. Scoring is
+  memory bound: `configs/etf_ratios.yaml` takes 79 s on one thread and 30 s on 16 logical cores, about the
+  same speedup as 16 separate processes get on that machine.
 * `complexity_penalty` counts all members of both legs. Every ratio in a run has the same size, so it only
   shifts the threshold; `configs/country_ratios.yaml` sets it to 0 and lowers `min_annual_return` to 5%
   because relative moves are smaller than outright ones.
@@ -346,10 +356,120 @@ band padded by 25% ("alive"); "holdout" in the report is the move over those bar
 
 ## Outputs (`runs/<stamp>_<name>_<hash>/`, `runs/LATEST`)
 
+`runs/LATEST` is a symlink to the newest run, or a copy of it where symlinks need extra rights (Windows
+without Developer Mode).
+
 `summary.md`, `results.csv` (one row per ranked basket: members, weights at fit start, drifted weights now,
 held duration, metrics, per-window scores; in ratio mode also `den_members`, `den_weights`, `den_weights_now`),
 `results.json`, `report.html` (the dashboard's results view in one file: tables + charts with the fitted
 line/band and the holdout; Nexus styles and Plotly load from the web), `config.resolved.json`.
+
+## DCA: beating monthly dollar-cost averaging into the S&P 500 (`perfectshape.dca`)
+
+A saver gets $2,000 a month for the S&P 500. Plain DCA invests it the day it arrives. May the saver do better by
+choosing **when** each payment goes in: holding up to six payments back, or borrowing up to six on margin (at the
+10-year Treasury yield, within margin rules) and repaying them with the payments to come?
+
+```bash
+mise run dca            # what to do with this month's payment
+mise run dca-report     # the study: runs/<stamp>_dca/report.html, summary.md, dca.json (about 3 minutes)
+```
+
+**The rule the research arrived at** (`dca/strategy.py`):
+
+1. On payment day, look at yesterday's close. If the **S&P 500 is above its 200-day average** and the **10-year
+   yield has not risen more than 0.6 points in the last 126 trading days**: borrow until you are **6 payments
+   ahead**, and invest it. Debt never above 25% of the account.
+2. Otherwise borrow nothing new: payments repay the debt first, then buy as usual.
+3. Never sell; never hold a payment back in cash.
+
+**Against plain DCA**, an account opened on every payment day and run for H years (edge = final wealth over plain
+DCA's - 1; trades use the previous close; `tests/test_dca.py` checks that no policy sees the future):
+
+| | start months | beats DCA | median edge | worst | best |
+|---|---|---|---|---|---|
+| 5-year accounts, 1962-2026 | 719 | 94% | +2.24% | -1.31% | +7.09% |
+| 10-year | 659 | 99% | +2.63% ($12,000) | -0.11% | +5.10% |
+| 20-year | 539 | 100% | +2.63% ($43,000) | +0.79% | +4.24% |
+| 30-year | 419 | 100% | +2.59% ($142,000) | +1.07% | +4.10% |
+| 10-year, **1928-1961 (held out)** | 289 | 100% | +2.56% | -0.02% | +6.76% |
+| 5-year, 1928-1961 | 349 | 80% | +3.30% | -6.66% | +7.40% |
+
+No margin call in any account. What else was tried (10-year accounts): holding every payment a month 20%, waiting
+for a 5% dip 41%, always 6 payments ahead 76% (worst -4.9%), investing 4 days before the month ends 92% (+0.4%),
+borrowing on fear or after a 10% drawdown 62 to 75%.
+
+**Why it works**: over 1928-2026, in months that began above the average the S&P 500 beat the 10-year yield by
+9.5% a year (t 5.5, positive in every era) at 14% volatility; in months that began below it, by 1.1% (t 0.2) at
+25%. Borrowing pays where that premium is established and is switched off where it is not.
+
+**How much to believe**:
+
+* The prize is small by construction: six payments are a sliver of a grown account. Perfect foresight would add
+  about 14% over ten years; the rule adds 2 to 3%.
+* It is leverage, timed. A crash that starts above the average (1929, 1987) hits before the rule steps back, and
+  a young account feels it most: hence 5-year accounts at 94% (80% in 1928-1961).
+* Brokers usually charge more than the 10-year yield: at 1 / 2 / 3 points more, 98% / 97% / 96% of 10-year
+  accounts still win (median +2.3% / +2.0% / +1.7%).
+* Not a law of nature: Nasdaq-100 98% and DAX 85%, but FTSE 100 67%, Nikkei 64%, Russell 2000 56%.
+* The 200-day average is the textbook setting and passed the holdout; the rate guard and the debt limit were
+  chosen after seeing 1962-2026 (yields barely moved in 1928-1961, so the holdout does not test the guard).
+
+### Borrowing sized against the account (`dca/exposure.py`, `dca/rules.py`, `dca/frontier.py`)
+
+A second question: what if the saver may borrow more than six payments ("the market is down 10%: borrow 10% of the
+account"), react to the VIX, volatility or news, and sell to repay? A rule sets the account's **exposure** (position
+/ equity: 1 = plain DCA, 1.5 = borrowed half the equity, 0.5 = half in cash; Reg T caps it at 2). Each rule is
+scored twice over every start month: its edge over plain DCA, and its deepest fall against plain DCA's over the
+same years (time-weighted, so a payment does not hide a loss). 10-year accounts, 1962-2026, 5 bps per trade:
+
+| rule | beats DCA | median edge | worst | fall vs DCA (median, points) | shallower in |
+|---|---|---|---|---|---|
+| Crash 10% -> borrow 10% of the account | 69% | +1.2% | -5.5% | 2.6 deeper | 0% |
+| Crash 10 / 20 / 30% -> borrow 20 / 40 / 60% | 77% | +5.9% | -22.1% | 9.6 deeper | 0% |
+| VIX above 30 -> borrow 25% | 59% | +1.0% | -10.5% | 2.8 deeper | 0% |
+| Policy news 2x usual -> borrow 50% | 48% | 0.0% | -23.6% | 0.5 deeper | 0% |
+| Always borrowed 50% | 64% | +6.4% | -29.3% | 17.1 deeper | 0% |
+| Trend 1.25 / 0.75 (borrow 25% above the 200-day average, 25% cash below) | 92% | +5.0% | -3.1% | 4.8 shallower | 95% |
+| **Trend 1.5 / 0.5 + rate guard** (`EXPOSURE_RECOMMENDED`) | 87% | +12.3% | -9.1% | **11.6 shallower** | 92% |
+| Trend 2.0 / 0.5 + rate guard | 88% | +24.5% | -9.9% | 7.3 shallower | 85% |
+
+* **Buying the crash on margin never reduced the drawdown**: every crash, VIX, volatility-spike and news rule fell
+  deeper than plain DCA in every account, and the big ladders lost 20% and more against DCA when the fall went on.
+* **The only family that beats DCA and falls less** borrows while the index is above its 200-day average and holds
+  part of the account in cash below it. Cash alone (1.0 / 0.5) falls far less but loses to DCA; borrowing alone
+  beats DCA but falls further; together the borrowing pays for the cash.
+* The recommended 1.5 / 0.5: 20-year accounts 98%, median +35%, shallower in all of them; 1928-1961 (held out) 100%,
+  +19%, but the fall is only about level with DCA's there (shallower in 73%, up to 9 points deeper). 2.0 / 0.5 earns
+  about twice as much and fell *deeper* than DCA in the holdout, so it is not the pick.
+* **Fragile where the first strategy is not**: it sells and trades often (the index crosses its average many times),
+  so at 0.2% a trade it wins 68% with +5%; 5-year accounts win 76% (worst -12%); Nasdaq-100 67%, Nikkei 64%, DAX
+  53%, FTSE 100 31% (median -8%), Russell 2000 15% (median -16%). Taxes on the sales are not modelled.
+
+### Combined strategy: a continuous borrowing function, never sells (`dca/continuous.py`)
+
+Instead of on/off rules, one function sets the exposure every day from the VIX, the margin rate (10-year yield), the
+Fed's rate (3-month bill) and the trend: Merton's rule with separate borrowing and lending rates,
+`exposure = k x (expected return - rate) / (VIX/100)^2`, borrowing when it exceeds 1 against the margin rate and
+holding payments when it falls below 1 against the bill rate. The account never sells: debt (capped in payments) is
+repaid by the payments. Page: `rules/combined-strategy.html` of a DCA run (`python research/dca/combined_page.py <run>`
+after `python research/dca/kelly_cv.py`).
+
+* **Fitting the whole function overfits.** Seven parameters optimised on 1962-1999 won 100% of its accounts there,
+  62% on 2000-2026 and 32% on 1928-1961; estimating the forecast's slopes by regression did worse (7% on 2000-2026):
+  the fine slopes change sign between eras (`research/dca/fit_continuous.py`).
+* **What survives** feeds the function only the coarse facts that held in every era (the premium above vs below the
+  200-day average, a penalty for a rising 10-year yield) and chooses k and the caps on the accounts. Tested leave one
+  era out (fit on two eras, score the third): 82% / 60% / 100% of 10-year accounts (1928-61 / 1962-99 / 2000-26),
+  median +6.8% / +2.0% / +0.6%, about 1 point deeper falls than plain DCA. The simple trend rules under the same caps
+  won more (94% / 72% / 96%) but fell 3 to 6 points deeper (`research/dca/kelly_cv.py`).
+* Fitted on all eras: premium +9.2% above / +1.1% below, rate penalty 0.087 per point, k = 0.15, debt at most 12
+  payments, no cash. It borrows only above the average with the VIX under about 12: the gentlest borrower here.
+
+Modules: `dca/data.py` (market history), `account.py` (the account: interest, margin, many start dates at once,
+and the perfect-foresight bound), `signals.py`, `policy.py`, `evaluate.py`, `strategy.py`, `report.py` +
+`web/dca.html`. Every number above and the signals that did not make it (VIX, policy news, credit, turn of the
+month): `research/dca/README.md`.
 
 ## Extending
 

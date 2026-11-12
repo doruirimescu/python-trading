@@ -44,30 +44,50 @@ def project_weights(W: np.ndarray, bounds: Bounds) -> np.ndarray:
     cap = bounds.max_weight if k * bounds.max_weight >= 1.0 else 1.0
     lo = 0.0 if bounds.long_only else -cap
     bad = ~np.all((W >= lo - 1e-9) & (W <= cap + 1e-9), axis=1) & ~np.isnan(W).any(axis=1)
-    for r in np.flatnonzero(bad):
-        W[r] = _project_row(W[r], lo, cap)
+    if bad.any():
+        W[bad] = _project_rows(W[bad], lo, cap)
     return W
 
 
-def _project_row(w: np.ndarray, lo: float, cap: float) -> np.ndarray:
-    w = np.clip(w, lo, None)
-    s = w.sum()
-    if s <= 1e-12:
-        return np.full_like(w, np.nan)
-    w = w / s
-    fixed = np.zeros(len(w), dtype=bool)
-    for _ in range(len(w)):
-        over = (w > cap + 1e-12) & ~fixed
-        if not over.any():
-            break
-        fixed |= over
-        w[fixed] = cap
-        free = ~fixed
-        rem = 1.0 - cap * fixed.sum()
-        fs = w[free].sum()
-        w[free] = w[free] * rem / fs if fs > 1e-12 else rem / max(free.sum(), 1)
-    if np.any(w < lo - 1e-9) or np.any(w > cap + 1e-9):
-        return np.full_like(w, np.nan)
+def _row_sums(w: np.ndarray) -> np.ndarray:
+    """Row sums added in the order numpy sums one short row (left to right below 8, pairwise from 8), so the
+    batched projection matches projecting row by row to the last bit."""
+    k = w.shape[1]
+    if k < 8:
+        out = np.zeros(len(w))
+        for j in range(k):
+            out = out + w[:, j]
+        return out
+    if k == 8:
+        return ((w[:, 0] + w[:, 1]) + (w[:, 2] + w[:, 3])) + ((w[:, 4] + w[:, 5]) + (w[:, 6] + w[:, 7]))
+    return np.array([r.sum() for r in w])
+
+
+def _project_rows(W: np.ndarray, lo: float, cap: float) -> np.ndarray:
+    """Clip, renormalise, cap-and-redistribute every row of W at once (a row stops when nothing is over)."""
+    w = np.clip(W, lo, None)
+    s = _row_sums(w)
+    dead = s <= 1e-12
+    with np.errstate(divide="ignore", invalid="ignore"):
+        w = w / s[:, None]
+        fixed = np.zeros(w.shape, dtype=bool)
+        for _ in range(w.shape[1]):
+            over = (w > cap + 1e-12) & ~fixed
+            act = over.any(axis=1) & ~dead
+            if not act.any():
+                break
+            fixed |= over & act[:, None]
+            free = ~fixed
+            rem = 1.0 - cap * fixed.sum(axis=1)
+            # the free members only, left to right (at least one member is fixed, so fewer than 8 of them)
+            fs = np.zeros(len(w))
+            for j in range(w.shape[1]):
+                fs = fs + np.where(free[:, j], w[:, j], 0.0)
+            spread = np.where((fs > 1e-12)[:, None], w * rem[:, None] / fs[:, None],
+                              (rem / np.maximum(free.sum(axis=1), 1))[:, None])
+            w = np.where(act[:, None], np.where(fixed, cap, spread), w)
+    ok = ~dead & ~np.any(w < lo - 1e-9, axis=1) & ~np.any(w > cap + 1e-9, axis=1)
+    w[~ok] = np.nan
     return w
 
 

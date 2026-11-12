@@ -111,7 +111,7 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
         if new:
             for b, r in zip(new, evaluate(panel, shape, new, windows, fit_end, cfg.scoring,
                                           ref_window="best" if by_score(shape) else "longest",
-                                          min_ref=rk.range_min_score_window)):
+                                          min_ref=rk.range_min_score_window, workers=cfg.search.workers)):
                 cache[key(b)] = r
         return [cache[key(b)] for b in found]
 
@@ -143,7 +143,7 @@ def scan(cfg: RunConfig, *, panel: Optional[Panel] = None, today: Optional[date]
                 ctl.partial(output(False))
 
             found = search_ratio_window(panel, shapes, L, fit_end, cfg.ratio, cfg.scoring,
-                                        on_chunk=on_chunk, on_snapshot=on_snapshot)
+                                        on_chunk=on_chunk, on_snapshot=on_snapshot, workers=cfg.search.workers)
             for s in shapes:
                 finished[s.name] += evaluated(s, found[s.name])
                 n_cand[s.name] += len(found[s.name])

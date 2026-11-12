@@ -37,6 +37,7 @@ from pydantic import ValidationError
 
 from perfectshape.config import RunConfig
 from perfectshape.holdings import SECTOR_ETFS, holdings
+from perfectshape.parallel import n_workers
 from perfectshape.pipeline import ScanCancelled, ScanControl, ScanOutput, scan
 from perfectshape.ratio import count_ratios
 from perfectshape.report.writer import _payload, write_run
@@ -52,9 +53,12 @@ ASSETS = {"shapes.css": "text/css; charset=utf-8", "report.js": "text/javascript
 PAGES = {"/": "dashboard.html", "/index.html": "dashboard.html", "/trade.html": "trade.html"}
 BENCHMARK = "SPY"
 ANALYSES = PROJECT_ROOT / "analyses"          # saved Trade Lab analyses, one JSON file each (git-ignored)
-# seconds per (ratio x bar x shape), measured on XLU top 16 at 3 vs 3 (80,080 ratios, 11 windows, 2 shapes:
-# 24 s); machine and data dependent (pruning skips more on noisier universes), for estimates only
+# seconds per (ratio x bar x shape) on one thread, measured on XLU top 16 at 3 vs 3 (80,080 ratios, 11 windows,
+# 2 shapes: 24 s); machine and data dependent (pruning skips more on noisier universes), for estimates only
 SECONDS_PER_RATIO_BAR = 1.5e-8
+# the same on every core: configs/etf_ratios.yaml (246,753 ratios) took 79 s on one thread and 30 s on 16
+# logical cores (the scoring is memory bound, so more threads stop helping well before one per core)
+MULTICORE_SPEEDUP = 2.6
 
 DEFAULT_CONFIG = {
     "config_version": 1,
@@ -222,7 +226,8 @@ def check_config(raw: dict) -> dict:
     if cfg.search.mode == "ratio":
         r = count_ratios(n, cfg.ratio)
         out["ratios"] = r
-        out["est_seconds"] = r * sum(cfg.search.windows) * len(cfg.search.shapes) * SECONDS_PER_RATIO_BAR
+        speedup = min(MULTICORE_SPEEDUP, n_workers(cfg.search.workers))
+        out["est_seconds"] = r * sum(cfg.search.windows) * len(cfg.search.shapes) * SECONDS_PER_RATIO_BAR / speedup
         if r > cfg.ratio.max_ratios:
             out.update(ok=False, error=f"{r:,} ratios > ratio.max_ratios ({cfg.ratio.max_ratios:,}): "
                                        "use fewer holdings or smaller baskets")

@@ -61,6 +61,7 @@ class SearchConfig(_Strict):
     seeds: int = Field(25, ge=1, description="greedy searches start from the best N single instruments")
     ridge: float = Field(1e-4, ge=0)
     min_improvement: float = Field(0.005, ge=0, description="stop growing a basket when the score gain is below this")
+    workers: int = Field(0, ge=0, description="threads for the search and evaluation (0 = every logical core)")
 
     @field_validator("windows")
     @classmethod

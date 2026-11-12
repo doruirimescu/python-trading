@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-nexus-tabs="page">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>__TITLE__ · DCA timing</title>
+  <meta name="description" content="One DCA timing rule: what it does, why, and how it did against plain DCA since 1928.">
+  <link rel="stylesheet" href="https://doruirimescu.github.io/nexus-design/nexus.css">
+  <script src="https://doruirimescu.github.io/nexus-design/nexus.js"></script>
+  <link rel="icon" href="https://doruirimescu.github.io/nexus-design/favicon.svg">
+  <style>/*__SHAPES_CSS__*/
+    .r-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 16px 0; }
+    .r-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; margin: 16px 0; }
+    .r-chart { height: 340px; }
+    .r-wide { height: 380px; }
+    .r-section { margin-top: 32px; }
+    .r-note { max-width: 80ch; }
+    .r-explain { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 16px 0; }
+    .r-explain .panel { padding: 16px 20px; }
+    .r-explain h3 { margin-top: 0; }
+    .r-nav { columns: 2; column-gap: 32px; }
+    .r-nav li { break-inside: avoid; margin: 2px 0; }
+    @media (max-width: 560px) { .r-grid { grid-template-columns: 1fr; } .r-nav { columns: 1; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../report.html"><span class="brand-mark">P</span>Perfect Shapes</a>
+      <nav class="nav">__NAV__</nav>
+    </div>
+  </header>
+  <main class="container">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <p class="lead" id="lead"></p>
+    <div class="r-kpis" id="kpis"></div>
+    <div class="r-explain">
+      <div class="panel"><h3>The rule, exactly</h3><p id="how"></p></div>
+      <div class="panel"><h3>Why anyone would expect it to work</h3><p id="idea"></p></div>
+      <div class="panel"><h3>What goes wrong</h3><p id="risk"></p></div>
+    </div>
+    <section class="r-section" id="fn_sec" hidden><h2>The function</h2>
+      <div class="panel" style="padding:16px 20px"><pre id="fn_formula" style="white-space:pre-wrap;margin:0"></pre></div>
+      <div class="r-grid">
+        <div class="panel chart-panel"><div class="chart-head" id="map_head"></div><div class="r-chart" id="c_map"></div></div>
+        <div><h3>Today, step by step</h3><div id="fn_now"></div></div>
+      </div>
+      <h3>Parameters</h3><div id="fn_params"></div>
+      <h3>Tested on eras it never saw (leave one era out)</h3><div id="fn_fit"></div>
+    </section>
+    <section class="r-section"><h2>The verdict</h2><p class="r-note" id="verdict"></p></section>
+    <section class="r-section"><h2>What it held</h2>
+      <p class="muted small r-note" id="held_note"></p>
+      <div class="panel chart-panel"><div class="chart-head" id="hold_head"></div><div class="r-wide" id="c_hold"></div></div>
+    </section>
+    <section class="r-section" id="growth_sec"><h2>Growth and falls, 1928 to today</h2>
+      <p class="muted small r-note">One account followed the rule from 1928 (the 1928-1961 S&amp;P history chained to 1962-2026). Values are time-weighted: the monthly payments are taken out, so the lines show what the rule did to each dollar, not how much was saved. "Plain DCA" is fully invested at all times, which is the S&amp;P 500 total return.</p>
+      <div class="r-kpis" id="whole"></div>
+      <div class="r-grid">
+        <div class="panel chart-panel"><div class="chart-head">Growth of $1 (log scale)</div><div class="r-chart" id="c_growth"></div></div>
+        <div class="panel chart-panel"><div class="chart-head">Fall from the previous peak</div><div class="r-chart" id="c_dd"></div></div>
+      </div>
+    </section>
+    <section class="r-section"><h2>Against plain DCA, every start month</h2>
+      <p class="muted small r-note" id="edge_note"></p>
+      <div class="r-grid">
+        <div class="panel chart-panel"><div class="chart-head">Edge of a 10-year account, by the month it was opened</div><div class="r-chart" id="c_edge"></div></div>
+        <div class="panel chart-panel" id="saver_panel"><div class="chart-head" id="saver_head"></div><div class="r-chart" id="c_saver"></div></div>
+      </div>
+      <div id="stats"></div>
+    </section>
+    <section class="r-section" id="crash_sec"><h2>In every big fall</h2>
+      <p class="muted small r-note">From the S&amp;P 500's peak to its trough, then the year after the trough. Account returns are time-weighted.</p>
+      <div id="crashes"></div>
+    </section>
+    <section class="r-section" id="decade_sec"><h2>By decade</h2><div id="decades"></div></section>
+    <section class="r-section"><h2>Every rule</h2><div id="nav"></div></section>
+  </main>
+  <footer class="footer"><div class="container">Backtest on daily closes: no taxes, a flat cost per trade, margin at the 10-year Treasury yield unless stated. Research tooling, not investment advice.</div></footer>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script>
+  (function () {
+    const D = __DATA__;
+    const $ = (id) => document.getElementById(id);
+    const pct = (x, d = 1) => (x == null || !isFinite(x) ? "–" : (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%");
+    const share = (x) => (x * 100).toFixed(0) + "%";
+    const pts = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1);
+    const usd = (x) => (x < 0 ? "−$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-US");
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const tbl = (head, rows) => `<div class="table-wrap"><table class="data ps"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>` +
+      rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`).join("") + `</tbody></table></div>`;
+    const kpi = (label, value, sub) => `<div class="panel kpi"><div class="label">${label}</div><div class="value sm">${value}</div><div class="sub">${sub}</div></div>`;
+    const X = D.kind === "exposure", S = D.stats, r10 = S.us10, e10 = S.early10;
+
+    $("eyebrow").textContent = D.combined ? "Combined strategy · a continuous function of the VIX, the margin rate, the Fed's rate and the trend · never sells" : X ? `Account-sized rule · ${D.sell ? "sells to reach its target" : "never sells: payments repay the debt"}` : "Six-payment rule · never sells";
+    $("title").textContent = D.name;
+    $("lead").textContent = (D.docs && D.docs.what) || "";
+    $("how").textContent = (D.docs && D.docs.how) || "";
+    $("idea").textContent = (D.docs && D.docs.idea) || "";
+    $("risk").textContent = (D.docs && D.docs.risk) || "";
+    $("verdict").textContent = D.verdict;
+
+    $("kpis").innerHTML = kpi("Beats DCA, 10-year accounts", share(r10.win), `${r10.n} start months since 1962`) +
+      kpi("Median edge", pct(r10.median), `worst ${pct(r10.worst)}, best ${pct(r10.best)}`) +
+      (X ? kpi("Deepest fall vs DCA's", `${pts(r10.dd_vs_dca)} <span class="faint small">points</span>`, `shallower in ${share(r10.dd_shallower)} of accounts`)
+         : kpi("Median extra", usd(r10.usd_median), `worst ${usd(r10.usd_worst)}`)) +
+      kpi("1928-1961, held out", e10 && e10.n ? share(e10.win) : "–", e10 && e10.n ? `median ${pct(e10.median)}, worst ${pct(e10.worst)}` : "") +
+      (X ? kpi("Average exposure", r10.avg_exposure.toFixed(2), `margin calls: ${r10.calls}`) : kpi("Time borrowing / holding", `${share(D.time.share_borrowed)} / ${share(D.time.share_holding)}`, "share of trading days since 1929"));
+
+    $("edge_note").textContent = X
+      ? "Edge = final wealth over plain DCA's, minus 1, for accounts opened every third month and run for the stated years. Fall = the account's deepest time-weighted fall minus plain DCA's over the same years: positive = shallower."
+      : "Edge = final wealth over plain DCA's, minus 1, for an account opened on every payment day and run for the stated years. Debt is capped at 25% of the account.";
+    if (X) {
+      const H = ["Accounts", "Beats DCA", "Median edge", "1 in 10 below", "Worst", "Best", "Fall vs DCA", "Worst fall vs DCA", "Shallower in", "Deepest fall", "Avg exposure", "Margin calls", "Traded / wealth"];
+      $("stats").innerHTML = tbl(["Setting"].concat(H), Object.keys(S).map((k) => { const r = S[k]; return [esc(r.label), r.n, share(r.win), pct(r.median), pct(r.p10), pct(r.worst), pct(r.best),
+        pts(r.dd_vs_dca), pts(r.dd_vs_dca_worst), share(r.dd_shallower), pct(r.dd_worst, 0), r.avg_exposure.toFixed(2), r.calls, r.turnover.toFixed(1) + "x"]; }));
+      const W = D.whole;
+      $("whole").innerHTML = kpi("Growth a year, 1928-today", pct(W.cagr), `plain DCA ${pct(W.cagr_dca)}`) +
+        kpi("Deepest fall", `<span class="neg">${pct(W.max_dd, 0)}</span>`, `plain DCA ${pct(W.max_dd_dca, 0)}`) +
+        kpi("Time borrowed / in cash", `${share(W.share_borrowed)} / ${share(W.share_cash)}`, `${W.switches_per_year.toFixed(1)} target changes a year`) +
+        kpi("Margin calls", W.calls, W.wiped ? '<span class="neg">the account was wiped out</span>' : "over 98 years");
+      $("crashes").innerHTML = tbl(["Fall", "Peak → trough", "S&P 500", "Plain DCA", "This rule", "Difference", "Exposure at peak", "Avg exposure in the fall", "Year after: plain DCA", "Year after: this rule"],
+        D.crashes.map((c) => [esc(c.name), `${c.peak} → ${c.trough}`, pct(c.index_fall, 0), pct(c.fall_dca, 0), pct(c.fall, 0),
+          `<span class="${c.fall - c.fall_dca < 0 ? "neg" : ""}">${pts(c.fall - c.fall_dca)}</span>`, c.exposure_at_peak.toFixed(2), c.avg_exposure.toFixed(2), pct(c.year_after_dca, 0), pct(c.year_after, 0)]));
+      $("decades").innerHTML = tbl(["Decade", "Plain DCA a year", "This rule a year", "Difference", "Avg exposure", "Deepest fall: DCA", "Deepest fall: rule"],
+        D.decades.map((d) => [d.decade, pct(d.cagr_dca), pct(d.cagr), pts(d.cagr - d.cagr_dca), d.avg_exposure.toFixed(2), pct(d.max_dd_dca, 0), pct(d.max_dd, 0)]));
+      $("held_note").textContent = "Top: the S&P 500 (log scale) with its 200-day average. Bottom: the exposure the rule asked for, averaged over about a month (1 = plain DCA; above 1 = borrowed, below 1 = part in cash). A rule that flips often shows as an average between its two levels.";
+      $("hold_head").textContent = "S&P 500 and the rule's target exposure, 1928 to today";
+      $("saver_panel").style.display = "none";
+    } else {
+      const H = ["Accounts", "Beats DCA", "Median edge", "1 in 10 below", "Worst", "Best", "Median extra", "Worst extra", "Avg interest paid", "Margin calls"];
+      $("stats").innerHTML = tbl(["Setting"].concat(H), Object.keys(S).map((k) => { const r = S[k]; return [esc(r.label), r.n, share(r.win), pct(r.median, 2), pct(r.p10, 2), pct(r.worst, 2), pct(r.best, 2),
+        usd(r.usd_median), usd(r.usd_worst), usd(r.interest), r.calls]; }));
+      ["growth_sec", "crash_sec", "decade_sec"].forEach((id) => { $(id).style.display = "none"; });
+      $("held_note").textContent = "Top: the S&P 500 (log scale) with its 200-day average. Bottom: the rule's target in payments, averaged over about a month: negative = payments borrowed ahead, positive = payments held in cash.";
+      $("hold_head").textContent = "S&P 500 and the rule's target (payments), 1928 to today";
+      $("saver_head").textContent = `A saver from ${D.saver.start.slice(0, 7)}: dollars ahead of plain DCA, and the cash balance (negative = debt)`;
+    }
+    if (D.combined) {
+      const K = D.combined, N = K.now;
+      $("fn_sec").hidden = false;
+      $("fn_formula").textContent = K.formula;
+      const r = (x) => (x * 100).toFixed(2) + "%";
+      $("fn_now").innerHTML = tbl(["Input / step", "Value"], [
+        ["Signals of the close of", N.date], ["S&P 500 vs its 200-day average", pct(N.trend)], ["VIX", N.vix.toFixed(1)],
+        ["10-year yield (the margin rate)", N.y10.toFixed(2) + "%"], ["3-month bill (the Fed's rate)", N.y3m.toFixed(2) + "%"],
+        ["10-year yield, change over 6 months", (N.y10_chg >= 0 ? "+" : "") + N.y10_chg.toFixed(2) + " points"],
+        ["Expected S&P 500 return a year (mu)", r(N.mu)], ["Volatility (sigma, from the VIX)", r(N.sigma)],
+        ["Borrow side E_b", N.e_b.toFixed(2)], ["Cash side E_l", N.e_l.toFixed(2)],
+        ["<strong>Target exposure</strong>", `<strong>${N.target.toFixed(2)}</strong>`]]);
+      $("fn_params").innerHTML = tbl(["Parameter", "Value", "Meaning"], K.params.map((x) => [esc(x[0]), esc(x[1]), esc(x[2])]));
+      $("fn_fit").innerHTML = tbl(K.cv.head, K.cv.rows.map((row) => row.map(esc))) +
+        '<p class="muted small r-note">Each cell: beats plain DCA in · median edge · worst account · median fall against plain DCA (points; + = shallower). The trend rules run with the same debt and cash caps.</p>' +
+        (K.attempts && K.attempts.length ? '<h3>Earlier fits that did not survive the test</h3>' + tbl(["Attempt", "Fitted on 1962-1999", "Tested on 2000-today", "Tested on 1928-1961", "What went wrong"],
+          K.attempts.map((x) => [esc(x.name), esc(x.train), esc(x.test), esc(x.early), esc(x.why)])) : "");
+      $("map_head").textContent = `Exposure the function asks for, by VIX and distance from the 200-day average (10-year ${N.y10.toFixed(2)}%, bill ${N.y3m.toFixed(2)}%, no rate rise; x = today, whose rate rise of ${N.y10_chg.toFixed(2)} points lowers it further)`;
+    }
+    const groups = { combined: "Combined strategy", exposure: "Account-sized rules", payments: "Six-payment rules" };
+    $("nav").innerHTML = Object.keys(groups).map((g) => `<h3>${groups[g]}</h3><ul class="r-nav">` +
+      D.nav.filter((n) => n.kind === g).map((n) => n.name === D.name ? `<li><strong>${esc(n.name)}</strong></li>` : `<li><a href="${esc(n.href)}">${esc(n.name)}</a></li>`).join("") + `</ul>`).join("") +
+      `<p><a href="../report.html">← Back to the DCA report</a></p>`;
+
+    function draw() {
+      const ids = ["c_hold", "c_growth", "c_dd", "c_edge", "c_saver", "c_map"];
+      if (!window.Plotly || !window.Nexus) { ids.forEach((id) => { $(id).innerHTML = '<div class="empty-state small">charts need Plotly + nexus.js (offline?)</div>'; }); return; }
+      const C = window.Nexus.colors, cfg = Object.assign({}, window.Nexus.plotlyConfig, { displayModeBar: false });
+      const L = (o) => window.Nexus.plotlyLayout(Object.assign({ margin: { l: 60, r: 60, t: 8, b: 30 }, hovermode: "x unified", legend: { orientation: "h", y: 1.12 } }, o));
+      const s = D.series;
+      // the target flips often: show its average over about a month (5 weekly samples) in a strip under the price
+      const avgT = s.target.map((_, i) => { const a = s.target.slice(Math.max(0, i - 4), i + 1); return a.reduce((p, q) => p + q, 0) / a.length; });
+      const base = X ? 1 : 0;
+      window.Plotly.react("c_hold", [
+        { x: s.dates, y: s.px, mode: "lines", name: "S&P 500", line: { color: C.neutral, width: 1.2 } },
+        { x: s.dates, y: s.avg, mode: "lines", name: "200-day average", line: { color: C.series2, width: 1, dash: "dot" } },
+        { x: s.dates, y: s.dates.map(() => base), mode: "lines", yaxis: "y2", line: { width: 0, color: C.neutral }, hoverinfo: "skip", showlegend: false },
+        { x: s.dates, y: avgT, mode: "lines", name: X ? "Target exposure (monthly average)" : "Target in payments (monthly average)", yaxis: "y2",
+          fill: "tonexty", fillcolor: window.Nexus.rgba(C.accent, 0.35), line: { color: C.accent, width: 1 } }],
+        L({ yaxis: { type: "log", title: { text: "S&P 500" }, domain: [0.34, 1] },
+            yaxis2: { domain: [0, 0.26], title: { text: X ? "exposure" : "payments" }, zeroline: true, tickformat: X ? ".2f" : ".0f" },
+            margin: { l: 60, r: 16, t: 8, b: 30 } }), cfg);
+      if (X) {
+        window.Plotly.react("c_growth", [
+          { x: s.dates, y: s.unit_dca, mode: "lines", name: "Plain DCA", line: { color: C.neutral, width: 1.2 } },
+          { x: s.dates, y: s.unit, mode: "lines", name: "This rule", line: { color: C.accent, width: 1.6 } }],
+          L({ yaxis: { type: "log", tickformat: ",.0f" }, margin: { l: 70, r: 12, t: 8, b: 30 } }), cfg);
+        window.Plotly.react("c_dd", [
+          { x: s.dates, y: s.dd_dca, mode: "lines", name: "Plain DCA", line: { color: C.neutral, width: 1 }, fill: "tozeroy", fillcolor: window.Nexus.rgba(C.neutral, 0.15) },
+          { x: s.dates, y: s.dd, mode: "lines", name: "This rule", line: { color: C.accent, width: 1.4 } }],
+          L({ yaxis: { tickformat: ".0%" }, margin: { l: 56, r: 12, t: 8, b: 30 } }), cfg);
+      } else {
+        const v = D.saver;
+        window.Plotly.react("c_saver", [
+          { x: v.dates, y: v.extra, mode: "lines", name: "Ahead of DCA ($)", line: { color: C.accent, width: 1.8 } },
+          { x: v.dates, y: v.cash, mode: "lines", name: "Cash (negative = debt)", yaxis: "y2", line: { color: C.highlight, width: 1 } }],
+          L({ yaxis: { tickformat: "$,.0f" }, yaxis2: { overlaying: "y", side: "right", tickformat: "$,.0f", showgrid: false }, margin: { l: 70, r: 70, t: 8, b: 30 } }), cfg);
+      }
+      if (D.combined) {
+        const Mp = D.combined.map, N = D.combined.now;
+        window.Plotly.react("c_map", [
+          { x: Mp.vix, y: Mp.dist, z: Mp.z, type: "heatmap", zmin: 0, zmax: 2, zsmooth: "best", colorscale: [[0, window.Nexus.rgba(C.negative, 0.9)], [0.5, window.Nexus.rgba(C.neutral, 0.25)], [1, C.accent]],
+            colorbar: { title: { text: "exposure" } }, hovertemplate: "VIX %{x}<br>vs average %{y:+.0%}<br>exposure %{z:.2f}<extra></extra>" },
+          { x: [N.vix], y: [Math.max(-0.2, Math.min(0.2, N.trend))], mode: "markers", name: "today", marker: { size: 12, color: C.text, symbol: "x" } }],
+          L({ hovermode: "closest", showlegend: false, xaxis: { title: { text: "VIX" } }, yaxis: { title: { text: "S&P 500 vs 200-day average" }, tickformat: "+.0%" }, margin: { l: 64, r: 12, t: 8, b: 46 } }), cfg);
+      }
+      const E = D.edges;
+      window.Plotly.react("c_edge", [
+        { x: E.early10.dates, y: E.early10.edge, mode: "lines", name: "1928-1961", line: { color: C.series2, width: 1.4 } },
+        { x: E.us10.dates, y: E.us10.edge, mode: "lines", name: "1962 to today", line: { color: C.accent, width: 1.8 } }],
+        L({ yaxis: { tickformat: "+.0%", zeroline: true }, margin: { l: 56, r: 12, t: 8, b: 30 } }), cfg);
+    }
+    draw();
+  })();
+  </script>
+</body>
+</html>

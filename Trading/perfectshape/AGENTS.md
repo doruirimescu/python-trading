@@ -7,5 +7,9 @@ system (live nexus.css / nexus.js, see the nexus-style skill): layout-only CSS, 
 reads web/ files on every request, so front-end edits need only a browser refresh; Python edits need a restart, which
 ends a running scan. Scan hooks: pipeline.ScanControl.
 Standalone package: no imports from Trading.*, mrscore or tradelab. Do not commit runs/, data_cache/ or analyses/.
+DCA (`src/perfectshape/dca/`, `mise run dca` / `dca-report`, README "DCA"): timing a monthly saver's payments into the
+S&P 500 against plain DCA (account.py simulator, policy.py, strategy.py = the rules, exposure.py / rules.py / frontier.py = borrowing sized against the account, scored on
+edge and drawdown, report.py + web/dca.html); policies
+must keep `tests/test_dca.py::test_policies_use_yesterday_and_nothing_later` passing. Scripts: research/dca/.
 Research (not part of the package, needs scikit-learn): research/robust_ranges/ = the forward test of lagged
 scans behind scoring.range_robust (study, end-to-end replay, trend replay; README there).
